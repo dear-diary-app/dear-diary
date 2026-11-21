@@ -5,6 +5,7 @@ import { PersonId, publishWaitMs, schedule } from './model';
 import { useNow } from './ui';
 import { Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
 import grain from './photos/grain.png';
+import { OfflineNotice } from './pwa';
 
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
     const auth = useAuth();
@@ -89,8 +90,11 @@ function Shell() {
 
 export function App() {
     return (
-        <AuthProvider>
-            <Shell />
-        </AuthProvider>
+        <>
+            <OfflineNotice />
+            <AuthProvider>
+                <Shell />
+            </AuthProvider>
+        </>
     );
 }
