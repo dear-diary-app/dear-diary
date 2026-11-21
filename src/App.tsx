@@ -47,6 +47,9 @@ function PinRoute() {
 function Shell() {
     const auth = useAuth();
     const [live, setLive] = React.useState(false);
+    React.useEffect(() => {
+        document.title = auth.session && auth.me ? 'Dear Diary - Joydeep & Aruba' : 'Dear Diary';
+    }, [auth.session, auth.me]);
     React.useEffect(() => setLive(true), []);
 
     if (!auth.ready) {

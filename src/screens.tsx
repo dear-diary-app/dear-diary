@@ -73,7 +73,6 @@ export function Login() {
                     </button>
                     <button type="button" className="dd-linklike" onClick={forgot}>Forgot password?</button>
                 </form>
-                <p className="dd-foot-heart">Dear Diary <Heart size={12} /> Joydeep &amp; Aruba</p>
             </div>
         </main>
     );
