@@ -475,3 +475,22 @@ body { background: var(--ds-page); }
 html, body { overflow-x: clip; }
 
 .dd-sticker-handle { position:absolute; width:28px; height:28px; border:1px solid #a4866b; border-radius:50%; padding:0; color:#796653; background:#fffaf1; box-shadow:0 2px 5px #715c4d22; cursor:nwse-resize; touch-action:none; z-index:2; font-size:17px; line-height:26px; }
+
+/* One shared paper geometry for editing and published reading. */
+.dd-journal .dd-sticker-toolbar { padding-inline:4px; }
+.dd-journal .dd-sticker-toolbar p { font-size:11px; max-width:220px; }
+.dd-journal .dd-sticker-tray { margin-bottom:10px; border:1px solid #e2d8c7; border-radius:14px; }
+.dd-journal-paper { position:relative; container-type:inline-size; }
+.dd-page-text,.dd-page-input { display:block; box-sizing:border-box; width:100%; margin:0; border:0; padding:24px 26px; min-height:420px; font-family:var(--ds-font-text); font-size:16.5px; font-weight:400; letter-spacing:normal; line-height:31px; color:#54434a; white-space:pre-wrap; overflow-wrap:anywhere; word-break:normal; background:repeating-linear-gradient(#fffdf8 0 30px,#eee1d6 30px 31px); }
+.dd-page-text.is-mirror { visibility:hidden; }
+.dd-page-input { position:absolute; inset:0; height:100%; resize:none; outline:none; overflow:hidden; background:transparent; }
+.dd-journal-paper:has(.dd-page-input) { background:repeating-linear-gradient(#fffdf8 0 30px,#eee1d6 30px 31px); }
+.dd-sticker-overlay { position:absolute; inset:0; pointer-events:none; }
+.dd-sticker-overlay .dd-placed-sticker { pointer-events:auto; }
+.dd-sticker-overlay .dd-placed-sticker:disabled { pointer-events:none; }
+.dd-sticker-overlay .dd-sticker-handle { pointer-events:auto; }
+.dd-sticker-controls label { flex:1 1 100%; }
+.dd-sticker-controls input { min-height:32px; }
+.dd-sticker-controls output { min-width:35px; text-align:right; }
+.dd-sticker-actions { display:flex; gap:8px; width:100%; justify-content:flex-end; }
+.dd-page-text,.dd-page-input { min-height:max(420px,116cqw); }
