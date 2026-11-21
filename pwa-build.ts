@@ -23,7 +23,13 @@ const STATIC = new Set(FILES);
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    await cache.addAll(FILES.map(url => new Request(url, {cache:'reload', credentials:'omit'})));
+    await Promise.all(FILES.map(async path => {
+      const url = new URL(path, self.location.origin);
+      url.searchParams.set('__shell', '${version}');
+      const response = await fetch(url, {cache:'reload', credentials:'omit'});
+      if (!response.ok) throw new Error('Public shell download failed');
+      await cache.put(path, response);
+    }));
     await self.skipWaiting();
   })());
 });
@@ -44,7 +50,9 @@ self.addEventListener('fetch', event => {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 4000);
       try {
-        const online = await fetch(req, {cache:'no-store', signal:controller.signal});
+        const fresh = new URL(req.url);
+        fresh.searchParams.set('__shell', String(Date.now()));
+        const online = await fetch(fresh, {cache:'no-store', credentials:'omit', signal:controller.signal});
         if (online.ok) return online;
         const fallback = await caches.match(BASE + 'index.html', {cacheName:CACHE});
         return fallback || online;
