@@ -41,11 +41,18 @@ export function ThemeFrame({ className, children }: { className: string; childre
     const palette = PALETTES.find(p => p.id === theme)!;
     useEffect(() => {
         const meta = document.querySelector('meta[name="theme-color"]');
-        meta?.setAttribute('content', palette.top);
-        document.body.style.backgroundColor = palette.bottom;
-        document.documentElement.style.backgroundColor = palette.top;
-        document.documentElement.style.colorScheme = theme === 'midnight' ? 'dark' : 'light';
-        return () => { meta?.setAttribute('content', '#fdf9f4'); document.body.style.backgroundColor = ''; document.documentElement.style.backgroundColor = ''; document.documentElement.style.colorScheme = ''; };
+        // Android may use this for its bottom system bar as well as browser chrome.
+        meta?.setAttribute('content', palette.bottom);
+        const html = document.documentElement;
+        html.style.setProperty('--dd-canvas', palette.bottom);
+        html.style.setProperty('--dd-colour-scheme', theme === 'midnight' ? 'dark' : 'light');
+        html.dataset.diaryTheme = theme;
+        return () => {
+            meta?.setAttribute('content', '#fdf9f4');
+            html.style.removeProperty('--dd-canvas');
+            html.style.removeProperty('--dd-colour-scheme');
+            delete html.dataset.diaryTheme;
+        };
     }, [palette]);
     const choose = async (id: ThemeId) => {
         if (busy) return;

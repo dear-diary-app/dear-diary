@@ -712,3 +712,12 @@ html { background:#fdf9f4; }
     -webkit-backdrop-filter:none; backdrop-filter:none;
     border-radius:50%;
 }
+
+/* Paint the document canvas too: transparent Android/iOS gesture regions,
+   overscroll and space below the floating dock must never expose kit white. */
+html, body, #root {
+    background-color:var(--dd-canvas,#fdf9f4);
+    color-scheme:var(--dd-colour-scheme,light);
+}
+body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
+.dd-with-nav { padding-bottom:calc(92px + env(safe-area-inset-bottom,0px)); }
