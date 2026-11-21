@@ -704,7 +704,7 @@ html { background:#fdf9f4; }
 /* Mobile browsers must not paint their rectangular tap overlay over round PIN keys.
    The existing gradient/inset edge provides the glass finish without a square
    backdrop-filter compositing layer. Keep the outer circular glow unclipped. */
-.dd-app .dd-key.dd-key {
+.dd-app.dd-app .dd-key.dd-key.dd-key {
     -webkit-tap-highlight-color:transparent;
     -webkit-appearance:none; appearance:none;
     -webkit-user-select:none; user-select:none;
