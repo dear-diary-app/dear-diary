@@ -150,7 +150,7 @@ export function Pin({ person }: { person: PersonId }) {
     const store = useStore();
     const auth = useAuth();
     const { go, portal } = useGo();
-    const [stage, setStage] = useState<'enter' | 'create' | 'confirm' | 'owner'>('enter');
+    const [stage, setStage] = useState<'checking' | 'unavailable' | 'enter' | 'create' | 'confirm' | 'owner'>('checking');
     const [pin, setPin] = useState('');
     const [firstPin, setFirstPin] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -158,13 +158,21 @@ export function Pin({ person }: { person: PersonId }) {
     const [busy, setBusy] = useState(false);
     const checked = useRef(false);
 
+    const checkStatus = async () => {
+        setStage('checking');
+        try {
+            const st = await pinStatus(person);
+            setStage(st.unavailable ? 'unavailable' : st.hasPin ? 'enter' : person === auth.me ? 'create' : 'owner');
+        } catch { setStage('unavailable'); }
+    };
+
     useEffect(() => {
         if (isUnlocked(person)) { go(`/hub/${person}`, 10); return; }
         // If this diary has no PIN yet, only its owner can create one.
         // Status check is not a PIN attempt, so it never counts toward lockout.
         if (checked.current) return;
         checked.current = true;
-        pinStatus(person).then(st => { if (!st.hasPin) setStage(person === auth.me ? 'create' : 'owner'); });
+        void checkStatus();
     }, [person]);
 
     const finish = () => {
@@ -174,7 +182,7 @@ export function Pin({ person }: { person: PersonId }) {
     };
 
     const press = async (k: string) => {
-        if (ok || busy) return;
+        if (ok || busy || stage === 'checking' || stage === 'unavailable' || stage === 'owner') return;
         if (k === 'del') { setPin(v => v.slice(0, -1)); setError(null); return; }
         if (!k) return;
         const next = pin + k;
@@ -219,7 +227,9 @@ export function Pin({ person }: { person: PersonId }) {
                 <span className={`dd-avatar dd-avatar-lg dd-av-${store.avatars[person]}`}>{p.initial}</span>
                 <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
                 <p className="dd-sub">
-                    {stage === 'enter' ? `Enter ${p.name}'s 4-digit PIN to open this diary`
+                    {stage === 'checking' ? 'Checking this diary...'
+                        : stage === 'unavailable' ? 'Could not check this diary. Please try again.'
+                        : stage === 'enter' ? `Enter ${p.name}'s 4-digit PIN to open this diary`
                         : stage === 'create' ? 'First time here - choose your 4-digit PIN'
                         : stage === 'confirm' ? 'Once more, to confirm your PIN'
                         : `This diary is private - only ${p.name} can set its PIN and open it`}
@@ -230,7 +240,7 @@ export function Pin({ person }: { person: PersonId }) {
                         <span className="dd-publish-wait-note">Today's pages publish at 10:00 PM IST. PIN still required.</span>
                     </div>
                 )}
-                {stage !== 'owner' && (<>
+                {(stage === 'enter' || stage === 'create' || stage === 'confirm') && (<>
                 <div className={`dd-pin-dots${error ? ' is-error' : ''}${ok ? ' is-ok' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>
                     {[0, 1, 2, 3].map(i => (
                         <span key={i} className={`dd-pin-dot${i < pin.length ? ' is-filled' : ''}`}>
@@ -252,6 +262,7 @@ export function Pin({ person }: { person: PersonId }) {
                         ))}
                 </div>
                 </>)}
+                {stage === 'unavailable' && <button type="button" className="dd-btn dd-btn-primary" onClick={() => void checkStatus()}>Try again</button>}
                 {stage === 'owner' && (
                     <p className="dd-pin-msg">
                         Ask {p.name} to unlock it on this device, or go back to your own diary.
