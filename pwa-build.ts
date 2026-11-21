@@ -41,14 +41,16 @@ self.addEventListener('fetch', event => {
   if (req.method !== 'GET' || url.origin !== self.location.origin || url.search) return;
   if (req.mode === 'navigate' && (url.pathname === BASE || url.pathname === BASE + 'index.html')) {
     event.respondWith((async () => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
       try {
-        const online = await fetch(req, {cache:'no-store'});
+        const online = await fetch(req, {cache:'no-store', signal:controller.signal});
         if (online.ok) return online;
         const fallback = await caches.match(BASE + 'index.html', {cacheName:CACHE});
         return fallback || online;
       } catch {
         return (await caches.match(BASE + 'index.html', {cacheName:CACHE})) || Response.error();
-      }
+      } finally { clearTimeout(timeout); }
     })());
     return;
   }
