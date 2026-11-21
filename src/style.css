@@ -440,3 +440,6 @@ body { background: var(--ds-page); }
 .dd-crop-actions .dd-btn { min-height: 44px; padding: 11px 20px; font-size: 14px; }
 .dd-crop-frame[aria-busy=true] { pointer-events: none; }
 @media (max-width: 480px) { .dd-crop-dialog { padding: 18px; } }
+
+.dd-publish-only { padding-top: 90px; }
+.dd-publish-only .dd-publish-wait { margin-top: 20px; }

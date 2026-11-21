@@ -158,6 +158,7 @@ export function Pin({ person }: { person: PersonId }) {
     const [ok, setOk] = useState(false);
     const [busy, setBusy] = useState(false);
     const checked = useRef(false);
+    const waitingForPublish = person !== auth.me && waitMs !== null;
 
     const checkStatus = async () => {
         setStage('checking');
@@ -168,13 +169,14 @@ export function Pin({ person }: { person: PersonId }) {
     };
 
     useEffect(() => {
+        if (waitingForPublish) return;
         if (isUnlocked(person)) { go(`/hub/${person}`, 10); return; }
         // If this diary has no PIN yet, only its owner can create one.
         // Status check is not a PIN attempt, so it never counts toward lockout.
         if (checked.current) return;
         checked.current = true;
         void checkStatus();
-    }, [person]);
+    }, [person, waitingForPublish]);
 
     const finish = () => {
         setOk(true);
@@ -184,7 +186,7 @@ export function Pin({ person }: { person: PersonId }) {
 
     const submitting = useRef(false);
     const submitPin = async (value = pin) => {
-        if (submitting.current || busy || !/^\d{4}$/.test(value)) return;
+        if (waitingForPublish || submitting.current || busy || !/^\d{4}$/.test(value)) return;
         if (stage === 'create') {
             setFirstPin(value); setPin(''); setError(null); setStage('confirm');
             return;
@@ -207,7 +209,7 @@ export function Pin({ person }: { person: PersonId }) {
     };
 
     const press = (k: string) => {
-        if (ok || busy || submitting.current || !['enter', 'create', 'confirm'].includes(stage)) return;
+        if (waitingForPublish || ok || busy || submitting.current || !['enter', 'create', 'confirm'].includes(stage)) return;
         if (k === 'del') { setPin(v => v.slice(0, -1)); setError(null); return; }
         if (!/^\d$/.test(k) || pin.length >= 4) return;
         const next = pin + k;
@@ -215,6 +217,18 @@ export function Pin({ person }: { person: PersonId }) {
         // Setup never changes step on a digit tap. The user explicitly continues.
         if (stage === 'enter' && next.length === 4) void submitPin(next);
     };
+
+    if (waitingForPublish) return (
+        <main className="dd-shell dd-shell-narrow">
+            <TopBar back="/" backLabel="Back to the books" />
+            <div className="dd-anim dd-pin dd-publish-only">
+                <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
+                <div className="dd-publish-wait" role="timer" aria-label="Time until this diary opens at 10 PM IST">
+                    <span className="dd-publish-wait-time"><Clock size={16} /> Opens in {fmtCountdown(waitMs)}</span>
+                </div>
+            </div>
+        </main>
+    );
 
     return (
         <main className="dd-shell dd-shell-narrow">
@@ -230,12 +244,6 @@ export function Pin({ person }: { person: PersonId }) {
                         : stage === 'confirm' ? 'Once more, to confirm your PIN'
                         : `This diary is private - only ${p.name} can set its PIN and open it`}
                 </p>
-                {person !== auth.me && waitMs !== null && (
-                    <div className="dd-publish-wait" role="timer" aria-label="Time until today's pages publish">
-                        <span className="dd-publish-wait-time"><Clock size={16} /> Opens in {fmtCountdown(waitMs)}</span>
-                        <span className="dd-publish-wait-note">Today's pages publish at 10:00 PM IST. PIN still required.</span>
-                    </div>
-                )}
                 {(stage === 'enter' || stage === 'create' || stage === 'confirm') && (<>
                 <div className={`dd-pin-dots${error ? ' is-error' : ''}${ok ? ' is-ok' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>
                     {[0, 1, 2, 3].map(i => (

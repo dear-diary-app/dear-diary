@@ -1,12 +1,15 @@
 import React from 'react';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, StoreProvider, isUnlocked, useAuth } from './store';
-import { PersonId } from './model';
+import { PersonId, publishWaitMs } from './model';
+import { useNow } from './ui';
 import { Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
 import grain from './photos/grain.png';
 
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
-    if (!isUnlocked(person)) return <Navigate to={`/pin/${person}`} replace />;
+    const auth = useAuth();
+    const now = useNow(1000);
+    if ((person !== auth.me && publishWaitMs(now) !== null) || !isUnlocked(person)) return <Navigate to={`/pin/${person}`} replace />;
     return <>{children}</>;
 }
 
