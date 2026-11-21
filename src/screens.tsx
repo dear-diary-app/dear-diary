@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import {
-    Entry, PEOPLE, PersonId, EMOJIS, ekey, fmtCountdown, fmtDateLong, fmtDateShort,
+    Entry, PEOPLE, PersonId, EMOJIS, ekey, fmtCountdown, fmtPublishCountdown, fmtDateLong, fmtDateShort,
     isReadable, istClock, istParts, latestReadable, otherId, personById, publishWaitMs, schedule, todayKey,
 } from './model';
 import { Avatar, Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, useNow } from './ui';
@@ -229,7 +229,7 @@ export function Pin({ person }: { person: PersonId }) {
                 <Avatar person={p} size="lg" />
                 <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
                 <div className="dd-publish-wait" role="timer" aria-label="Time until this diary opens at 10 PM IST">
-                    <span className="dd-publish-wait-time"><Clock size={16} /> Opens in {fmtCountdown(waitMs ?? 0)}</span>
+                    <span className="dd-publish-wait-time"><Clock size={16} /> Opens in {fmtPublishCountdown(waitMs ?? 0)}</span>
                     <span className="dd-publish-wait-note">Today's pages publish at 10:00 PM IST. When the timer ends, the diary opens. No PIN needed.</span>
                 </div>
             </div>
