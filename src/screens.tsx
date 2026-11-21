@@ -81,6 +81,7 @@ export function Login() {
 
 export function Home() {
     const store = useStore();
+    const auth = useAuth();
     const now = useNow(1000);
     const { go, portal } = useGo();
     const [welcome, setWelcome] = useState(() => {
@@ -107,7 +108,7 @@ export function Home() {
             )}
             <div className="dd-anim" key="home">
                 <section className="dd-books" aria-label="Your two diary books">
-                    {PEOPLE.map(p => (
+                    {[...PEOPLE].sort((a, b) => (a.id === auth.me ? -1 : b.id === auth.me ? 1 : 0)).map(p => (
                         <div key={p.id} className="dd-book-col">
                             <Book person={p} avatar={store.avatars[p.id]}
                                 unread={store.unreadLatest(otherId(p.id), now)}
