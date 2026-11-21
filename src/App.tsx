@@ -8,6 +8,7 @@ import grain from './photos/grain.png';
 import { OfflineNotice } from './pwa';
 import { BottomNav } from './BottomNav';
 import { ThemeFrame } from './Themes';
+import { PageSlide } from './PageSlide';
 
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
     const auth = useAuth();
@@ -78,7 +79,7 @@ function Shell() {
                 <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
                 <AppEntryGate>
                 <div className="dd-with-nav">
-                <Routes>
+                <PageSlide>{location => <Routes location={location}>
                     <Route path="/" element={<Home />} />
                     <Route path="/pin/:person" element={<PinRoute />} />
                     <Route path="/published/:person" element={<PublishedRoute />} />
@@ -92,7 +93,7 @@ function Shell() {
                     <Route path="/settings/pin" element={<ChangePin />} />
                     <Route path="/notifications" element={<Notifications />} />
                     <Route path="*" element={<Home />} />
-                </Routes>
+                </Routes>}</PageSlide>
                 <BottomNav />
                 </div>
                 </AppEntryGate>

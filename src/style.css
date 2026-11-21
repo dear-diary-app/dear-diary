@@ -721,3 +721,38 @@ html, body, #root {
 }
 body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 .dd-with-nav { padding-bottom:calc(92px + env(safe-area-inset-bottom,0px)); }
+
+/* Standard page push. Only route snapshots move; the dock stays live and fixed. */
+:root { view-transition-name:none; }
+.dd-route-page { display:flow-root; view-transition-name:diary-page; }
+.dd-live .dd-route-page .dd-anim { animation:none; }
+::view-transition-group(diary-page) { animation-duration:240ms; animation-timing-function:cubic-bezier(.22,.61,.36,1); }
+::view-transition-old(diary-page), ::view-transition-new(diary-page) {
+    animation-duration:240ms; animation-timing-function:cubic-bezier(.22,.61,.36,1);
+    mix-blend-mode:normal; height:100%; object-fit:cover; object-position:top;
+}
+::view-transition-old(diary-page) { animation-name:dd-slide-out-left; }
+::view-transition-new(diary-page) { animation-name:dd-slide-in-right; }
+:root[data-page-slide="back"]::view-transition-old(diary-page) { animation-name:dd-slide-out-right; }
+:root[data-page-slide="back"]::view-transition-new(diary-page) { animation-name:dd-slide-in-left; }
+@keyframes dd-slide-in-right { from { transform:translateX(100%); } to { transform:translateX(0); } }
+@keyframes dd-slide-out-left { from { transform:translateX(0); } to { transform:translateX(-100%); } }
+@keyframes dd-slide-in-left { from { transform:translateX(-100%); } to { transform:translateX(0); } }
+@keyframes dd-slide-out-right { from { transform:translateX(0); } to { transform:translateX(100%); } }
+/* Older browsers still get a small horizontal entry instead of the old 3D turn. */
+@supports not (view-transition-name:diary-page) {
+    .dd-live .dd-route-page .dd-anim { animation:dd-page-enter 220ms ease-out both; }
+}
+@keyframes dd-page-enter { from { opacity:.7; transform:translateX(24px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion:reduce) {
+    .dd-live .dd-route-page .dd-anim { animation:none; }
+    ::view-transition-group(diary-page),::view-transition-old(diary-page),::view-transition-new(diary-page) { animation:none; }
+}
+/* Keep unequal page lengths at their own scale, and keep the dock above slides. */
+.dd-route-page { background:linear-gradient(180deg,var(--dd-bg-top,#fdf9f4),var(--dd-bg-mid,#faf3ee) 60%,var(--dd-bg-bottom,#f7efe9)); min-height:calc(100dvh - 92px - env(safe-area-inset-bottom,0px)); }
+.dd-bottom-nav { view-transition-name:diary-dock; }
+::view-transition-group(diary-page) { animation-name:none; overflow:clip; max-height:100dvh; }
+::view-transition-old(diary-page),::view-transition-new(diary-page) { height:auto; width:100%; object-fit:contain; }
+::view-transition-group(diary-dock) { z-index:100; animation:none; }
+::view-transition-old(diary-dock) { display:none; }
+::view-transition-new(diary-dock) { animation:none; }
