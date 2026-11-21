@@ -9,6 +9,7 @@ const PALETTES = [
     { id: 'lavender', name: 'Lavender', note: 'A quiet lilac', top: '#f7f3ff', mid: '#eee8f8', bottom: '#e6def2', glass: '247, 243, 255' },
     { id: 'sage', name: 'Sage leaf', note: 'A little calm', top: '#f2f7ef', mid: '#e8f0e3', bottom: '#dfe9d9', glass: '242, 247, 239' },
     { id: 'sky', name: 'Morning sky', note: 'Pale blue', top: '#f1f7fc', mid: '#e5eff8', bottom: '#dbe7f3', glass: '241, 247, 252' },
+    { id: 'midnight', name: 'Midnight', note: 'A softer dark', top: '#101013', mid: '#17141a', bottom: '#1c171d', glass: '30, 25, 32' },
 ] as const;
 type ThemeId = typeof PALETTES[number]['id'];
 const valid = (id: unknown): ThemeId => PALETTES.some(p => p.id === id) ? id as ThemeId : 'paper';
@@ -42,7 +43,9 @@ export function ThemeFrame({ className, children }: { className: string; childre
         const meta = document.querySelector('meta[name="theme-color"]');
         meta?.setAttribute('content', palette.top);
         document.body.style.backgroundColor = palette.bottom;
-        return () => { meta?.setAttribute('content', '#fdf9f4'); document.body.style.backgroundColor = ''; };
+        document.documentElement.style.backgroundColor = palette.top;
+        document.documentElement.style.colorScheme = theme === 'midnight' ? 'dark' : 'light';
+        return () => { meta?.setAttribute('content', '#fdf9f4'); document.body.style.backgroundColor = ''; document.documentElement.style.backgroundColor = ''; document.documentElement.style.colorScheme = ''; };
     }, [palette]);
     const choose = async (id: ThemeId) => {
         if (busy) return;
@@ -70,7 +73,7 @@ export function ThemePicker() {
             {PALETTES.map(p => <button type="button" key={p.id} disabled={state.busy}
                 className={`dd-theme-option${state.theme === p.id ? ' is-selected' : ''}`}
                 aria-pressed={state.theme === p.id} onClick={() => void state.choose(p.id)}>
-                <span className="dd-theme-swatch" style={{ background: `linear-gradient(135deg, ${p.top}, ${p.bottom})` }}>
+                <span className="dd-theme-swatch" style={{ background: `linear-gradient(135deg, ${p.top}, ${p.bottom})`, color: p.id === 'midnight' ? '#f0c5ce' : '#754856' }}>
                     {state.theme === p.id && <Check size={18} />}
                 </span>
                 <span><strong>{p.name}</strong><small>{p.note}</small></span>

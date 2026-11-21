@@ -606,3 +606,48 @@ html { background:#fdf9f4; }
 .dd-theme-option strong { display: block; font-size: 12px; font-weight: 600; }
 .dd-theme-option small { display: block; margin-top: 3px; font-size: 10px; color: #8c747c; }
 .dd-theme-message { margin-bottom: 0; font-size: 12px; line-height: 1.5; color: #856d73; }
+
+/* Midnight is a full dark treatment, not a tint over light paper. */
+.dd-app[data-theme="midnight"] { color-scheme:dark; color:#f0e3e6; --dd-dark-card:#231e25; --dd-dark-raised:#302730; --dd-dark-line:#51414b; --dd-dark-muted:#c3aeb7; }
+.dd-app[data-theme="midnight"] .dd-grain { opacity:.12; }
+.dd-app[data-theme="midnight"] :is(.dd-wordmark,.dd-welcome-title,.dd-title,.dd-card-title,.dd-menu-text strong,.dd-toggle-label,.dd-empty-title,.dd-daypanel-title,.dd-dayentry-head strong,.dd-cal-head strong,.dd-guide-heading,.dd-streak-badge strong,.dd-install-dialog h2,.dd-sticker-toolbar strong) { color:#f4e3e8; }
+.dd-app[data-theme="midnight"] :is(.dd-welcome-tag,.dd-welcome-sub,.dd-welcome-note,.dd-sub,.dd-card-sub,.dd-card-body,.dd-card-note,.dd-card-label,.dd-menu-text small,.dd-book-name,.dd-status-item,.dd-countdown,.dd-foot p,.dd-pin-hint,.dd-entry-label,.dd-switchline,.dd-editor-foot,.dd-addphoto,.dd-react-label,.dd-react-note,.dd-date-nav-label,.dd-empty-sub,.dd-cal-dow,.dd-cal-legend,.dd-cal-day,.dd-result-text small,.dd-dayentry-text,.dd-dayentry-none,.dd-toggle-hint,.dd-field span,.dd-avatar-options summary,.dd-crop-zoom,.dd-guide-time,.dd-streak-note,.dd-streak-time,.dd-theme-message,.dd-theme-option small,.dd-install-help,.dd-page-nav,.dd-sticker-toolbar p,.dd-sticker-help,.dd-sticker-controls label,.dd-sticker-controls p,.dd-sticker-grid span,.dd-sticker-empty) { color:var(--dd-dark-muted); }
+.dd-app[data-theme="midnight"] :is(.dd-status,.dd-card,.dd-menu-card,.dd-iconbtn,.dd-key,.dd-empty,.dd-search,.dd-filter,.dd-cal,.dd-result,.dd-dayentry,.dd-emoji,.dd-chip,.dd-field input,.dd-crop-dialog,.dd-theme-option,.dd-page-nav button,.dd-sticker-tabs button,.dd-sticker-grid button,.dd-sticker-controls button,.dd-sticker-handle) { background:var(--dd-dark-card); border-color:var(--dd-dark-line); color:#f0e3e6; box-shadow:none; }
+.dd-app[data-theme="midnight"] :is(.dd-card-soft,.dd-streak,.dd-streak.is-lit,.dd-sticker-tray,.dd-sticker-controls,.dd-menu-icon,.dd-sticker-add) { background:#2c242b; border-color:var(--dd-dark-line); color:#e0c3cd; }
+.dd-app[data-theme="midnight"] :is(.dd-paper,.dd-stickers,.dd-photo img,.dd-toggle-row,.dd-addphoto) { border-color:var(--dd-dark-line); }
+.dd-app[data-theme="midnight"] .dd-paper { background:#211d23; box-shadow:0 6px 20px #0004; }
+.dd-app[data-theme="midnight"] :is(.dd-editor,.dd-read-text) { color:#eddee3; background:repeating-linear-gradient(#211d23 0 30px,#3b313a 30px 31px); }
+.dd-app[data-theme="midnight"] :is(.dd-page-text,.dd-page-input),.dd-app[data-theme="midnight"] .dd-journal-paper:has(.dd-page-input) { color:#eddee3; caret-color:#f0b3c3; background:repeating-linear-gradient(#211d23 0 8.333333cqw,#3b313a 8.333333cqw 8.611111cqw); }
+.dd-app[data-theme="midnight"] .dd-page-input { background:transparent; }
+.dd-app[data-theme="midnight"] .dd-editor:disabled { color:#d7c6ce; }
+.dd-app[data-theme="midnight"] .dd-sticker-board { background:#211d23; }
+.dd-app[data-theme="midnight"] :is(.dd-btn-primary,.dd-profile-upload .dd-btn) { background:#e8aab9; color:#321c27; box-shadow:0 5px 20px #0004; }
+.dd-app[data-theme="midnight"] :is(.dd-btn-ghost,.dd-search input) { color:#eddee3; border-color:var(--dd-dark-line); }
+.dd-app[data-theme="midnight"] :is(.dd-linklike,.dd-switchline a,.dd-streak-retry,.dd-install-dialog a,.dd-dayentry-react) { color:#efb0c1; }
+.dd-app[data-theme="midnight"] :is(.dd-locked,.dd-chip-lavender,.dd-filter.is-on,.dd-cal-day.is-sel) { background:#362b43; border-color:#76618b; color:#dfcdf2; }
+.dd-app[data-theme="midnight"] :is(.dd-chip-sage,.dd-save) { background:#29372d; border-color:#607a64; color:#c7deba; }
+.dd-app[data-theme="midnight"] :is(.dd-chip-pink,.dd-publish-wait,.dd-offline-notice,.dd-emoji.is-on,.dd-save.is-saving) { background:#402a35; border-color:#a07182; color:#f1c1cf; }
+.dd-app[data-theme="midnight"] :is(.dd-pin-msg) { color:#bed8b0; }
+.dd-app[data-theme="midnight"] .dd-pin-msg.is-error { color:#ffadba; }
+.dd-app[data-theme="midnight"] .dd-pin-dot { border-color:#b995a4; }
+.dd-app[data-theme="midnight"] :is(.dd-key:active,.dd-cal-day:hover,.dd-eye:hover,.dd-eye:focus-visible) { background:var(--dd-dark-raised); color:#f5dae4; }
+.dd-app[data-theme="midnight"] .dd-hue-pink { background:linear-gradient(155deg,#593746,#432834 60%,#34202a); }
+.dd-app[data-theme="midnight"] .dd-hue-lavender { background:linear-gradient(155deg,#49405d,#362c48 60%,#282236); }
+.dd-app[data-theme="midnight"] .dd-cover-title { color:#f4d7e1; }
+.dd-app[data-theme="midnight"] .dd-hue-lavender .dd-cover-title { color:#e6dbf7; }
+.dd-app[data-theme="midnight"] .dd-cover-hint { color:#d8b6c3; }
+.dd-app[data-theme="midnight"] .dd-hue-lavender .dd-cover-hint { color:#c9bcdf; }
+.dd-app[data-theme="midnight"] .dd-stitch { border-color:#dbc3cf70; }
+.dd-app[data-theme="midnight"] .dd-book-pages { background:repeating-linear-gradient(to right,#5c515a 0 2px,#382f38 2px 4px); }
+.dd-app[data-theme="midnight"] .dd-badge { background:#372833; color:#f1b8c8; }
+.dd-app[data-theme="midnight"] .dd-dot { border-color:#231e25; }
+.dd-app[data-theme="midnight"] .dd-bottom-nav { border-color:#76606d80; box-shadow:0 6px 28px #0007,inset 0 1px 0 #b88d9d20; }
+.dd-app[data-theme="midnight"] .dd-bottom-tab { color:#cbb4bf; }
+.dd-app[data-theme="midnight"] :is(.dd-bottom-tab.is-current,.dd-bottom-tab:active,.dd-theme-option.is-selected) { background:#49313e; color:#ffd9e6; border-color:#d49aaf; }
+.dd-app[data-theme="midnight"] .dd-install-dialog { color:#f0e3e6; border-color:var(--dd-dark-line); box-shadow:0 18px 60px #0008; }
+.dd-app[data-theme="midnight"] .dd-install-dialog::backdrop { background:#101013; }
+.dd-app[data-theme="midnight"] .dd-crop-overlay { background:#101013; }
+.dd-app[data-theme="midnight"] .dd-switch { background:#5a4755; }
+.dd-app[data-theme="midnight"] .dd-switch.is-on { background:#8da37e; }
+.dd-app[data-theme="midnight"] .dd-sticker-tabs button[aria-pressed=true] { background:#46553f; color:#e6f0df; }
+.dd-app[data-theme="midnight"] .dd-streak-badge { color:#d8b3a1; }
