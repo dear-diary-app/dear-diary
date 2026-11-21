@@ -485,7 +485,7 @@ export function Read({ viewer, publishedOwner }: { viewer: PersonId; publishedOw
                         </p>
                     </div>
                 </div>
-                {publishedOwner && <div className="dd-reading-options">
+                {publishedOwner && publishedOwner === viewer && <div className="dd-reading-options">
                     <Chip icon={<Lock size={14} />}>Locked at 10:00 PM · Read only</Chip>
                     <Link className="dd-btn dd-btn-ghost" to={`/hub/${auth.me ?? viewer}`}>Diary options</Link>
                 </div>}
