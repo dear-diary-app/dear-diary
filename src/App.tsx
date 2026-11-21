@@ -28,7 +28,8 @@ function CalendarRoute() {
 }
 function PinRoute() {
     const { person } = useParams();
-    return <Pin person={person as PersonId} />;
+    // Key by person: a fresh component per diary, so PIN state never leaks across books.
+    return <Pin key={person} person={person as PersonId} />;
 }
 
 function Shell() {
