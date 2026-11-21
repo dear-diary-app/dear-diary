@@ -222,9 +222,11 @@ export function Pin({ person }: { person: PersonId }) {
         <main className="dd-shell dd-shell-narrow">
             <TopBar back="/" backLabel="Back to the books" />
             <div className="dd-anim dd-pin dd-publish-only">
+                <Avatar person={p} size="lg" />
                 <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
                 <div className="dd-publish-wait" role="timer" aria-label="Time until this diary opens at 10 PM IST">
                     <span className="dd-publish-wait-time"><Clock size={16} /> Opens in {fmtCountdown(waitMs)}</span>
+                    <span className="dd-publish-wait-note">Today's pages publish at 10:00 PM IST. When the timer ends, enter the diary PIN to read.</span>
                 </div>
             </div>
         </main>
