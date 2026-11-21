@@ -294,7 +294,12 @@ export function setUnlocked(p: PersonId) {
     sessionStorage.setItem(`dd_unlocked_${p}`, '1');
 }
 export async function verifyPin(pin: string, mode: 'verify' | 'set', person?: PersonId): Promise<{ ok: boolean; error?: string; attemptsLeft?: number; noPin?: boolean }> {
-    const { data: { session } } = await supabase.auth.getSession();
+    // On a fresh page load the session restore is async; wait briefly for it.
+    let session = (await supabase.auth.getSession()).data.session;
+    for (let i = 0; i < 40 && !session; i++) {
+        await new Promise(r => setTimeout(r, 250));
+        session = (await supabase.auth.getSession()).data.session;
+    }
     if (!session) return { ok: false, error: 'signed_out' };
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-pin`, {
         method: 'POST',
