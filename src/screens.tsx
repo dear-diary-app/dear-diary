@@ -885,11 +885,11 @@ export function Settings() {
     const auth = useAuth();
     const now = useNow(30000);
     return (
-        <main className="dd-shell dd-shell-narrow">
+        <main className="dd-shell dd-shell-narrow dd-settings">
             <TopBar back="/" backLabel="Back to the books" />
             <div className="dd-anim" key="settings">
                 <h1 className="dd-title">Profile &amp; settings</h1>
-                <p className="dd-sub">Two people, two books, one little space</p>
+                <p className="dd-sub">Your profile and account</p>
 
                 {PEOPLE.map(p => (
                     <section key={p.id} className="dd-card">
@@ -897,7 +897,7 @@ export function Settings() {
                             <Avatar person={p} size="lg" />
                             <div>
                                 <strong className="dd-card-title">{p.name}</strong>
-                                <p className="dd-card-sub">{p.name}&rsquo;s Diary - owner since the beginning</p>
+                                <p className="dd-card-sub">{auth.me === p.id ? 'Your diary' : `${p.name}'s diary`}</p>
                             </div>
                         </div>
                         {auth.me === p.id && (
@@ -915,10 +915,11 @@ export function Settings() {
                                                 finally { setPhotoBusy(false); }
                                             }} />
                                     </label>
-                                    <p className="dd-card-sub">JPG, PNG or WebP, up to 10 MB. Centre-cropped to a square for your round avatar.</p>
+                                    <p className="dd-card-sub">JPG, PNG or WebP · Up to 10 MB</p>
                                     {photoMessage && <p className="dd-card-body" role="status">{photoMessage}</p>}
                                 </div>
-                                <p className="dd-card-label">Avatar background colour</p>
+                                {!store.avatarPhotos[p.id] && <details className="dd-avatar-options">
+                                <summary>Avatar colour</summary>
                                 <div className="dd-swatches" role="group" aria-label={`Avatar colour for ${p.name}`}>
                                     {Array.from({ length: AVATARS }, (_, i) => (
                                         <button key={i} type="button"
@@ -930,6 +931,7 @@ export function Settings() {
                                         </button>
                                     ))}
                                 </div>
+                                </details>}
                             </>
                         )}
                     </section>
@@ -939,20 +941,15 @@ export function Settings() {
                     <span className="dd-menu-icon"><BookOpen /></span>
                     <span className="dd-menu-text">
                         <strong>How to use</strong>
-                        <small>Your first page, nightly reading and the little rules</small>
+                        <small>Writing, reading and your diary</small>
                     </span>
                     <ChevronRight size={18} />
                 </Link>
 
-                <section className="dd-card">
-                    <p className="dd-card-label">Names</p>
-                    <p className="dd-card-body">Display names stay <strong>Joydeep</strong> and <strong>Aruba</strong> everywhere.</p>
-                </section>
-
                 <Link className="dd-menu-card" to="/notifications">
                     <span className="dd-menu-icon"><Bell /></span>
                     <span className="dd-menu-text">
-                        <strong>Notification preferences</strong>
+                        <strong>Notifications</strong>
                         <small>Reminders for 6 AM and 10 PM</small>
                     </span>
                     <ChevronRight size={18} />
@@ -971,15 +968,10 @@ export function Settings() {
                     <span className="dd-menu-icon"><Lock /></span>
                     <span className="dd-menu-text">
                         <strong>Change diary PIN</strong>
-                        <small>Update the 4-digit PIN for your diary</small>
+                        <small>Your 4-digit diary PIN</small>
                     </span>
                     <ChevronRight size={18} />
                 </Link>
-
-                <section className="dd-card dd-card-soft">
-                    <p className="dd-card-label"><Sparkles size={14} /> About Dear Diary</p>
-                    <p className="dd-card-body">A little space for two, a new page every day.</p>
-                </section>
 
                 <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>
                 <span style={{ display: 'none' }}>{now.toISOString()}</span>
