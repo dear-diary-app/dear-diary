@@ -400,3 +400,6 @@ body { background: var(--ds-page); }
 .dd-guide-heading { font-family: Georgia, serif; font-size: 20px; line-height: 1.35; color: #70505b; margin: 0 0 12px; }
 .dd-guide .dd-card-body { line-height: 1.85; }
 .dd-guide .dd-card { margin-bottom: 16px; }
+
+.dd-pin-submit { margin-top: 22px; min-width: 160px; }
+.dd-key { touch-action: manipulation; }

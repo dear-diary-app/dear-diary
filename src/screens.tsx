@@ -181,43 +181,38 @@ export function Pin({ person }: { person: PersonId }) {
         go(`/hub/${person}`, 750);
     };
 
-    const press = async (k: string) => {
-        if (ok || busy || stage === 'checking' || stage === 'unavailable' || stage === 'owner') return;
-        if (k === 'del') { setPin(v => v.slice(0, -1)); setError(null); return; }
-        if (!k) return;
-        const next = pin + k;
-        setPin(next);
-        setError(null);
-        const need = stage === 'enter' ? 4 : 4; // 4-digit PINs
-        if (next.length < need) return;
-        setBusy(true);
-        if (stage === 'enter') {
-            const r = await verifyPin(next, 'verify', person);
-            setBusy(false);
-            if (r.ok) { finish(); return; }
-            if (r.noPin) { setStage(person === auth.me ? 'create' : 'owner'); setPin(''); setBusy(false); return; }
-            setError(r.error === 'locked' ? 'Too many tries - locked for 15 minutes' : 'Not quite - try again');
-            setTimeout(() => setPin(''), 420);
-        } else if (stage === 'create') {
-            setFirstPin(next);
-            setPin('');
-            setStage('confirm');
-            setBusy(false);
-        } else {
-            if (next !== firstPin) {
-                setBusy(false);
-                setError('PINs did not match - start over');
-                setPin('');
-                setFirstPin('');
-                setStage('create');
-                return;
-            }
-            const r = await verifyPin(next, 'set', person);
-            setBusy(false);
-            if (r.ok) { finish(); return; }
-            setError('Could not set the PIN - try again');
-            setPin('');
+    const submitting = useRef(false);
+    const submitPin = async (value = pin) => {
+        if (submitting.current || busy || !/^\d{4}$/.test(value)) return;
+        if (stage === 'create') {
+            setFirstPin(value); setPin(''); setError(null); setStage('confirm');
+            return;
         }
+        if (stage !== 'enter' && stage !== 'confirm') return;
+        if (stage === 'confirm' && value !== firstPin) {
+            setError('PINs did not match - enter the same four digits again');
+            setPin(''); return;
+        }
+        submitting.current = true; setBusy(true); setError(null);
+        try {
+            const r = await verifyPin(value, stage === 'enter' ? 'verify' : 'set', person);
+            if (r.ok) { finish(); return; }
+            if (r.noPin) { setStage(person === auth.me ? 'create' : 'owner'); }
+            else setError(r.error === 'locked' ? 'Too many tries - locked for 15 minutes'
+                : r.error === 'wrong' ? 'Not quite - try again' : 'Could not check the PIN - please try again');
+            setPin('');
+        } catch { setError('Connection interrupted - please try again'); setPin(''); }
+        finally { submitting.current = false; setBusy(false); }
+    };
+
+    const press = (k: string) => {
+        if (ok || busy || submitting.current || !['enter', 'create', 'confirm'].includes(stage)) return;
+        if (k === 'del') { setPin(v => v.slice(0, -1)); setError(null); return; }
+        if (!/^\d$/.test(k) || pin.length >= 4) return;
+        const next = pin + k;
+        setPin(next); setError(null);
+        // Setup never changes step on a digit tap. The user explicitly continues.
+        if (stage === 'enter' && next.length === 4) void submitPin(next);
     };
 
     return (
@@ -261,6 +256,12 @@ export function Pin({ person }: { person: PersonId }) {
                             </button>
                         ))}
                 </div>
+                {(stage === 'create' || stage === 'confirm') && (
+                    <button type="button" className="dd-btn dd-btn-primary dd-pin-submit"
+                        disabled={pin.length !== 4 || busy || ok} onClick={() => void submitPin()}>
+                        {busy ? 'Saving PIN...' : stage === 'create' ? 'Continue' : 'Set PIN'}
+                    </button>
+                )}
                 </>)}
                 {stage === 'unavailable' && <Link className="dd-btn dd-btn-primary" to="/">Back</Link>}
                 {stage === 'owner' && (
