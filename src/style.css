@@ -756,3 +756,48 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 ::view-transition-group(diary-dock) { z-index:100; animation:none; }
 ::view-transition-old(diary-dock) { display:none; }
 ::view-transition-new(diary-dock) { animation:none; }
+
+/* Shared motion scale. No continuous colour, shadow or layout-property tweens. */
+.dd-app { --dd-motion:220ms; --dd-spring:cubic-bezier(.2,.8,.25,1.18); }
+.dd-app :is(button,a,summary,[role="button"]) {
+    -webkit-tap-highlight-color:transparent;
+    transition:transform var(--dd-motion) var(--dd-spring),opacity 180ms ease;
+    touch-action:manipulation;
+}
+.dd-app :is(button,a,summary,[role="button"]):not(:disabled):active { transform:scale(.97); }
+.dd-app .dd-iconbtn:not(:disabled):active,.dd-app .dd-key:not(:disabled):active { transform:scale(.94); }
+.dd-app .dd-bottom-tab { transform-origin:50% 80%; }
+.dd-app .dd-bottom-tab svg { transition:transform 220ms var(--dd-spring); }
+.dd-app .dd-bottom-tab.is-current svg { transform:translateY(-2px); }
+.dd-app .dd-bottom-tab:active svg { transform:translateY(-3px) scale(.92); }
+.dd-app .dd-switch { transition:transform 220ms var(--dd-spring); }
+.dd-app .dd-switch-knob { left:3px; transition:transform 220ms var(--dd-spring); }
+.dd-app .dd-switch.is-on .dd-switch-knob { left:3px; transform:translateX(20px); }
+.dd-app .dd-pin-dot { transition:transform 180ms var(--dd-spring); }
+.dd-app .dd-pin-dot.is-filled { transform:scale(1.14); }
+.dd-app .dd-key.dd-key:not(:disabled):active { transition:transform 160ms var(--dd-spring); }
+.dd-live .dd-book { animation:none; }
+.dd-book-cover { transition:transform 280ms cubic-bezier(.2,.7,.3,1); }
+.dd-live .dd-anim { animation:dd-soft-reveal 240ms ease-out both; }
+.dd-app :is(.dd-result,.dd-dayentry,.dd-theme-option,.dd-sticker-tray,.dd-sticker-controls,.dd-save,.dd-pin-msg,.dd-install-notice,.dd-theme-message,.dd-avatar-options[open] > :not(summary)) { animation:dd-soft-reveal 220ms ease-out both; }
+.dd-app .dd-crop-dialog,.dd-app .dd-welcome,.dd-app .dd-install-dialog[open] { animation:dd-dialog-enter 260ms var(--dd-spring) both; }
+@keyframes dd-soft-reveal { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+@keyframes dd-dialog-enter { from { opacity:0; transform:translateY(14px) scale(.98); } to { opacity:1; transform:none; } }
+:root[data-theme-fade] .dd-app { view-transition-name:diary-theme; }
+:root[data-theme-fade] :is(.dd-route-page,.dd-bottom-nav) { view-transition-name:none; }
+::view-transition-group(diary-theme) { animation:none; }
+::view-transition-old(diary-theme) { animation:dd-theme-out 260ms ease both; }
+::view-transition-new(diary-theme) { animation:dd-theme-in 260ms ease both; }
+@keyframes dd-theme-out { to { opacity:0; } }
+@keyframes dd-theme-in { from { opacity:0; } to { opacity:1; } }
+@media (prefers-reduced-motion:reduce) {
+    .dd-app *, .dd-app *::before, .dd-app *::after { animation:none!important; transition:none!important; }
+    .dd-app :is(button,a,summary,[role="button"]):active { transform:none!important; }
+    .dd-app .dd-pin-dot.is-filled { transform:none; }
+    ::view-transition-old(diary-theme),::view-transition-new(diary-theme) { animation:none; }
+}
+/* Override older glass paint tweens as well as the base control rules. */
+.dd-app.dd-app.dd-app :is(button,a,summary,[role="button"]) { transition:transform 220ms var(--dd-spring),opacity 180ms ease; }
+.dd-app.dd-app.dd-app .dd-key:not(:disabled):active { transition:transform 160ms var(--dd-spring); }
+.dd-app :is(.dd-result,.dd-dayentry,.dd-theme-option,.dd-sticker-tray,.dd-sticker-controls,.dd-save,.dd-pin-msg,.dd-install-notice,.dd-theme-message,.dd-avatar-options[open] > :not(summary)) { animation-fill-mode:backwards; }
+@media (prefers-reduced-motion:reduce) { .dd-app.dd-app.dd-app :is(button,a,summary,[role="button"]) { transition:none; } }

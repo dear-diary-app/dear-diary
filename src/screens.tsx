@@ -1,3 +1,4 @@
+import { dismissMotion } from './motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
@@ -95,7 +96,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
                 <span className="dd-welcome-heart"><Heart size={26} /></span>
                 <h1 className="dd-welcome-title">Dear Diary</h1>
                 <p className="dd-welcome-tag">A little space for two, a new page every day.</p>
-                <button type="button" className="dd-btn dd-btn-primary" onClick={() => setStage('pin')}>Open your diaries</button>
+                <button type="button" className="dd-btn dd-btn-primary" onClick={e => dismissMotion(e.currentTarget.closest('.dd-overlay'), () => setStage('pin'))}>Open your diaries</button>
             </div>
         </div>
     );

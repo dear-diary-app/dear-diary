@@ -67,7 +67,7 @@ export function Book({ person, avatar, unread, onOpen }: { person: Person; avata
     const [open, setOpen] = useState(false);
     return (
         <button type="button" className={`dd-bookwrap${open ? ' is-open' : ''}`}
-            onClick={() => { setOpen(true); onOpen(`/pin/${person.id}`, 620); }}
+            onClick={() => { setOpen(true); onOpen(`/pin/${person.id}`, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280); }}
             aria-label={`Open ${person.name}'s diary`}>
             <span className="dd-book">
                 <span className="dd-book-pages" />

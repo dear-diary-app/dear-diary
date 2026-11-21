@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './store';
 import { supabase } from './lib/supabase';
 import { Check } from './icons';
+import { fadeTheme } from './motion';
 
 const PALETTES = [
     { id: 'paper', name: 'Warm paper', note: 'The original', top: '#fdf9f4', mid: '#faf3ee', bottom: '#f7efe9', glass: '255, 250, 247' },
@@ -57,9 +58,9 @@ export function ThemeFrame({ className, children }: { className: string; childre
     const choose = async (id: ThemeId) => {
         if (busy) return;
         const previous = theme;
-        setTheme(id); setBusy(true); setMessage('Saving your theme...');
+        fadeTheme(() => setTheme(id)); setBusy(true); setMessage('Saving your theme...');
         const { error } = await supabase.from('app_settings').upsert({ user_id: uid, theme: id }, { onConflict: 'user_id' });
-        if (error) { setTheme(previous); setMessage('Could not save this theme. Your previous theme is still selected. Please try again.'); }
+        if (error) { fadeTheme(() => setTheme(previous)); setMessage('Could not save this theme. Your previous theme is still selected. Please try again.'); }
         else { cache(uid, id); setMessage('Theme saved for your account.'); }
         setBusy(false);
     };

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Cropper, { Area } from 'react-easy-crop';
 import { PersonId } from './model';
 import { useStore } from './store';
+import { dismissMotion } from './motion';
 
 export function ProfileCrop({ file, person, onClose, onSaved }: {
     file: File; person: PersonId; onClose: () => void; onSaved: () => void;
@@ -13,6 +14,8 @@ export function ProfileCrop({ file, person, onClose, onSaved }: {
     const [area, setArea] = useState<Area | null>(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
+    const overlay = useRef<HTMLDivElement>(null);
+    const close = () => { setBusy(true); dismissMotion(overlay.current, onClose); };
     const cancel = useRef<HTMLButtonElement>(null);
     useEffect(() => {
         const previous = document.activeElement as HTMLElement | null;
@@ -21,8 +24,8 @@ export function ProfileCrop({ file, person, onClose, onSaved }: {
         cancel.current?.focus();
         return () => { URL.revokeObjectURL(url); document.body.style.overflow = overflow; previous?.focus(); };
     }, [url]);
-    return <div className="dd-crop-overlay" onKeyDown={e => {
-        if (e.key === 'Escape' && !busy) onClose();
+    return <div ref={overlay} className="dd-crop-overlay" onKeyDown={e => {
+        if (e.key === 'Escape' && !busy) close();
         if (e.key === 'Tab') {
             const controls = [...e.currentTarget.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), [tabindex="0"]')];
             const first = controls[0], last = controls[controls.length - 1];
@@ -45,11 +48,11 @@ export function ProfileCrop({ file, person, onClose, onSaved }: {
             </label>
             {error && <p className="dd-card-body" role="alert">{error}</p>}
             <div className="dd-crop-actions">
-                <button ref={cancel} className="dd-btn dd-btn-ghost" disabled={busy} onClick={onClose}>Cancel</button>
+                <button ref={cancel} className="dd-btn dd-btn-ghost" disabled={busy} onClick={close}>Cancel</button>
                 <button className="dd-btn dd-btn-primary" disabled={busy || !area} onClick={async () => {
                     if (!area || busy) return;
                     setBusy(true); setError('');
-                    try { await store.uploadAvatar(person, file, area); onSaved(); }
+                    try { await store.uploadAvatar(person, file, area); dismissMotion(overlay.current, onSaved); }
                     catch (err) { setError(err instanceof Error ? err.message : 'Could not save your picture. Try again.'); setBusy(false); }
                 }}>{busy ? 'Saving...' : 'Save picture'}</button>
             </div>
