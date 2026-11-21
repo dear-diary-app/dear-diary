@@ -91,7 +91,6 @@ export function Home() {
                         <span className="dd-welcome-heart"><Heart size={26} /></span>
                         <h1 className="dd-welcome-title">Dear Diary</h1>
                         <p className="dd-welcome-tag">A little space for two, a new page every day.</p>
-                        <p className="dd-welcome-sub">A little space for two, a new page every day.</p>
                         <button type="button" className="dd-btn dd-btn-primary" onClick={() => setWelcome(false)}>
                             Open your diaries
                         </button>
