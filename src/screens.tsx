@@ -5,7 +5,7 @@ import {
     isReadable, istClock, istParts, latestReadable, otherId, personById, schedule, todayKey,
 } from './model';
 import { Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, useNow } from './ui';
-import { isUnlocked, setUnlocked, useAuth, useStore, verifyPin } from './store';
+import { isUnlocked, setUnlocked, useAuth, useStore, pinStatus, verifyPin } from './store';
 import {
     Bell, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, Erase, Eye, EyeOff,
     Gear, Heart, ImagePlus, Lock, Moon, PenLine, Search, Sparkles, Users, XIcon,
@@ -155,12 +155,12 @@ export function Pin({ person }: { person: PersonId }) {
     const checked = useRef(false);
 
     useEffect(() => {
-        console.log('[pin-debug] effect', person, 'unlocked=', isUnlocked(person), 'me=', auth.me, 'checked=', checked.current);
         if (isUnlocked(person)) { go(`/hub/${person}`, 10); return; }
-        // If this diary has no PIN yet, the owner creates one now.
+        // If this diary has no PIN yet, only its owner can create one.
+        // Status check is not a PIN attempt, so it never counts toward lockout.
         if (checked.current) return;
         checked.current = true;
-        verifyPin('0000', 'verify', person).then(r => { console.log('[pin-debug] probe', person, JSON.stringify(r), 'me=', auth.me); if (r.noPin) setStage(person === auth.me ? 'create' : 'owner'); });
+        pinStatus(person).then(st => { if (!st.hasPin) setStage(person === auth.me ? 'create' : 'owner'); });
     }, [person]);
 
     const finish = () => {

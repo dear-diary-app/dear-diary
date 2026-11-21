@@ -293,6 +293,30 @@ export function isUnlocked(p: PersonId): boolean {
 export function setUnlocked(p: PersonId) {
     sessionStorage.setItem(`dd_unlocked_${p}`, '1');
 }
+export async function pinStatus(person: PersonId): Promise<{ hasPin: boolean; locked: boolean }> {
+    // On a fresh page load the session restore is async; wait briefly for it.
+    let session = (await supabase.auth.getSession()).data.session;
+    for (let i = 0; i < 40 && !session; i++) {
+        await new Promise(r => setTimeout(r, 250));
+        session = (await supabase.auth.getSession()).data.session;
+    }
+    if (!session) return { hasPin: true, locked: false }; // fail-safe: keep the keypad
+    const call = (token: string) => fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-pin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ mode: 'status', person }),
+    });
+    let res = await call(session.access_token);
+    if (res.status === 401) {
+        const { data } = await supabase.auth.refreshSession();
+        if (data.session) res = await call(data.session.access_token);
+    }
+    if (!res.ok) return { hasPin: true, locked: false };
+    const b = await res.json().catch(() => null);
+    if (!b || typeof b.hasPin !== 'boolean') return { hasPin: true, locked: false };
+    return { hasPin: b.hasPin, locked: !!b.locked };
+}
+
 export async function verifyPin(pin: string, mode: 'verify' | 'set', person?: PersonId): Promise<{ ok: boolean; error?: string; attemptsLeft?: number; noPin?: boolean }> {
     // On a fresh page load the session restore is async; wait briefly for it.
     let session = (await supabase.auth.getSession()).data.session;
