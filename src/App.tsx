@@ -61,9 +61,20 @@ function Shell() {
         document.title = auth.session && auth.me ? 'Dear Diary - Joydeep & Aruba' : 'Dear Diary';
     }, [auth.session, auth.me]);
     React.useEffect(() => setLive(true), []);
+    React.useEffect(() => {
+        if (auth.ready && !auth.session) {
+            document.documentElement.style.removeProperty('--dd-canvas');
+            document.documentElement.style.removeProperty('--dd-colour-scheme');
+        }
+    }, [auth.ready, auth.session]);
 
     if (!auth.ready) {
-        return <main className="dd-shell dd-shell-narrow"><p className="dd-sub" style={{ marginTop: '40vh', textAlign: 'center' }}>Opening your diaries...</p></main>;
+        return <main className="dd-auth-splash" aria-busy={!auth.loadError}>
+            <h1>Dear Diary</h1>
+            <p role="status">{auth.loadError || 'Opening your diaries...'}</p>
+            {auth.loadError && <div><button className="dd-btn dd-btn-primary" onClick={auth.retryAuth}>Retry</button>
+                <button className="dd-btn dd-btn-ghost" onClick={() => void auth.signOut()}>Sign out</button></div>}
+        </main>;
     }
     if (!auth.session || !auth.me) {
         return (

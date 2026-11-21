@@ -10,6 +10,8 @@ interface Auth {
     session: Session | null;
     me: PersonId | null;
     ready: boolean;
+    loadError: string;
+    retryAuth: () => void;
     signIn: (email: string, password: string) => Promise<string | null>;
     signOut: () => Promise<void>;
     resetPassword: (email: string) => Promise<string | null>;
@@ -20,26 +22,47 @@ export const useAuth = () => useContext(AuthCtx)!;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<Session | null>(null);
-    const [me, setMe] = useState<PersonId | null>(null);
-    const [ready, setReady] = useState(false);
+    const [sessionReady, setSessionReady] = useState(false);
+    const [profile, setProfile] = useState<{ uid: string; me: PersonId | null } | null>(null);
+    const [loadError, setLoadError] = useState('');
+    const [attempt, setAttempt] = useState(0);
+    const me = profile?.uid === session?.user.id ? profile?.me ?? null : null;
+    const ready = sessionReady && (!session || profile?.uid === session.user.id);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => { setSession(data.session); setReady(true); });
-        const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-        return () => sub.subscription.unsubscribe();
-    }, []);
+        let active = true;
+        let eventSeen = false;
+        const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+            if (!active) return;
+            eventSeen = true;
+            setSession(next); setSessionReady(true);
+        });
+        void supabase.auth.getSession().then(({ data, error }) => {
+            if (!active || eventSeen) return;
+            if (error) { setLoadError('Could not restore your session. Check your connection and retry.'); return; }
+            setSession(data.session); setSessionReady(true);
+        }).catch(() => { if (active) setLoadError('Could not restore your session. Check your connection and retry.'); });
+        return () => { active = false; sub.subscription.unsubscribe(); };
+    }, [attempt]);
 
     useEffect(() => {
-        if (!session) { setMe(null); return; }
-        supabase.from('profiles').select('username').eq('id', session.user.id).maybeSingle()
-            .then(({ data }) => {
+        let active = true;
+        setLoadError('');
+        if (!session) { setProfile(null); return; }
+        const uid = session.user.id;
+        void supabase.from('profiles').select('username').eq('id', uid).maybeSingle()
+            .then(({ data, error }) => {
+                if (!active) return;
+                if (error) { setLoadError('Could not open your account. Check your connection and retry.'); return; }
                 const u = data?.username;
-                setMe(u === 'joydeep' || u === 'aruba' ? u : null);
+                if (u !== 'joydeep' && u !== 'aruba') { setLoadError('Your diary profile is not available. Retry or sign out.'); return; }
+                setProfile({ uid, me: u });
             });
-    }, [session?.user.id]);
+        return () => { active = false; };
+    }, [session?.user.id, attempt]);
 
     const auth: Auth = {
-        session, me, ready,
+        session, me, ready, loadError, retryAuth: () => { setLoadError(''); setAttempt(n => n + 1); },
         signIn: async (email, password) => {
             const { error } = await supabase.auth.signInWithPassword({ email, password });
             return error ? error.message : null;

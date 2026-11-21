@@ -4,6 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Dear Diary</title>
+    <script>
+      // Cosmetic first paint only. Saved data never grants access to diary routes.
+      try {
+        var saved = JSON.parse(localStorage.getItem('sb-etkjcywiaiiphsrthxqe-auth-token') || 'null');
+        var uid = saved && saved.user && saved.user.id;
+        var theme = uid && localStorage.getItem('dd_background_' + uid);
+        var colours = {paper:'#f7efe9',rose:'#f5dfe7',lavender:'#e6def2',sage:'#dfe9d9',sky:'#dbe7f3',midnight:'#1c171d'};
+        if (uid && Object.prototype.hasOwnProperty.call(colours, theme)) {
+          document.documentElement.style.setProperty('--dd-canvas', colours[theme]);
+          document.documentElement.style.setProperty('--dd-colour-scheme', theme === 'midnight' ? 'dark' : 'light');
+        }
+      } catch (_) { /* Restricted or malformed storage uses neutral paper. */ }
+    </script>
+    <style>
+      html,body { margin:0; background:var(--dd-canvas,#fdf9f4); color-scheme:var(--dd-colour-scheme,light); }
+      .dd-auth-splash { box-sizing:border-box; min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; background:var(--dd-canvas,#fdf9f4); color:#795f68; font:15px/1.6 system-ui,sans-serif; }
+      .dd-auth-splash h1 { font:400 36px Georgia,serif; margin:0 0 12px; }
+      .dd-auth-splash p { max-width:340px; }
+      html[style*="dark"] .dd-auth-splash { color:#ead8e1; }
+    </style>
     <meta name="theme-color" content="#fdf9f4" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -14,7 +34,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="%BASE_URL%icons/apple-touch-icon.png" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><main class="dd-auth-splash" aria-busy="true"><h1>Dear Diary</h1><p role="status">Opening your diaries...</p></main></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
