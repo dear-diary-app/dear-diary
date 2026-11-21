@@ -13,6 +13,7 @@ export function Stickers({ value, onChange }: { value: Sticker[]; onChange?: (v:
     const [selected,setSelected] = useState<string | null>(null);
     const board = useRef<HTMLDivElement>(null);
     const drag = useRef<{ id:string; dx:number; dy:number } | null>(null);
+    const resize = useRef<{ x:number; size:number } | null>(null);
     const current = useRef(value); current.current = value;
     const active = value.find(s => s.id === selected);
     function update(id:string, patch:Partial<Sticker>) { onChange?.(current.current.map(s => s.id === id ? { ...s,...patch } : s)); }
@@ -35,7 +36,12 @@ export function Stickers({ value, onChange }: { value: Sticker[]; onChange?: (v:
                 onKeyDown={e => { if(!onChange) return; const delta:Record<string,[number,number]>={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(delta[e.key]) { e.preventDefault();setSelected(s.id);const [dx,dy]=delta[e.key];update(s.id,{x:clamp(s.x+dx,s.size/2,100-s.size/2),y:clamp(s.y+dy,s.size*2/3,100-s.size*2/3)}); } }}>
                 <img src={artUrl(s.art)} alt={name} draggable={false} width="256" height="256"/>
             </button>;})}
+            {onChange && active && <button type="button" className="dd-sticker-handle" aria-label="Resize selected sticker" style={{left:`calc(${active.x+active.size/2}% - 14px)`,top:`calc(${active.y+active.size*2/3}% - 14px)`}}
+                onPointerDown={e => { e.preventDefault();e.stopPropagation();resize.current={x:e.clientX,size:active.size};e.currentTarget.setPointerCapture(e.pointerId); }}
+                onPointerMove={e => {if(!resize.current||!board.current) return;const size=clamp(resize.current.size+(e.clientX-resize.current.x)/board.current.clientWidth*200,12,38);update(active.id,{size,x:clamp(active.x,size/2,100-size/2),y:clamp(active.y,size*2/3,100-size*2/3)});}}
+                onPointerUp={() => {resize.current=null;}} onPointerCancel={() => {resize.current=null;}}
+                onKeyDown={e => {if(e.key==='ArrowRight'||e.key==='ArrowLeft'){e.preventDefault();const size=clamp(active.size+(e.key==='ArrowRight'?1:-1),12,38);update(active.id,{size,x:clamp(active.x,size/2,100-size/2),y:clamp(active.y,size*2/3,100-size*2/3)});}}}>↔</button>}
         </div>
-        {onChange && <div className="dd-sticker-controls">{active ? <><label>Size <input type="range" aria-label="Sticker size" min="12" max="38" value={active.size} onChange={e => {const size=+e.target.value;update(active.id,{size,x:clamp(active.x,size/2,100-size/2),y:clamp(active.y,size*2/3,100-size*2/3)});}}/></label><button type="button" onClick={() => {onChange(value.filter(s => s.id!==active.id));setSelected(null);}}>Remove</button><button type="button" onClick={() => setSelected(null)}>Done</button></> : <p>Tap a sticker to select. Drag to move; use Size to resize.</p>}</div>}
+        {onChange && <div className="dd-sticker-controls">{active ? <><label>Size <input type="range" aria-label="Sticker size" min="12" max="38" value={active.size} onChange={e => {const size=+e.target.value;update(active.id,{size,x:clamp(active.x,size/2,100-size/2),y:clamp(active.y,size*2/3,100-size*2/3)});}}/></label><button type="button" onClick={() => {onChange(value.filter(s => s.id!==active.id));setSelected(null);}}>Remove</button><button type="button" onClick={() => setSelected(null)}>Done</button></> : <p>Tap a sticker to select. Drag to move; drag the corner or use Size to resize.</p>}</div>}
     </section>;
 }

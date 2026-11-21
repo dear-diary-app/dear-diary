@@ -473,3 +473,5 @@ body { background: var(--ds-page); }
 .dd-sticker-controls p { font-size:11px; color:#9b8977; margin:0; }
 /* Keep page-turn transforms from widening the mobile layout viewport. */
 html, body { overflow-x: clip; }
+
+.dd-sticker-handle { position:absolute; width:28px; height:28px; border:1px solid #a4866b; border-radius:50%; padding:0; color:#796653; background:#fffaf1; box-shadow:0 2px 5px #715c4d22; cursor:nwse-resize; touch-action:none; z-index:2; font-size:17px; line-height:26px; }
