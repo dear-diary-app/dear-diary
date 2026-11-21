@@ -700,3 +700,15 @@ html { background:#fdf9f4; }
     .dd-app:is(.dd-app,[data-theme]) :is(.dd-btn,.dd-btn-ghost,.dd-iconbtn,.dd-key,.dd-menu-card,.dd-theme-option,.dd-filter,.dd-emoji,.dd-page-nav button,.dd-sticker-add,.dd-sticker-tabs button,.dd-sticker-controls button,.dd-result) { transition:none; }
     .dd-app .dd-key.dd-key:not(:disabled):active { transform:none; }
 }
+
+/* Mobile browsers must not paint their rectangular tap overlay over round PIN keys.
+   The existing gradient/inset edge provides the glass finish without a square
+   backdrop-filter compositing layer. Keep the outer circular glow unclipped. */
+.dd-app .dd-key.dd-key {
+    -webkit-tap-highlight-color:transparent;
+    -webkit-appearance:none; appearance:none;
+    -webkit-user-select:none; user-select:none;
+    -webkit-touch-callout:none;
+    -webkit-backdrop-filter:none; backdrop-filter:none;
+    border-radius:50%;
+}
