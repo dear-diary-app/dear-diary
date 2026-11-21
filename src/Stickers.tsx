@@ -1,22 +1,49 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import pack from './sticker-pack.json';
-export interface Sticker { id: string; art: string; x: number; y: number; size: number; rotation?: number }
+import { paginateDiary } from './pagination';
+export interface Sticker { id: string; art: string; x: number; y: number; size: number; rotation?: number; page?: number }
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 const angle = (v: number) => ((v + 180) % 360 + 360) % 360 - 180;
 export function cleanStickers(value: unknown): Sticker[] {
     if (!Array.isArray(value)) return [];
-    return value.slice(0,16).filter(s => s && typeof s.id==='string' && pack.some(p => p.id===s.art) && [s.x,s.y,s.size].every(Number.isFinite)).map(s => ({id:s.id.slice(0,80),art:s.art,x:clamp(s.x,0,100),y:clamp(s.y,0,100),size:clamp(s.size,12,38),rotation:Number.isFinite(s.rotation)?angle(s.rotation):0}));
+    return value.slice(0,1600).filter(s => s && typeof s.id==='string' && pack.some(p => p.id===s.art) && [s.x,s.y,s.size].every(Number.isFinite)).map(s => ({id:s.id.slice(0,80),art:s.art,x:clamp(s.x,0,100),y:clamp(s.y,0,100),size:clamp(s.size,12,38),rotation:Number.isFinite(s.rotation)?angle(s.rotation):0,page:Number.isInteger(s.page)?clamp(s.page,0,999):0}));
 }
 const artUrl = (id: string) => `${import.meta.env.BASE_URL}stickers/${id}.webp`;
 type Point = { x:number; y:number };
 type Gesture = { id:string; start:Sticker; points:Map<number,Point>; center:Point; distance:number; angle:number };
 export function Stickers({ value, onChange, text='', onTextChange, label='Diary page', placeholder='' }: { value:Sticker[]; onChange?:(v:Sticker[])=>void; text?:string; onTextChange?:(text:string)=>void; label?:string; placeholder?:string }) {
     const [open,setOpen]=useState(false),[theme,setTheme]=useState('All'),[selected,setSelected]=useState<string|null>(null);
+    const [fontReady,setFontReady]=useState(false);
+    const [page,setPage]=useState(0);
+    const [direction,setDirection]=useState(1);
+    const input=useRef<HTMLTextAreaElement>(null);
+    const cursor=useRef<number|null>(null);
+    const composing=useRef(false);
+    useEffect(()=>{let live=true;Promise.all([document.fonts.load('16.5px DiarySerif'),document.fonts.load('16.5px DiaryBengali')]).then(()=>{if(live)setFontReady(true);});return()=>{live=false;};},[]);
+    const pages=useMemo(()=>paginateDiary(text),[text,fontReady]);
+    const total=Math.max(pages.length,...value.map(s=>(s.page??0)+1));
+    const index=Math.min(page,total-1);
+    const sheet=pages[index]??{text:'',start:text.length,end:text.length};
+    const pageStickers=value.filter(s=>(s.page??0)===index);
+    const changePage=(n:number)=>{setDirection(n>index?1:-1);setPage(n);setSelected(null);gesture.current=null;};
+    useLayoutEffect(()=>{if(cursor.current!==null&&input.current){input.current.focus();input.current.setSelectionRange(cursor.current,cursor.current);cursor.current=null;}},[text,index]);
+    function editText(e:React.ChangeEvent<HTMLTextAreaElement>) {
+        const local=e.target.value;
+        const gap=index>=pages.length?'\n'.repeat(14*(index-pages.length+1)):'';
+        const globalCursor=sheet.start+gap.length+e.target.selectionStart;
+        // Later sticker-only pages have no preceding characters to preserve.
+        const next=text.slice(0,sheet.start)+gap+local+text.slice(sheet.end);
+        const nextPages=paginateDiary(next);
+        let nextIndex=nextPages.findIndex((p,i)=>globalCursor<p.end||(globalCursor===p.end&&i===nextPages.length-1));
+        if(nextIndex<0)nextIndex=nextPages.length-1;
+        if(!composing.current&&nextIndex!==index){cursor.current=globalCursor-nextPages[nextIndex].start;setDirection(nextIndex>index?1:-1);setPage(nextIndex);setSelected(null);}
+        onTextChange?.(next);
+    }
     const board=useRef<HTMLDivElement>(null);
     const gesture=useRef<Gesture|null>(null);
     const handle=useRef<{start:Sticker;x:number;angle:number;mode:'size'|'rotation'}|null>(null);
     const current=useRef(value);current.current=value;
-    const active=value.find(s=>s.id===selected);
+    const active=pageStickers.find(s=>s.id===selected);
     function bounded(s:Sticker):Sticker {
         if(!board.current) return s;
         const r=board.current.getBoundingClientRect(),rad=(s.rotation??0)*Math.PI/180;
@@ -51,14 +78,16 @@ export function Stickers({ value, onChange, text='', onTextChange, label='Diary 
         if(h.mode==='size')update(h.start.id,{size:clamp(h.start.size+(e.clientX-h.x)/r.width*200,12,38)});
         else update(h.start.id,{rotation:angle((h.start.rotation??0)+Math.atan2(e.clientY-r.top-h.start.y*r.height/100,e.clientX-r.left-h.start.x*r.width/100)*180/Math.PI-h.angle)});
     }
+    if(!fontReady)return <p className="dd-sub" role="status">Opening the pages...</p>;
     return <section className={`dd-journal${onChange?' is-editable':''}`} aria-label="Journal page">
         {onChange&&<><div className="dd-sticker-toolbar"><div><strong>Make the page yours</strong><p>Stickers can go anywhere, even over your words.</p></div><button type="button" className="dd-sticker-add" aria-expanded={open} onClick={()=>setOpen(!open)}>{open?'Close tray':'+ Stickers'}</button></div>
-        {open&&<div className="dd-sticker-tray"><div className="dd-sticker-tabs" role="group" aria-label="Sticker themes">{['All','Botanical','Cozy','Celestial','Love'].map(t=><button type="button" key={t} aria-pressed={theme===t} onClick={()=>setTheme(t)}>{t}</button>)}</div><div className="dd-sticker-grid">{pack.filter(s=>theme==='All'||s.group===theme).map(s=><button key={s.id} type="button" disabled={value.length>=16} aria-label={`Add ${s.name}`} onClick={()=>{if(value.length>=16)return;const id=crypto.randomUUID();onChange([...value,{id,art:s.id,x:22+value.length%3*27,y:25+Math.floor(value.length/3)%3*22,size:23,rotation:0}]);setSelected(id);}}><img src={artUrl(s.id)} alt="" loading="lazy" width="72" height="72"/><span>{s.name}</span></button>)}</div><p className="dd-sticker-help">{value.length}/16 on this page. Tap a sticker to add it.</p></div>}</>}
-        <div className="dd-paper dd-journal-paper" ref={board}>
-            <p className={`dd-page-text${onTextChange?' is-mirror':''}`} aria-hidden={onTextChange?true:undefined}>{text+'\n'}</p>
-            {onTextChange&&<textarea className="dd-page-input" value={text} onChange={e=>onTextChange(e.target.value)} onPointerDown={e=>{setSelected(null);e.currentTarget.focus();}} onFocus={()=>setSelected(null)} aria-label={label} placeholder={placeholder} spellCheck />}
+        {open&&<div className="dd-sticker-tray"><div className="dd-sticker-tabs" role="group" aria-label="Sticker themes">{['All','Botanical','Cozy','Celestial','Love'].map(t=><button type="button" key={t} aria-pressed={theme===t} onClick={()=>setTheme(t)}>{t}</button>)}</div><div className="dd-sticker-grid">{pack.filter(s=>theme==='All'||s.group===theme).map(s=><button key={s.id} type="button" disabled={pageStickers.length>=16} aria-label={`Add ${s.name}`} onClick={()=>{if(pageStickers.length>=16)return;const id=crypto.randomUUID();onChange([...value,{id,art:s.id,x:22+pageStickers.length%3*27,y:25+Math.floor(pageStickers.length/3)%3*22,size:23,rotation:0,page:index}]);setSelected(id);}}><img src={artUrl(s.id)} alt="" loading="lazy" width="72" height="72"/><span>{s.name}</span></button>)}</div><p className="dd-sticker-help">{pageStickers.length}/16 on this page. Tap a sticker to add it.</p></div>}</>}
+        <nav className="dd-page-nav" aria-label="Diary pages"><button type="button" aria-label="Previous page" disabled={index===0} onClick={()=>changePage(index-1)}>‹</button><span aria-live="polite">Page {index+1} of {total}</span><button type="button" aria-label="Next page" disabled={index===total-1} onClick={()=>changePage(index+1)}>›</button></nav>
+        <div key={index} className={`dd-paper dd-journal-paper dd-sheet-turn ${direction<0?'is-backward':''}`} ref={board}>
+            <p className={`dd-page-text${onTextChange?' is-mirror':''}`} aria-hidden={onTextChange?true:undefined}>{sheet.text}</p>
+            {onTextChange&&<textarea ref={input} className="dd-page-input" value={sheet.text} onChange={editText} onKeyDown={e=>{const el=e.currentTarget;if(el.selectionStart!==el.selectionEnd)return;if(e.key==='Backspace'&&el.selectionStart===0&&sheet.start>0){e.preventDefault();const next=text.slice(0,sheet.start-1)+text.slice(sheet.start);const sheets=paginateDiary(next);const at=sheet.start-1;const n=Math.max(0,sheets.findIndex((p,i)=>at<p.end||(at===p.end&&i===sheets.length-1)));cursor.current=at-sheets[n].start;changePage(n);onTextChange?.(next);}else if(e.key==='Delete'&&el.selectionStart===sheet.text.length&&sheet.end<text.length){e.preventDefault();onTextChange?.(text.slice(0,sheet.end)+text.slice(sheet.end+1));}}} onCompositionStart={()=>{composing.current=true;}} onCompositionEnd={e=>{composing.current=false;editText(e as unknown as React.ChangeEvent<HTMLTextAreaElement>);}} onPointerDown={e=>{setSelected(null);e.currentTarget.focus();}} onFocus={()=>setSelected(null)} aria-label={label} placeholder={placeholder} spellCheck />}
             <div className="dd-sticker-overlay">
-                {value.map(s=>{const name=pack.find(p=>p.id===s.art)?.name??'Sticker';return <button type="button" key={s.id} disabled={!onChange} className={`dd-placed-sticker${onChange&&selected===s.id?' is-selected':''}`} style={{left:`${s.x}%`,top:`${s.y}%`,width:`${s.size}%`,transform:`translate(-50%,-50%) rotate(${s.rotation??0}deg)`}} aria-label={onChange?`Move ${name}`:name}
+                {pageStickers.map(s=>{const name=pack.find(p=>p.id===s.art)?.name??'Sticker';return <button type="button" key={s.id} disabled={!onChange} className={`dd-placed-sticker${onChange&&selected===s.id?' is-selected':''}`} style={{left:`${s.x}%`,top:`${s.y}%`,width:`${s.size}%`,transform:`translate(-50%,-50%) rotate(${s.rotation??0}deg)`}} aria-label={onChange?`Move ${name}`:name}
                     onPointerDown={e=>pointerDown(e,s)} onPointerMove={pointerMove} onPointerUp={pointerEnd} onPointerCancel={pointerEnd}
                     onKeyDown={e=>{if(!onChange)return;const d:Record<string,[number,number]>={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(d[e.key]){e.preventDefault();setSelected(s.id);update(s.id,{x:s.x+d[e.key][0],y:s.y+d[e.key][1]});}}}>
                     <img src={artUrl(s.art)} alt={name} draggable={false} width="256" height="256"/>
