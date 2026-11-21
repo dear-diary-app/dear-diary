@@ -677,6 +677,7 @@ export function ChangePassword() {
         const { error: up } = await supabase.auth.updateUser({ password: next });
         setBusy(false);
         if (up) { setError(up.message); return; }
+        setCur(''); setNext(''); setConfirm('');
         setDone(true);
     };
 
@@ -776,11 +777,11 @@ export function ChangePin() {
             }
             const r = await verifyPin(next, 'set', person, currentPin || undefined);
             setBusy(false);
-            if (r.ok) { setPin(''); setStage('done'); return; }
-            setError(r.error === 'pin_incorrect' ? 'Current PIN was not right - start over' : 'Could not set the PIN - try again');
+            if (r.ok) { setPin(''); setCurrentPin(''); setFirstPin(''); sessionStorage.removeItem(`dd_unlocked_${person}`); setStage('done'); return; }
+            setError(r.error === 'locked' ? 'Too many tries - locked for 15 minutes' : 'Current PIN was not right - start over');
             setPin('');
             setFirstPin('');
-            if (r.error === 'pin_incorrect') { setCurrentPin(''); setStage('verify'); } else { setStage('create'); }
+            setCurrentPin(''); setStage('verify');
         }
     };
 

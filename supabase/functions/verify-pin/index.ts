@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const MAX_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
-const PIN_PATTERN = /^\d{4,6}$/;
+const PIN_PATTERN = /^\d{4}$/;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -84,49 +84,20 @@ Deno.serve(async (req) => {
     .maybeSingle();
   if (readError) return json({ error: "server_error" }, 500);
 
-  if (mode === "set") {
-    if (row) {
-      // Changing an existing PIN requires the current PIN.
-      if (!PIN_PATTERN.test(current)) return json({ error: "pin_incorrect" }, 403);
-      const { data: ok } = await admin.rpc("check_pin", { p_user: user.id, p_pin: current });
-      if (!ok) return json({ error: "pin_incorrect" }, 403);
-      const { data: newHash } = await admin.rpc("hash_pin", { p_pin: pin });
-      const { error } = await admin
-        .from("diary_pins")
-        .update({ pin_hash: newHash, failed_attempts: 0, locked_until: null })
-        .eq("user_id", user.id);
-      if (error) return json({ error: "server_error" }, 500);
-      return json({ ok: true });
-    }
-    const { data: newHash } = await admin.rpc("hash_pin", { p_pin: pin });
-    const { error } = await admin
-      .from("diary_pins")
-      .insert({ user_id: user.id, pin_hash: newHash });
+  if (mode === "set" && !row) {
+    const { data: newHash, error: hashError } = await admin.rpc("hash_pin", { p_pin: pin });
+    if (hashError || !newHash) return json({ error: "server_error" }, 500);
+    const { error } = await admin.from("diary_pins").insert({ user_id: user.id, pin_hash: newHash });
     if (error) return json({ error: "server_error" }, 500);
     return json({ ok: true });
   }
-
-  // verify mode
-  if (!row) return json({ error: "no_pin" }, 404);
-  if (row.locked_until && new Date(row.locked_until) > new Date()) {
-    return json({ error: "locked", locked_until: row.locked_until }, 429);
-  }
-  const { data: ok } = await admin.rpc("check_pin", { p_user: targetId, p_pin: pin });
-  if (ok) {
-    await admin
-      .from("diary_pins")
-      .update({ failed_attempts: 0, locked_until: null })
-      .eq("user_id", targetId);
-    return json({ ok: true });
-  }
-  const attempts = (row.failed_attempts ?? 0) + 1;
-  const locked_until = attempts >= MAX_ATTEMPTS
-    ? new Date(Date.now() + LOCK_MINUTES * 60 * 1000).toISOString()
-    : null;
-  await admin
-    .from("diary_pins")
-    .update({ failed_attempts: locked_until ? 0 : attempts, locked_until })
-    .eq("user_id", targetId);
-  if (locked_until) return json({ error: "locked", locked_until }, 429);
-  return json({ ok: false, error: "wrong", attempts_left: MAX_ATTEMPTS - attempts }, 401);
+  // Serialize attempts and changes on the PIN row. Both obey the same lockout.
+  const { data: result, error: attemptError } = await admin.rpc("pin_attempt", {
+    p_user: targetId,
+    p_pin: mode === "set" ? current : pin,
+    p_new_pin: mode === "set" ? pin : null,
+  });
+  if (attemptError || !result) return json({ error: "server_error" }, 500);
+  const status = result.ok ? 200 : result.error === "locked" ? 429 : result.error === "no_pin" ? 404 : 400;
+  return json(result, status);
 });

@@ -331,7 +331,7 @@ export async function verifyPin(pin: string, mode: 'verify' | 'set', person?: Pe
         body: JSON.stringify({ pin, mode, person, current }),
     });
     let res = await call(session.access_token);
-    if (res.status === 401) {
+    if (res.status === 401 && (await res.clone().json().catch(() => ({}))).error === 'unauthorized') {
         // Cached token can be stale right after a session restore; refresh and retry once.
         const { data } = await supabase.auth.refreshSession();
         if (data.session) res = await call(data.session.access_token);
