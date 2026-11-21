@@ -510,3 +510,13 @@ html, body { overflow-x: clip; }
 .dd-sheet-turn.is-backward { transform-origin:right center; }
 @keyframes dd-sheet-forward { from { opacity:.4;transform:perspective(1600px) rotateY(-9deg); } to {opacity:1;transform:none;} }
 @media(prefers-reduced-motion:reduce) { .dd-sheet-turn { animation:none; } }
+
+/* A quiet mark of a daily writing habit. */
+.dd-streak { margin:18px 0 2px; padding:14px 16px; border:1px solid #eaded2; border-radius:16px; background:#fbf7f1; }
+.dd-streak.is-lit { background:#fff7eb; border-color:#efddc6; }
+.dd-streak-badge { display:flex; align-items:center; gap:9px; color:#9b8a81; }
+.dd-streak.is-lit .dd-streak-badge { color:#aa6548; }
+.dd-streak-badge strong { color:#6d5044; font-size:17px; font-weight:600; }
+.dd-streak-note { color:#7c6b62; font-size:13px; line-height:1.6; margin:7px 0 0; }
+.dd-streak-time { display:block; color:#93837a; font-size:11px; letter-spacing:.04em; margin-top:6px; }
+.dd-streak-retry { border:0; padding:4px; background:none; color:#9b4e60; font:inherit; text-decoration:underline; cursor:pointer; }

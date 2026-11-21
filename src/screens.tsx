@@ -8,6 +8,7 @@ import { Avatar, Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, use
 import { isUnlocked, setUnlocked, useAuth, useStore, pinStatus, verifyPin } from './store';
 import { supabase } from './lib/supabase';
 import { ProfileCrop } from './ProfileCrop';
+import { ProfileStreak, useProfileStreaks } from './ProfileStreak';
 import { Stickers } from './Stickers';
 import {
     Bell, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, Erase, Eye, EyeOff,
@@ -896,6 +897,7 @@ export function Settings() {
     const [photoMessage, setPhotoMessage] = useState('');
     const auth = useAuth();
     const now = useNow(30000);
+    const streakInfo = useProfileStreaks(todayKey(now), JSON.stringify(store.saveState));
     return (
         <main className="dd-shell dd-shell-narrow dd-settings">
             <TopBar back="/" backLabel="Back to the books" />
@@ -912,6 +914,7 @@ export function Settings() {
                                 <p className="dd-card-sub">{auth.me === p.id ? 'Your diary' : `${p.name}'s diary`}</p>
                             </div>
                         </div>
+                        <ProfileStreak streak={streakInfo.streaks[p.id]} failed={streakInfo.failed} retry={streakInfo.retry} own={auth.me === p.id} />
                         {auth.me === p.id && (
                             <>
                                 <div className="dd-profile-upload">
