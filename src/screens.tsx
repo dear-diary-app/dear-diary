@@ -63,7 +63,7 @@ export function Login() {
                     </button>
                     <button type="button" className="dd-linklike" onClick={forgot}>Forgot password?</button>
                 </form>
-                <p className="dd-foot-heart">Dear Diary <Heart size={12} /> Joydeep &amp; Aruba - 1 January 2027</p>
+                <p className="dd-foot-heart">Dear Diary <Heart size={12} /> Joydeep &amp; Aruba</p>
             </div>
         </main>
     );
@@ -91,7 +91,7 @@ export function Home() {
                         <span className="dd-welcome-heart"><Heart size={26} /></span>
                         <h1 className="dd-welcome-title">Dear Diary</h1>
                         <p className="dd-welcome-tag">A little space for two, a new page every day.</p>
-                        <p className="dd-welcome-sub">Joydeep &amp; Aruba - launching 1 January 2027</p>
+                        <p className="dd-welcome-sub">A little space for two, a new page every day.</p>
                         <button type="button" className="dd-btn dd-btn-primary" onClick={() => setWelcome(false)}>
                             Open your diaries
                         </button>
@@ -122,7 +122,7 @@ export function Home() {
                 </section>
 
                 <footer className="dd-foot">
-                    <p className="dd-foot-heart">Dear Diary <Heart size={12} /> Joydeep &amp; Aruba - 1 January 2027</p>
+                    <p className="dd-foot-heart">Dear Diary <Heart size={12} /> Joydeep &amp; Aruba</p>
                 </footer>
             </div>
             {portal}
@@ -330,15 +330,9 @@ export function Write({ person }: { person: PersonId }) {
     const text = entry?.text ?? '';
     const photos = entry?.photos ?? [];
     const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    const [save, setSave] = useState<'saved' | 'saving'>('saved');
-    const first = useRef(true);
-
-    useEffect(() => {
-        if (first.current) { first.current = false; return; }
-        setSave('saving');
-        const t = setTimeout(() => setSave('saved'), 900);
-        return () => clearTimeout(t);
-    }, [text]);
+    const save = store.saveState[ekey(p.id, today)] ?? 'saved';
+    const [photoErr, setPhotoErr] = useState<string | null>(null);
+    useEffect(() => { if (save === 'error') store.retrySave(p.id, today); }, [save]);
 
     return (
         <main className="dd-shell">
@@ -351,7 +345,7 @@ export function Write({ person }: { person: PersonId }) {
                         <p className="dd-sub">{fmtDateLong(today)}</p>
                     </div>
                     <span className={`dd-save${save === 'saving' ? ' is-saving' : ''}`}>
-                        {locked ? <><Lock size={13} /> Locked</> : save === 'saving' ? 'Saving...' : <><Check size={13} /> Saved</>}
+                        {locked ? <><Lock size={13} /> Locked</> : save === 'saving' ? 'Saving...' : save === 'error' ? 'Couldn\u2019t save - retrying' : <><Check size={13} /> Saved</>}
                     </span>
                 </div>
                 {locked && (
@@ -381,12 +375,16 @@ export function Write({ person }: { person: PersonId }) {
                                 onChange={e => {
                                     const f = e.target.files?.[0];
                                     if (!f) return;
+                                    if (!f.type.startsWith('image/')) { setPhotoErr('Only image files, please.'); e.target.value = ''; return; }
+                                    if (f.size > 5 * 1024 * 1024) { setPhotoErr('That photo is over 5 MB - try a smaller one.'); e.target.value = ''; return; }
+                                    setPhotoErr(null);
                                     store.addPhoto(p.id, today, f);
                                     e.target.value = '';
                                 }} />
                             <ImagePlus size={17} /> Add a photo
                         </label>
                     )}
+                    {photoErr && <p className="dd-pin-msg is-error">{photoErr}</p>}
                 </div>
             </div>
         </main>
@@ -675,7 +673,7 @@ export function Settings() {
 
                 <section className="dd-card">
                     <p className="dd-card-label">Names</p>
-                    <p className="dd-card-body">Display names stay <strong>Joydeep</strong> and <strong>Aruba</strong> everywhere - custom profiles arrive with the January launch.</p>
+                    <p className="dd-card-body">Display names stay <strong>Joydeep</strong> and <strong>Aruba</strong> everywhere.</p>
                 </section>
 
                 <Link className="dd-menu-card" to="/notifications">
@@ -689,7 +687,7 @@ export function Settings() {
 
                 <section className="dd-card dd-card-soft">
                     <p className="dd-card-label"><Sparkles size={14} /> About Dear Diary</p>
-                    <p className="dd-card-body">A little space for two, a new page every day. Launching <strong>1 January 2027</strong>.</p>
+                    <p className="dd-card-body">A little space for two, a new page every day.</p>
                 </section>
 
                 <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>

@@ -60,9 +60,11 @@ export interface Store {
     loading: boolean;
     entries: Record<string, Entry>;
     saveText: (p: PersonId, d: string, text: string) => void;
+    retrySave: (p: PersonId, d: string) => void;
     addPhoto: (p: PersonId, d: string, file: File) => Promise<void>;
     removePhoto: (p: PersonId, d: string, idx: number) => void;
     reactions: Record<string, Record<string, string>>;
+    saveState: Record<string, 'saving' | 'saved' | 'error'>;
     toggleReact: (owner: PersonId, d: string, reader: PersonId, emoji: string) => void;
     readSet: Record<string, true>;
     markRead: (owner: PersonId, d: string, reader: PersonId) => void;
@@ -85,6 +87,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
     const [loading, setLoading] = useState(true);
     const [entries, setEntries] = useState<Record<string, Entry>>({});
     const [reactions, setReactions] = useState<Record<string, Record<string, string>>>({});
+    const [saveState, setSaveState] = useState<Record<string, 'saving' | 'saved' | 'error'>>({});
     const [readSet, setReadSet] = useState<Record<string, true>>({});
     const [avatars, setAvatars] = useState<Record<PersonId, number>>({ joydeep: 0, aruba: 1 });
     const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({ open: true, lock: true, published: true, reaction: true });
@@ -149,6 +152,17 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
             }
         }
         setEntries(next);
+        // Restore any locally buffered text that never reached the server.
+        try {
+            const k = ekey(me, todayKey());
+            const raw = localStorage.getItem(`dd_draft_${k}`);
+            if (raw) {
+                const draft = JSON.parse(raw) as { text: string };
+                if (typeof draft.text === 'string' && draft.text && draft.text !== next[k]?.text) {
+                    store_save(me, todayKey(), draft.text);
+                }
+            }
+        } catch { /* ignore */ }
     }
 
     useEffect(() => { loadAll(); }, [me]);
@@ -166,20 +180,32 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
         return data.id;
     }
 
+    const store_save = (p: PersonId, d: string, text: string) => {
+        const k = ekey(p, d);
+        setEntries(prev => ({ ...prev, [k]: { date: d, person: p, text, photos: prev[k]?.photos ?? [], status: prev[k]?.status ?? 'draft' } }));
+        try { localStorage.setItem(`dd_draft_${k}`, JSON.stringify({ text, ts: Date.now() })); } catch { /* full */ }
+        setSaveState(prev => ({ ...prev, [k]: 'saving' }));
+        clearTimeout(saveTimer.current[k]);
+        saveTimer.current[k] = setTimeout(async () => {
+            const uid = userIds.current[p];
+            if (!uid) return;
+            const { data, error } = await supabase.from('diary_entries')
+                .upsert({ user_id: uid, entry_date: d, content: text, status: 'draft' }, { onConflict: 'user_id,entry_date' })
+                .select('id').single();
+            if (error) { setSaveState(prev => ({ ...prev, [k]: 'error' })); return; }
+            if (data) entryIds.current[k] = data.id;
+            try { localStorage.removeItem(`dd_draft_${k}`); } catch { /* ignore */ }
+            setSaveState(prev => ({ ...prev, [k]: 'saved' }));
+        }, 700);
+    };
+
     const store: Store = {
-        loading, entries, reactions, readSet, avatars, notifPrefs,
-        saveText: (p, d, text) => {
-            setEntries(prev => ({ ...prev, [ekey(p, d)]: { date: d, person: p, text, photos: prev[ekey(p, d)]?.photos ?? [], status: prev[ekey(p, d)]?.status ?? 'draft' } }));
+        loading, entries, reactions, saveState, readSet, avatars, notifPrefs,
+        saveText: store_save,
+        retrySave: (p, d) => {
             const k = ekey(p, d);
-            clearTimeout(saveTimer.current[k]);
-            saveTimer.current[k] = setTimeout(async () => {
-                const uid = userIds.current[p];
-                if (!uid) return;
-                const { data } = await supabase.from('diary_entries')
-                    .upsert({ user_id: uid, entry_date: d, content: text, status: 'draft' }, { onConflict: 'user_id,entry_date' })
-                    .select('id').single();
-                if (data) entryIds.current[k] = data.id;
-            }, 700);
+            const text = entries[k]?.text;
+            if (typeof text === 'string') store_save(p, d, text);
         },
         addPhoto: async (p, d, file) => {
             const k = ekey(p, d);
