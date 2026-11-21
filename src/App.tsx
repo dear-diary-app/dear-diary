@@ -10,18 +10,24 @@ import { OfflineNotice } from './pwa';
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
     const auth = useAuth();
     const now = useNow(1000);
+    if (person === auth.me && schedule(now).phase !== 'writing') return <>{children}</>;
     if ((person !== auth.me && publishWaitMs(now) !== null) || !isUnlocked(person)) return <Navigate to={`/pin/${person}`} replace />;
     return <>{children}</>;
 }
 
 function HubRoute() {
     const { person } = useParams();
+    const auth = useAuth();
     const now = useNow(1000);
-    if (schedule(now).phase !== 'writing') return <Navigate to={`/published/${person}`} replace />;
+    if (schedule(now).phase !== 'writing') return person === auth.me
+        ? <Hub person={person as PersonId} />
+        : <Navigate to={`/published/${person}`} replace />;
     return <Guarded person={person as PersonId}><Hub person={person as PersonId} /></Guarded>;
 }
 function WriteRoute() {
     const { person } = useParams();
+    const now = useNow(1000);
+    if (schedule(now).phase !== 'writing') return <Navigate to={`/published/${person}`} replace />;
     return <Guarded person={person as PersonId}><Write person={person as PersonId} /></Guarded>;
 }
 function ReadRoute() {

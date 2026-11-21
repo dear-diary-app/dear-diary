@@ -220,7 +220,7 @@ export function Pin({ person }: { person: PersonId }) {
         if (stage === 'enter' && next.length === 4) void submitPin(next);
     };
 
-    if (readingOpen) return <Navigate to={`/published/${person}`} replace />;
+    if (readingOpen) return <Navigate to={person === auth.me ? `/hub/${person}` : `/published/${person}`} replace />;
 
     if (waitingForPublish) return (
         <main className="dd-shell dd-shell-narrow">
@@ -296,11 +296,12 @@ export function Hub({ person }: { person: PersonId }) {
     const p = personById(person);
     const other = personById(otherId(person));
     const store = useStore();
-    const now = useNow(15000);
+    const now = useNow(1000);
     const sched = schedule(now);
     const today = todayKey(now);
     const latest = latestReadable(now);
-    const myEntry = store.entries[ekey(p.id, today)];
+    const pageDay = sched.phase === 'writing' ? today : latest;
+    const myEntry = store.entries[ekey(p.id, pageDay)];
     const theirEntry = store.entries[ekey(other.id, latest)];
     const unread = theirEntry && theirEntry.status === 'published' && !store.readSet[`${other.id}|${latest}|${p.id}`];
 
@@ -312,7 +313,7 @@ export function Hub({ person }: { person: PersonId }) {
                     <Avatar person={p} size="lg" />
                     <div>
                         <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
-                        <p className="dd-sub">{fmtDateLong(today)}</p>
+                        <p className="dd-sub">{fmtDateLong(pageDay)}</p>
                     </div>
                 </div>
                 <div className="dd-hub-chips">
@@ -324,15 +325,15 @@ export function Hub({ person }: { person: PersonId }) {
                 </div>
 
                 <nav className="dd-menu" aria-label="Diary sections">
-                    <Link className="dd-menu-card" to={`/write/${p.id}`}>
+                    <Link className="dd-menu-card" to={sched.phase === 'writing' ? `/write/${p.id}` : `/published/${p.id}`}>
                         <span className="dd-menu-icon dd-hue-pink-bg"><PenLine /></span>
                         <span className="dd-menu-text">
-                            <strong>{sched.phase === 'writing' ? (myEntry?.text ? "Continue today's page" : "Write today's page") : "Today's page"}</strong>
+                            <strong>{sched.phase === 'writing' ? (myEntry?.text ? "Continue today's page" : "Write today's page") : "Read your locked page"}</strong>
                             <small>{sched.phase === 'writing' ? 'Open until 10:00 PM' : 'Locked at 10:00 PM - read only'}</small>
                         </span>
                         <ChevronRight size={18} />
                     </Link>
-                    <Link className="dd-menu-card" to={`/read/${p.id}`}>
+                    <Link className="dd-menu-card" to={sched.phase === 'writing' ? `/read/${p.id}` : `/published/${other.id}`}>
                         <span className="dd-menu-icon dd-hue-lavender-bg"><BookOpen /></span>
                         <span className="dd-menu-text">
                             <strong>Read {other.name}&rsquo;s diary {unread ? <span className="dd-newdot">new</span> : null}</strong>
@@ -441,6 +442,7 @@ export function Write({ person }: { person: PersonId }) {
 export function Read({ viewer, publishedOwner }: { viewer: PersonId; publishedOwner?: PersonId }) {
     const other = personById(publishedOwner ?? otherId(viewer));
     const store = useStore();
+    const auth = useAuth();
     const now = useNow(15000);
     const sched = schedule(now);
     const latest = latestReadable(now);
@@ -471,7 +473,7 @@ export function Read({ viewer, publishedOwner }: { viewer: PersonId; publishedOw
 
     return (
         <main className="dd-shell">
-            <TopBar back={publishedOwner ? "/" : `/hub/${viewer}`} backLabel={publishedOwner ? "Back to the books" : "Back to your diary"} alert={Boolean(store.unreadLatest(viewer, now))} />
+            <TopBar back={`/hub/${viewer}`} backLabel="Back to your diary" alert={Boolean(store.unreadLatest(viewer, now))} />
             <div className="dd-anim" key={`read-${viewer}-${date}`}>
                 <div className="dd-hub-head">
                     <Avatar person={other} size="lg" />
@@ -483,6 +485,10 @@ export function Read({ viewer, publishedOwner }: { viewer: PersonId; publishedOw
                         </p>
                     </div>
                 </div>
+                {publishedOwner && <div className="dd-reading-options">
+                    <Chip icon={<Lock size={14} />}>Locked at 10:00 PM · Read only</Chip>
+                    <Link className="dd-btn dd-btn-ghost" to={`/hub/${auth.me ?? viewer}`}>Diary options</Link>
+                </div>}
                 {!publishedOwner && <div className="dd-date-nav">
                     <button type="button" className="dd-iconbtn" onClick={() => step(-1)} aria-label="Previous day"><ChevronLeft /></button>
                     <span className="dd-date-nav-label">{fmtDateShort(date)}</span>
@@ -867,7 +873,7 @@ export function HowToUse() {
         { title: "3. Write a little of today's story", text: "Open your book and choose Write today's page. Writing is open from 6:00 AM until 10:00 PM IST. You can return and edit today's draft during those hours. Your partner cannot read an unpublished draft. Older pages cannot be rewritten." },
         { title: '4. Let it save, and add a photo', text: "Your words autosave as you write. Look for Saved before leaving the page, especially on a weak connection. If you see Saving or a retry message, keep the page open until it finishes. Use Stickers to add a ribbon, flower or keepsake to your page. Tap a placed sticker, drag it anywhere on the page, pinch to resize and twist with two fingers to rotate. Corner handles and Size and Rotate controls work too. Tap uncovered words to keep writing. Each sheet has 14 lines. Writing flows automatically to another sheet when the current one fills; use the page arrows to go back. Stickers stay on their numbered sheet, autosave and appear on the published page. Use Add photo in the editor to choose an image from your device. Check that the photo appears before you leave." },
         { title: '5. Meet here at 10 PM', text: "At 10:00 PM IST, saved drafts lock and publish automatically. There is no Send button. From 10:00 PM to 6:00 AM, it is your nightly reading time: no more edits, just each other's words. Before 10 PM, the other book's entry screen shows a live countdown to today's publish time. At 10 PM the diary PIN is no longer needed to read that night's published page. Account sign-in is still required." },
-        { title: "6. Read each other's page", text: "From 10 PM to 6 AM IST, tap either book to read its latest nightly page without a diary PIN. Only that night's page is shown from the books screen. From 6 AM to 10 PM, your own book asks for your PIN and the partner's book shows a countdown. Your account password is still required to sign in." },
+        { title: "6. Read each other's page", text: "From 10 PM to 6 AM IST, tap either book to read its latest nightly page without a diary PIN. Your own book keeps its diary options, including the locked nightly page and Calendar & history. The partner book opens that night's page directly. From 6 AM to 10 PM, your own book asks for your PIN and the partner's book shows a countdown. Your account password is still required to sign in." },
         { title: '7. Leave a small sign you were here', text: "On a published page, tap an emoji to react. You can have one reaction on each page; choose another to change it or tap the selected one to remove it. Opening a page in the reading view marks it as read, so the app can tell new pages from pages you have already opened." },
         { title: '8. Keep your days together', text: "Calendar & history keeps saved pages together, month by month. Pick a date, search for words, or filter by Joydeep or Aruba. Published pages remain available in history after the nightly reading hours, including during the day. Pages do not disappear at 6 AM and have no automatic expiry. They are meant to stay with you, but no online service can promise storage forever." },
         { title: '9. A little care for your keys', text: "Five wrong PIN attempts lock that diary PIN for 15 minutes. Wait before trying again; changing the PIN cannot bypass the wait. In Profile & settings, Change password asks for your current password and a new one twice. Change diary PIN asks for your current PIN and a new 4-digit PIN twice. If you have never set a PIN, it starts with choosing one." },
