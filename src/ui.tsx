@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Person, PersonId } from './model';
+import { useStore } from './store';
 import { Bell, Gear, ArrowLeft, Heart, ChevronLeft, ChevronRight, XIcon } from './icons';
 
 // ticking clock
@@ -52,6 +53,16 @@ export function TopBar({ back, backLabel, alert }: { back?: string; backLabel?: 
     );
 }
 
+export function Avatar({ person, size = '' }: { person: Person; size?: 'lg' | 'sm' | '' }) {
+    const store = useStore();
+    const photo = store.avatarPhotos[person.id];
+    const [failed, setFailed] = useState(false);
+    useEffect(() => setFailed(false), [photo]);
+    return <span className={`dd-avatar${size ? ` dd-avatar-${size}` : ''} dd-av-${store.avatars[person.id]}`}>
+        {photo && !failed ? <img src={photo} alt={`${person.name}'s profile picture`} onError={() => setFailed(true)} /> : person.initial}
+    </span>;
+}
+
 export function Book({ person, avatar, unread, onOpen }: { person: Person; avatar: number; unread: string | null; onOpen: (to: string, delay: number) => void }) {
     const [open, setOpen] = useState(false);
     return (
@@ -63,7 +74,7 @@ export function Book({ person, avatar, unread, onOpen }: { person: Person; avata
                 <span className={`dd-book-cover dd-hue-${person.hue}`}>
                     <span className="dd-stitch">
                         <span className="dd-cover-heart"><Heart size={17} /></span>
-                        <span className={`dd-avatar dd-av-${avatar}`}>{person.initial}</span>
+                        <Avatar person={person} />
                         <span className="dd-cover-title">{person.name}&rsquo;s Diary</span>
                         <span className="dd-cover-hint">tap to open</span>
                     </span>

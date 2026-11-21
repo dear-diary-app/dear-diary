@@ -70,6 +70,8 @@ export interface Store {
     markRead: (owner: PersonId, d: string, reader: PersonId) => void;
     unreadLatest: (reader: PersonId, now: Date) => string | null;
     unreadAny: (now: Date) => boolean;
+    avatarPhotos: Partial<Record<PersonId, string>>;
+    uploadAvatar: (p: PersonId, file: File) => Promise<void>;
     avatars: Record<PersonId, number>;
     setAvatar: (p: PersonId, n: number) => void;
     notifPrefs: Record<string, boolean>;
@@ -89,12 +91,32 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
     const [reactions, setReactions] = useState<Record<string, Record<string, string>>>({});
     const [saveState, setSaveState] = useState<Record<string, 'saving' | 'saved' | 'error'>>({});
     const [readSet, setReadSet] = useState<Record<string, true>>({});
+    const [avatarPhotos, setAvatarPhotos] = useState<Partial<Record<PersonId, string>>>({});
     const [avatars, setAvatars] = useState<Record<PersonId, number>>({ joydeep: 0, aruba: 1 });
     const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({ open: true, lock: true, published: true, reaction: true });
     const entryIds = useRef<Record<string, string>>({}); // ekey -> entry id
     const photoIds = useRef<Record<string, string[]>>({}); // ekey -> photo ids in order
     const userIds = useRef<Record<PersonId, string>>({} as Record<PersonId, string>);
     const saveTimer = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+    async function loadAvatarPictures(profiles: any[]) {
+        await Promise.all(profiles.map(async (pr: any) => {
+            if (!['joydeep', 'aruba'].includes(pr.username) || !pr.avatar_url?.startsWith('pic:')) return;
+            const path = pr.avatar_url.slice(4);
+            const { data } = await supabase.storage.from('profile-pictures').createSignedUrl(path, 3600);
+            if (data?.signedUrl) setAvatarPhotos(prev => ({ ...prev, [pr.username]: data.signedUrl }));
+        }));
+    }
+    useEffect(() => {
+        const refresh = async () => {
+            const { data } = await supabase.from('profiles').select('username, avatar_url');
+            if (data) await loadAvatarPictures(data);
+        };
+        const timer = setInterval(refresh, 45 * 60 * 1000);
+        const visible = () => { if (document.visibilityState === 'visible') refresh(); };
+        document.addEventListener('visibilitychange', visible);
+        return () => { clearInterval(timer); document.removeEventListener('visibilitychange', visible); };
+    }, [me]);
 
     async function loadAll() {
         setLoading(true);
@@ -106,6 +128,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
                 if (m) setAvatars(prev => ({ ...prev, [pr.username]: +m[1] }));
             }
         });
+        await loadAvatarPictures(profs ?? []);
         const uid = userIds.current[me];
         if (uid) {
             const { data: settings } = await supabase.from('app_settings').select('notifications, read_entries').eq('user_id', uid).maybeSingle();
@@ -201,7 +224,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
     };
 
     const store: Store = {
-        loading, entries, reactions, saveState, readSet, avatars, notifPrefs,
+        loading, entries, reactions, saveState, readSet, avatars, avatarPhotos, notifPrefs,
         saveText: store_save,
         retrySave: (p, d) => {
             const k = ekey(p, d);
@@ -271,10 +294,36 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
                 const e = entries[ekey(owner, latest)];
                 return e && e.status === 'published' && !readSet[`${owner}|${latest}|${r}`];
             })),
+        uploadAvatar: async (p, file) => {
+            if (p !== me) throw new Error('Only your own picture can be changed.');
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Choose a JPG, PNG or WebP photo.');
+            if (file.size > 10 * 1024 * 1024) throw new Error('Choose a photo smaller than 10 MB.');
+            const uid = userIds.current[p];
+            if (!uid) throw new Error('Your profile is still loading. Please try again.');
+            const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) { bitmap.close(); throw new Error('Could not prepare this image.'); }
+            const size = Math.min(bitmap.width, bitmap.height);
+            ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 512, 512);
+            ctx.drawImage(bitmap, (bitmap.width-size)/2, (bitmap.height-size)/2, size, size, 0, 0, 512, 512);
+            bitmap.close();
+            const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('Could not prepare this image.')), 'image/jpeg', 0.85));
+            const path = `${uid}/${crypto.randomUUID()}.jpg`;
+            const { error: uploadError } = await supabase.storage.from('profile-pictures').upload(path, blob, { contentType: 'image/jpeg' });
+            if (uploadError) throw new Error('Photo upload failed. Please try again.');
+            const { data: old } = await supabase.from('profiles').select('avatar_url').eq('id', uid).single();
+            const { data: saved, error } = await supabase.from('profiles').update({ avatar_url: `pic:${path}` }).eq('id', uid).select('id').single();
+            if (error || !saved) { await supabase.storage.from('profile-pictures').remove([path]); throw new Error('Could not save the picture. Please try again.'); }
+            const { data } = await supabase.storage.from('profile-pictures').createSignedUrl(path, 3600);
+            if (data?.signedUrl) setAvatarPhotos(prev => ({ ...prev, [p]: data.signedUrl }));
+            if (old?.avatar_url?.startsWith('pic:')) await supabase.storage.from('profile-pictures').remove([old.avatar_url.slice(4)]);
+        },
         setAvatar: (p, n) => {
+            if (p !== me) return;
             setAvatars(prev => ({ ...prev, [p]: n }));
             const uid = userIds.current[p];
-            if (uid) supabase.from('profiles').update({ avatar_url: `av:${n}` }).eq('id', uid).then(() => {});
+            if (uid && !avatarPhotos[p]) supabase.from('profiles').update({ avatar_url: `av:${n}` }).eq('id', uid).then(() => {});
         },
         setNotifPref: (k, v) => {
             const next = { ...notifPrefs, [k]: v };

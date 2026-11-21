@@ -4,7 +4,7 @@ import {
     Entry, PEOPLE, PersonId, EMOJIS, ekey, fmtCountdown, fmtDateLong, fmtDateShort,
     isReadable, istClock, istParts, latestReadable, otherId, personById, publishWaitMs, schedule, todayKey,
 } from './model';
-import { Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, useNow } from './ui';
+import { Avatar, Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, useNow } from './ui';
 import { isUnlocked, setUnlocked, useAuth, useStore, pinStatus, verifyPin } from './store';
 import { supabase } from './lib/supabase';
 import {
@@ -219,7 +219,7 @@ export function Pin({ person }: { person: PersonId }) {
         <main className="dd-shell dd-shell-narrow">
             <TopBar back="/" backLabel="Back to the books" />
             <div className="dd-anim dd-pin" key={`pin-${person}`}>
-                <span className={`dd-avatar dd-avatar-lg dd-av-${store.avatars[person]}`}>{p.initial}</span>
+                <Avatar person={p} size="lg" />
                 <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
                 <p className="dd-sub">
                     {stage === 'checking' ? 'Checking this diary...'
@@ -294,7 +294,7 @@ export function Hub({ person }: { person: PersonId }) {
             <TopBar back="/" backLabel="Back to the books" alert={Boolean(store.unreadLatest(p.id, now))} />
             <div className="dd-anim" key={`hub-${person}`}>
                 <div className="dd-hub-head">
-                    <span className={`dd-avatar dd-avatar-lg dd-av-${store.avatars[person]}`}>{p.initial}</span>
+                    <Avatar person={p} size="lg" />
                     <div>
                         <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
                         <p className="dd-sub">{fmtDateLong(today)}</p>
@@ -378,7 +378,7 @@ export function Write({ person }: { person: PersonId }) {
             <TopBar back={`/hub/${p.id}`} backLabel={`Back to ${p.name}'s diary`} alert={Boolean(store.unreadLatest(p.id, now))} />
             <div className="dd-anim" key={`write-${person}`}>
                 <div className="dd-hub-head">
-                    <span className={`dd-avatar dd-avatar-lg dd-av-${store.avatars[person]}`}>{p.initial}</span>
+                    <Avatar person={p} size="lg" />
                     <div>
                         <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
                         <p className="dd-sub">{fmtDateLong(today)}</p>
@@ -459,7 +459,7 @@ export function Read({ viewer }: { viewer: PersonId }) {
             <TopBar back={`/hub/${viewer}`} backLabel="Back to your diary" alert={Boolean(store.unreadLatest(viewer, now))} />
             <div className="dd-anim" key={`read-${viewer}-${date}`}>
                 <div className="dd-hub-head">
-                    <span className={`dd-avatar dd-avatar-lg dd-av-${store.avatars[other.id]}`}>{other.initial}</span>
+                    <Avatar person={other} size="lg" />
                     <div>
                         <h1 className="dd-title">{other.name}&rsquo;s Diary</h1>
                         <p className="dd-sub">
@@ -625,7 +625,7 @@ export function Calendar({ viewer }: { viewer: PersonId }) {
                                 return (
                                     <div key={person.id} className="dd-dayentry">
                                         <div className="dd-dayentry-head">
-                                            <span className={`dd-avatar dd-avatar-sm dd-av-${store.avatars[person.id]}`}>{person.initial}</span>
+                                            <Avatar person={person} size="sm" />
                                             <strong>{person.name}&rsquo;s page</strong>
                                             {mine && <Chip tone="plain">yours</Chip>}
                                         </div>
@@ -809,7 +809,7 @@ export function ChangePin() {
         <main className="dd-shell dd-shell-narrow">
             <TopBar back="/settings" backLabel="Back to settings" />
             <div className="dd-anim dd-pin" key="change-pin">
-                <span className={`dd-avatar dd-avatar-lg dd-av-${store.avatars[person]}`}>{p.initial}</span>
+                <Avatar person={p} size="lg" />
                 <h1 className="dd-title">Change diary PIN</h1>
                 <p className="dd-sub">
                     {stage === 'verify' ? 'Enter your current 4-digit PIN'
@@ -880,6 +880,8 @@ export function HowToUse() {
 
 export function Settings() {
     const store = useStore();
+    const [photoBusy, setPhotoBusy] = useState(false);
+    const [photoMessage, setPhotoMessage] = useState('');
     const auth = useAuth();
     const now = useNow(30000);
     return (
@@ -892,7 +894,7 @@ export function Settings() {
                 {PEOPLE.map(p => (
                     <section key={p.id} className="dd-card">
                         <div className="dd-dayentry-head">
-                            <span className={`dd-avatar dd-avatar-lg dd-av-${store.avatars[p.id]}`}>{p.initial}</span>
+                            <Avatar person={p} size="lg" />
                             <div>
                                 <strong className="dd-card-title">{p.name}</strong>
                                 <p className="dd-card-sub">{p.name}&rsquo;s Diary - owner since the beginning</p>
@@ -900,7 +902,23 @@ export function Settings() {
                         </div>
                         {auth.me === p.id && (
                             <>
-                                <p className="dd-card-label">Cover avatar</p>
+                                <div className="dd-profile-upload">
+                                    <label className="dd-btn dd-btn-primary">
+                                        {photoBusy ? 'Uploading...' : store.avatarPhotos[p.id] ? 'Change profile picture' : 'Upload profile picture'}
+                                        <input type="file" accept="image/jpeg,image/png,image/webp" hidden disabled={photoBusy}
+                                            onChange={async e => {
+                                                const file = e.target.files?.[0]; e.target.value = '';
+                                                if (!file) return;
+                                                setPhotoBusy(true); setPhotoMessage('');
+                                                try { await store.uploadAvatar(p.id, file); setPhotoMessage('Profile picture saved.'); }
+                                                catch (err) { setPhotoMessage(err instanceof Error ? err.message : 'Could not upload this photo.'); }
+                                                finally { setPhotoBusy(false); }
+                                            }} />
+                                    </label>
+                                    <p className="dd-card-sub">JPG, PNG or WebP, up to 10 MB. Centre-cropped to a square for your round avatar.</p>
+                                    {photoMessage && <p className="dd-card-body" role="status">{photoMessage}</p>}
+                                </div>
+                                <p className="dd-card-label">Avatar background colour</p>
                                 <div className="dd-swatches" role="group" aria-label={`Avatar colour for ${p.name}`}>
                                     {Array.from({ length: AVATARS }, (_, i) => (
                                         <button key={i} type="button"

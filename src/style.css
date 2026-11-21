@@ -403,3 +403,8 @@ body { background: var(--ds-page); }
 
 .dd-pin-submit { margin-top: 22px; min-width: 160px; }
 .dd-key { touch-action: manipulation; }
+
+.dd-avatar { overflow: hidden; flex-shrink: 0; }
+.dd-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+.dd-profile-upload { margin-top: 18px; }
+.dd-profile-upload .dd-card-sub { margin: 10px 0; line-height: 1.6; }
