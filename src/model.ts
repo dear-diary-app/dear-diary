@@ -58,7 +58,7 @@ export function istTimestamp(y: number, mo: number, d: number, h: number, mi: nu
 
 export function shiftKey(key: string, days: number): string {
     const [y, m, dd] = key.split('-').map(Number);
-    const t = istTimestamp(y, m, d, 12);
+    const t = istTimestamp(y, m, dd, 12, 0);
     const u = new Date(t + days * 864e5);
     return `${u.getUTCFullYear()}-${String(u.getUTCMonth() + 1).padStart(2, '0')}-${String(u.getUTCDate()).padStart(2, '0')}`;
 }
