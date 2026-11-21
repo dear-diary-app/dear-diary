@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import {
     Entry, PEOPLE, PersonId, EMOJIS, ekey, fmtCountdown, fmtDateLong, fmtDateShort,
     isReadable, istClock, istParts, latestReadable, otherId, personById, publishWaitMs, schedule, todayKey,
@@ -158,7 +158,8 @@ export function Pin({ person }: { person: PersonId }) {
     const [ok, setOk] = useState(false);
     const [busy, setBusy] = useState(false);
     const checked = useRef(false);
-    const waitingForPublish = person !== auth.me && waitMs !== null;
+    const readingOpen = schedule(now).phase !== 'writing';
+    const waitingForPublish = person !== auth.me && !readingOpen;
 
     const checkStatus = async () => {
         setStage('checking');
@@ -169,14 +170,14 @@ export function Pin({ person }: { person: PersonId }) {
     };
 
     useEffect(() => {
-        if (waitingForPublish) return;
+        if (waitingForPublish || readingOpen) return;
         if (isUnlocked(person)) { go(`/hub/${person}`, 10); return; }
         // If this diary has no PIN yet, only its owner can create one.
         // Status check is not a PIN attempt, so it never counts toward lockout.
         if (checked.current) return;
         checked.current = true;
         void checkStatus();
-    }, [person, waitingForPublish]);
+    }, [person, waitingForPublish, readingOpen]);
 
     const finish = () => {
         setOk(true);
@@ -218,6 +219,8 @@ export function Pin({ person }: { person: PersonId }) {
         if (stage === 'enter' && next.length === 4) void submitPin(next);
     };
 
+    if (readingOpen) return <Navigate to={`/published/${person}`} replace />;
+
     if (waitingForPublish) return (
         <main className="dd-shell dd-shell-narrow">
             <TopBar back="/" backLabel="Back to the books" />
@@ -225,8 +228,8 @@ export function Pin({ person }: { person: PersonId }) {
                 <Avatar person={p} size="lg" />
                 <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
                 <div className="dd-publish-wait" role="timer" aria-label="Time until this diary opens at 10 PM IST">
-                    <span className="dd-publish-wait-time"><Clock size={16} /> Opens in {fmtCountdown(waitMs)}</span>
-                    <span className="dd-publish-wait-note">Today's pages publish at 10:00 PM IST. When the timer ends, enter the diary PIN to read.</span>
+                    <span className="dd-publish-wait-time"><Clock size={16} /> Opens in {fmtCountdown(waitMs ?? 0)}</span>
+                    <span className="dd-publish-wait-note">Today's pages publish at 10:00 PM IST. When the timer ends, the diary opens. No PIN needed.</span>
                 </div>
             </div>
         </main>
@@ -443,20 +446,29 @@ export function Write({ person }: { person: PersonId }) {
 
 // ---------- Reading the other person's diary ----------
 
-export function Read({ viewer }: { viewer: PersonId }) {
-    const other = personById(otherId(viewer));
+export function Read({ viewer, publishedOwner }: { viewer: PersonId; publishedOwner?: PersonId }) {
+    const other = personById(publishedOwner ?? otherId(viewer));
     const store = useStore();
     const now = useNow(15000);
     const sched = schedule(now);
     const latest = latestReadable(now);
     const [date, setDate] = useState(latest);
-    const entry: Entry | undefined = store.entries[ekey(other.id, date)];
-    const reacts = store.reactions[ekey(other.id, date)] ?? {};
+    const entry: Entry | undefined = store.entries[ekey(other.id, publishedOwner ? latest : date)];
+    const pageDate = publishedOwner ? latest : date;
+
+    const reacts = store.reactions[ekey(other.id, pageDate)] ?? {};
     const mine = reacts[viewer];
 
     useEffect(() => {
-        if (entry) store.markRead(other.id, date, viewer);
-    }, [other.id, date, entry?.text]);
+        if (entry) store.markRead(other.id, pageDate, viewer);
+    }, [other.id, pageDate, entry?.text]);
+
+    useEffect(() => {
+        if (!publishedOwner) return;
+        void store.refreshEntries();
+        const timer = setInterval(() => void store.refreshEntries(), 15000);
+        return () => clearInterval(timer);
+    }, [publishedOwner]);
 
     const step = (n: number) => {
         const [y, m, d] = date.split('-').map(Number);
@@ -467,30 +479,30 @@ export function Read({ viewer }: { viewer: PersonId }) {
 
     return (
         <main className="dd-shell">
-            <TopBar back={`/hub/${viewer}`} backLabel="Back to your diary" alert={Boolean(store.unreadLatest(viewer, now))} />
+            <TopBar back={publishedOwner ? "/" : `/hub/${viewer}`} backLabel={publishedOwner ? "Back to the books" : "Back to your diary"} alert={Boolean(store.unreadLatest(viewer, now))} />
             <div className="dd-anim" key={`read-${viewer}-${date}`}>
                 <div className="dd-hub-head">
                     <Avatar person={other} size="lg" />
                     <div>
                         <h1 className="dd-title">{other.name}&rsquo;s Diary</h1>
                         <p className="dd-sub">
-                            {fmtDateLong(date)}
-                            {date === todayKey(now) ? ' - published tonight' : date === latest ? ' - latest page' : ''}
+                            {fmtDateLong(pageDate)}
+                            {pageDate === todayKey(now) ? ' - published tonight' : pageDate === latest ? ' - latest page' : ''}
                         </p>
                     </div>
                 </div>
-                <div className="dd-date-nav">
+                {!publishedOwner && <div className="dd-date-nav">
                     <button type="button" className="dd-iconbtn" onClick={() => step(-1)} aria-label="Previous day"><ChevronLeft /></button>
                     <span className="dd-date-nav-label">{fmtDateShort(date)}</span>
                     <button type="button" className="dd-iconbtn" onClick={() => step(1)} disabled={date >= latest} aria-label="Next day"><ChevronRight /></button>
-                </div>
-                {entry ? (
+                </div>}
+                {entry && (!publishedOwner || entry.status === 'published') ? (
                     <>
                         <div className="dd-paper dd-paper-read">
                             <p className="dd-read-text">{entry.text}</p>
                         </div>
                         <PhotoGallery photos={entry.photos} title={`${other.name}'s photos`} />
-                        <div className="dd-react">
+                        {viewer !== other.id && <div className="dd-react">
                             <p className="dd-react-label">React to {other.name}&rsquo;s page</p>
                             <div className="dd-react-row" role="group" aria-label="Emoji reactions">
                                 {EMOJIS.map(e => (
@@ -498,7 +510,7 @@ export function Read({ viewer }: { viewer: PersonId }) {
                                         className={`dd-emoji${mine === e ? ' is-on' : ''}`}
                                         aria-pressed={mine === e}
                                         aria-label={`React ${e}`}
-                                        onClick={() => store.toggleReact(other.id, date, viewer, e)}>
+                                        onClick={() => store.toggleReact(other.id, pageDate, viewer, e)}>
                                         {e}
                                     </button>
                                 ))}
@@ -506,7 +518,7 @@ export function Read({ viewer }: { viewer: PersonId }) {
                             <p className="dd-react-note">
                                 {mine ? `You reacted ${mine} - one reaction each, tap again to change` : 'One reaction per page - it shows on their calendar'}
                             </p>
-                        </div>
+                        </div>}
                     </>
                 ) : (
                     <EmptyNote icon={<BookOpen size={26} />} title="No entry today">
@@ -864,8 +876,8 @@ export function HowToUse() {
         { title: '2. Give your book its own PIN', text: "Tap your diary. The first time, choose a 4-digit PIN and enter it again to confirm. Only the owner can set or change their diary PIN. Joydeep's book and Aruba's book have separate PINs. If the other book has no PIN yet, its owner needs to set one first." },
         { title: "3. Write a little of today's story", text: "Open your book and choose Write today's page. Writing is open from 6:00 AM until 10:00 PM IST. You can return and edit today's draft during those hours. Your partner cannot read an unpublished draft. Older pages cannot be rewritten." },
         { title: '4. Let it save, and add a photo', text: "Your words autosave as you write. Look for Saved before leaving the page, especially on a weak connection. If you see Saving or a retry message, keep the page open until it finishes. Use Add photo in the editor to choose an image from your device. Check that the photo appears before you leave." },
-        { title: '5. Meet here at 10 PM', text: "At 10:00 PM IST, saved drafts lock and publish automatically. There is no Send button. From 10:00 PM to 6:00 AM, it is your nightly reading time: no more edits, just each other's words. Before 10 PM, the other book's entry screen shows a live countdown to today's publish time. The countdown does not skip the PIN or publish a draft early." },
-        { title: "6. Read each other's page", text: "From inside your unlocked book, choose Read Aruba's diary or Read Joydeep's diary to see your partner's published page. If you instead tap their book on the books screen, enter that book owner's PIN when asked. A book stays unlocked for that browser-tab session. Keep PINs private, and close the tab when you are finished on a shared device." },
+        { title: '5. Meet here at 10 PM', text: "At 10:00 PM IST, saved drafts lock and publish automatically. There is no Send button. From 10:00 PM to 6:00 AM, it is your nightly reading time: no more edits, just each other's words. Before 10 PM, the other book's entry screen shows a live countdown to today's publish time. At 10 PM the diary PIN is no longer needed to read that night's published page. Account sign-in is still required." },
+        { title: "6. Read each other's page", text: "From 10 PM to 6 AM IST, tap either book to read its latest nightly page without a diary PIN. Only that night's page is shown from the books screen. From 6 AM to 10 PM, your own book asks for your PIN and the partner's book shows a countdown. Your account password is still required to sign in." },
         { title: '7. Leave a small sign you were here', text: "On a published page, tap an emoji to react. You can have one reaction on each page; choose another to change it or tap the selected one to remove it. Opening a page in the reading view marks it as read, so the app can tell new pages from pages you have already opened." },
         { title: '8. Keep your days together', text: "Calendar & history keeps saved pages together, month by month. Pick a date, search for words, or filter by Joydeep or Aruba. Published pages remain available in history after the nightly reading hours, including during the day. Pages do not disappear at 6 AM and have no automatic expiry. They are meant to stay with you, but no online service can promise storage forever." },
         { title: '9. A little care for your keys', text: "Five wrong PIN attempts lock that diary PIN for 15 minutes. Wait before trying again; changing the PIN cannot bypass the wait. In Profile & settings, Change password asks for your current password and a new one twice. Change diary PIN asks for your current PIN and a new 4-digit PIN twice. If you have never set a PIN, it starts with choosing one." },

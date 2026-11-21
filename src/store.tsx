@@ -58,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export interface Store {
     loading: boolean;
+    refreshEntries: () => Promise<void>;
     entries: Record<string, Entry>;
     saveText: (p: PersonId, d: string, text: string) => void;
     retrySave: (p: PersonId, d: string) => void;
@@ -224,7 +225,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
     };
 
     const store: Store = {
-        loading, entries, reactions, saveState, readSet, avatars, avatarPhotos, notifPrefs,
+        loading, refreshEntries: reloadEntries, entries, reactions, saveState, readSet, avatars, avatarPhotos, notifPrefs,
         saveText: store_save,
         retrySave: (p, d) => {
             const k = ekey(p, d);

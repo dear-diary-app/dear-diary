@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, StoreProvider, isUnlocked, useAuth } from './store';
-import { PersonId, publishWaitMs } from './model';
+import { PersonId, publishWaitMs, schedule } from './model';
 import { useNow } from './ui';
 import { Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
 import grain from './photos/grain.png';
@@ -15,6 +15,8 @@ function Guarded({ person, children }: { person: PersonId; children: React.React
 
 function HubRoute() {
     const { person } = useParams();
+    const now = useNow(1000);
+    if (schedule(now).phase !== 'writing') return <Navigate to={`/published/${person}`} replace />;
     return <Guarded person={person as PersonId}><Hub person={person as PersonId} /></Guarded>;
 }
 function WriteRoute() {
@@ -28,6 +30,13 @@ function ReadRoute() {
 function CalendarRoute() {
     const { viewer } = useParams();
     return <Guarded person={viewer as PersonId}><Calendar viewer={viewer as PersonId} /></Guarded>;
+}
+function PublishedRoute() {
+    const { person } = useParams();
+    const auth = useAuth();
+    const now = useNow(1000);
+    if (schedule(now).phase === 'writing') return <Navigate to={`/pin/${person}`} replace />;
+    return <Read viewer={auth.me!} publishedOwner={person as PersonId} />;
 }
 function PinRoute() {
     const { person } = useParams();
@@ -58,6 +67,7 @@ function Shell() {
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/pin/:person" element={<PinRoute />} />
+                    <Route path="/published/:person" element={<PublishedRoute />} />
                     <Route path="/hub/:person" element={<HubRoute />} />
                     <Route path="/write/:person" element={<WriteRoute />} />
                     <Route path="/read/:viewer" element={<ReadRoute />} />
