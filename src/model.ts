@@ -110,13 +110,13 @@ export function fmtCountdown(ms: number): string {
 
 export function fmtDateLong(key: string): string {
     const [y, m, d] = key.split('-').map(Number);
-    const t = new Date(istTimestamp(y, m, d, 12));
+    const t = new Date(istTimestamp(y, m, d, 12, 0));
     return new Intl.DateTimeFormat('en-IN', { timeZone: IST, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(t);
 }
 
 export function fmtDateShort(key: string): string {
     const [y, m, d] = key.split('-').map(Number);
-    const t = new Date(istTimestamp(y, m, d, 12));
+    const t = new Date(istTimestamp(y, m, d, 12, 0));
     return new Intl.DateTimeFormat('en-IN', { timeZone: IST, weekday: 'short', day: 'numeric', month: 'short' }).format(t);
 }
 
