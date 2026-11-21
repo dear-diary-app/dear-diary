@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, StoreProvider, isUnlocked, useAuth } from './store';
 import { PersonId } from './model';
-import { Calendar, Home, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
+import { Calendar, ChangePassword, ChangePin, Home, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
 import grain from './photos/grain.png';
 
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
@@ -60,6 +60,8 @@ function Shell() {
                     <Route path="/read/:viewer" element={<ReadRoute />} />
                     <Route path="/calendar/:viewer" element={<CalendarRoute />} />
                     <Route path="/settings" element={<Settings />} />
+                    <Route path="/settings/password" element={<ChangePassword />} />
+                    <Route path="/settings/pin" element={<ChangePin />} />
                     <Route path="/notifications" element={<Notifications />} />
                     <Route path="*" element={<Home />} />
                 </Routes>

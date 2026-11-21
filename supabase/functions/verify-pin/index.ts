@@ -34,12 +34,13 @@ Deno.serve(async (req) => {
   const { data: { user }, error: authError } = await userClient.auth.getUser();
   if (authError || !user) return json({ error: "unauthorized" }, 401);
 
-  let pin: string, mode: string, person: string | null;
+  let pin: string, mode: string, person: string | null, current: string;
   try {
     const body = await req.json();
     pin = String(body?.pin ?? "");
     mode = body?.mode === "set" ? "set" : body?.mode === "status" ? "status" : "verify";
     person = typeof body?.person === "string" ? body.person : null;
+    current = String(body?.current ?? "");
   } catch {
     return json({ error: "bad_request" }, 400);
   }
@@ -86,7 +87,8 @@ Deno.serve(async (req) => {
   if (mode === "set") {
     if (row) {
       // Changing an existing PIN requires the current PIN.
-      const { data: ok } = await admin.rpc("check_pin", { p_user: user.id, p_pin: pin });
+      if (!PIN_PATTERN.test(current)) return json({ error: "pin_incorrect" }, 403);
+      const { data: ok } = await admin.rpc("check_pin", { p_user: user.id, p_pin: current });
       if (!ok) return json({ error: "pin_incorrect" }, 403);
       const { data: newHash } = await admin.rpc("hash_pin", { p_pin: pin });
       const { error } = await admin

@@ -6,9 +6,10 @@ import {
 } from './model';
 import { Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, useNow } from './ui';
 import { isUnlocked, setUnlocked, useAuth, useStore, pinStatus, verifyPin } from './store';
+import { supabase } from './lib/supabase';
 import {
     Bell, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, Erase, Eye, EyeOff,
-    Gear, Heart, ImagePlus, Lock, Moon, PenLine, Search, Sparkles, Users, XIcon,
+    Gear, Heart, ImagePlus, KeyRound, Lock, Moon, PenLine, Search, Sparkles, Users, XIcon,
 } from './icons';
 
 // ---------- Login ----------
@@ -650,6 +651,179 @@ export function Calendar({ viewer }: { viewer: PersonId }) {
 
 const AVATARS = 8;
 
+
+// ---------- Change password (settings) ----------
+
+export function ChangePassword() {
+    const auth = useAuth();
+    const [cur, setCur] = useState('');
+    const [next, setNext] = useState('');
+    const [confirm, setConfirm] = useState('');
+    const [show, setShow] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [done, setDone] = useState(false);
+    const [busy, setBusy] = useState(false);
+
+    const submit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        if (next.length < 6) { setError('Choose at least 6 characters for the new password'); return; }
+        if (next !== confirm) { setError('New passwords did not match'); return; }
+        if (next === cur) { setError('New password is the same as the current one'); return; }
+        setBusy(true);
+        const email = auth.session?.user?.email ?? '';
+        const { error: re } = await supabase.auth.signInWithPassword({ email, password: cur });
+        if (re) { setBusy(false); setError('Current password is not right'); return; }
+        const { error: up } = await supabase.auth.updateUser({ password: next });
+        setBusy(false);
+        if (up) { setError(up.message); return; }
+        setDone(true);
+    };
+
+    return (
+        <main className="dd-shell dd-shell-narrow">
+            <TopBar back="/settings" backLabel="Back to settings" />
+            <div className="dd-anim" key="change-password">
+                <h1 className="dd-title">Change password</h1>
+                <p className="dd-sub">Enter your current password, then choose a new one.</p>
+                {done ? (
+                    <section className="dd-card">
+                        <p className="dd-card-title">Password updated</p>
+                        <p className="dd-card-body">Use the new password next time you sign in.</p>
+                        <Link className="dd-btn dd-btn-primary" to="/settings">Back to settings</Link>
+                    </section>
+                ) : (
+                    <form onSubmit={submit} className="dd-form">
+                        <label className="dd-field">
+                            <span>Current password</span>
+                            <input type={show ? 'text' : 'password'} value={cur} onChange={e => setCur(e.target.value)}
+                                autoComplete="current-password" required />
+                        </label>
+                        <label className="dd-field">
+                            <span>New password</span>
+                            <input type={show ? 'text' : 'password'} value={next} onChange={e => setNext(e.target.value)}
+                                autoComplete="new-password" required minLength={6} />
+                        </label>
+                        <label className="dd-field">
+                            <span>New password again</span>
+                            <input type={show ? 'text' : 'password'} value={confirm} onChange={e => setConfirm(e.target.value)}
+                                autoComplete="new-password" required minLength={6} />
+                        </label>
+                        <button type="button" className="dd-btn dd-btn-ghost" onClick={() => setShow(v => !v)}>
+                            {show ? <EyeOff size={16} /> : <Eye size={16} />} {show ? 'Hide passwords' : 'Show passwords'}
+                        </button>
+                        {error && <p className="dd-pin-msg is-error">{error}</p>}
+                        <button type="submit" className="dd-btn dd-btn-primary" disabled={busy}>
+                            {busy ? 'Updating...' : 'Update password'}
+                        </button>
+                    </form>
+                )}
+            </div>
+        </main>
+    );
+}
+
+// ---------- Change diary PIN (settings) ----------
+
+export function ChangePin() {
+    const auth = useAuth();
+    const store = useStore();
+    const person = (auth.me ?? 'joydeep') as PersonId;
+    const p = personById(person);
+    const [stage, setStage] = useState<'verify' | 'create' | 'confirm' | 'done'>('verify');
+    const [pin, setPin] = useState('');
+    const [firstPin, setFirstPin] = useState('');
+    const [currentPin, setCurrentPin] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [busy, setBusy] = useState(false);
+    const checked = useRef(false);
+
+    useEffect(() => {
+        if (checked.current) return;
+        checked.current = true;
+        // No PIN yet: skip straight to choosing one.
+        pinStatus(person).then(st => { if (!st.hasPin) setStage('create'); });
+    }, [person]);
+
+    const press = async (k: string) => {
+        if (busy || stage === 'done') return;
+        if (k === 'del') { setPin(v => v.slice(0, -1)); setError(null); return; }
+        if (!k) return;
+        const next = pin + k;
+        setPin(next);
+        setError(null);
+        if (next.length < 4) return;
+        setBusy(true);
+        if (stage === 'verify') {
+            const r = await verifyPin(next, 'verify', person);
+            setBusy(false);
+            if (r.ok) { setCurrentPin(next); setPin(''); setStage('create'); return; }
+            setError(r.error === 'locked' ? 'Too many tries - locked for 15 minutes' : 'Not quite - try again');
+            setTimeout(() => setPin(''), 420);
+        } else if (stage === 'create') {
+            setFirstPin(next);
+            setPin('');
+            setStage('confirm');
+            setBusy(false);
+        } else if (stage === 'confirm') {
+            if (next !== firstPin) {
+                setBusy(false);
+                setError('PINs did not match - start over');
+                setPin('');
+                setFirstPin('');
+                setStage('create');
+                return;
+            }
+            const r = await verifyPin(next, 'set', person, currentPin || undefined);
+            setBusy(false);
+            if (r.ok) { setPin(''); setStage('done'); return; }
+            setError(r.error === 'pin_incorrect' ? 'Current PIN was not right - start over' : 'Could not set the PIN - try again');
+            setPin('');
+            setFirstPin('');
+            if (r.error === 'pin_incorrect') { setCurrentPin(''); setStage('verify'); } else { setStage('create'); }
+        }
+    };
+
+    return (
+        <main className="dd-shell dd-shell-narrow">
+            <TopBar back="/settings" backLabel="Back to settings" />
+            <div className="dd-anim dd-pin" key="change-pin">
+                <span className={`dd-avatar dd-avatar-lg dd-av-${store.avatars[person]}`}>{p.initial}</span>
+                <h1 className="dd-title">Change diary PIN</h1>
+                <p className="dd-sub">
+                    {stage === 'verify' ? 'Enter your current 4-digit PIN'
+                        : stage === 'create' ? 'Choose your new 4-digit PIN'
+                        : stage === 'confirm' ? 'Once more, to confirm your new PIN'
+                        : 'Your diary PIN is updated'}
+                </p>
+                {stage !== 'done' ? (<>
+                <div className={`dd-pin-dots${error ? ' is-error' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>
+                    {[0, 1, 2, 3].map(i => (
+                        <span key={i} className={`dd-pin-dot${i < pin.length ? ' is-filled' : ''}`} />
+                    ))}
+                </div>
+                <p className={`dd-pin-msg${error ? ' is-error' : ''}`}>{error ?? ' '}</p>
+                <div className="dd-keypad" role="group" aria-label="PIN keypad">
+                    {KEYS.map((k, i) => k === ''
+                        ? <span key={i} />
+                        : (
+                            <button key={i} type="button" className="dd-key" onClick={() => press(k)}
+                                aria-label={k === 'del' ? 'Delete last digit' : `Digit ${k}`}>
+                                {k === 'del' ? <Erase /> : k}
+                            </button>
+                        ))}
+                </div>
+                </>) : (
+                    <section className="dd-card">
+                        <p className="dd-card-body">Use the new PIN the next time your diary asks for it.</p>
+                        <Link className="dd-btn dd-btn-primary" to="/settings">Back to settings</Link>
+                    </section>
+                )}
+            </div>
+        </main>
+    );
+}
+
 export function Settings() {
     const store = useStore();
     const auth = useAuth();
@@ -699,6 +873,24 @@ export function Settings() {
                     <span className="dd-menu-text">
                         <strong>Notification preferences</strong>
                         <small>Reminders for 6 AM and 10 PM</small>
+                    </span>
+                    <ChevronRight size={18} />
+                </Link>
+
+                <Link className="dd-menu-card" to="/settings/password">
+                    <span className="dd-menu-icon"><KeyRound /></span>
+                    <span className="dd-menu-text">
+                        <strong>Change password</strong>
+                        <small>Update your sign-in password</small>
+                    </span>
+                    <ChevronRight size={18} />
+                </Link>
+
+                <Link className="dd-menu-card" to="/settings/pin">
+                    <span className="dd-menu-icon"><Lock /></span>
+                    <span className="dd-menu-text">
+                        <strong>Change diary PIN</strong>
+                        <small>Update the 4-digit PIN for your diary</small>
                     </span>
                     <ChevronRight size={18} />
                 </Link>

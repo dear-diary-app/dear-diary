@@ -317,7 +317,7 @@ export async function pinStatus(person: PersonId): Promise<{ hasPin: boolean; lo
     return { hasPin: b.hasPin, locked: !!b.locked };
 }
 
-export async function verifyPin(pin: string, mode: 'verify' | 'set', person?: PersonId): Promise<{ ok: boolean; error?: string; attemptsLeft?: number; noPin?: boolean }> {
+export async function verifyPin(pin: string, mode: 'verify' | 'set', person?: PersonId, current?: string): Promise<{ ok: boolean; error?: string; attemptsLeft?: number; noPin?: boolean }> {
     // On a fresh page load the session restore is async; wait briefly for it.
     let session = (await supabase.auth.getSession()).data.session;
     for (let i = 0; i < 40 && !session; i++) {
@@ -328,7 +328,7 @@ export async function verifyPin(pin: string, mode: 'verify' | 'set', person?: Pe
     const call = (token: string) => fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-pin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ pin, mode, person }),
+        body: JSON.stringify({ pin, mode, person, current }),
     });
     let res = await call(session.access_token);
     if (res.status === 401) {
