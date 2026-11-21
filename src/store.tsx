@@ -293,13 +293,13 @@ export function isUnlocked(p: PersonId): boolean {
 export function setUnlocked(p: PersonId) {
     sessionStorage.setItem(`dd_unlocked_${p}`, '1');
 }
-export async function verifyPin(pin: string, mode: 'verify' | 'set'): Promise<{ ok: boolean; error?: string; attemptsLeft?: number; noPin?: boolean }> {
+export async function verifyPin(pin: string, mode: 'verify' | 'set', person?: PersonId): Promise<{ ok: boolean; error?: string; attemptsLeft?: number; noPin?: boolean }> {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return { ok: false, error: 'signed_out' };
     const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-pin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ pin, mode }),
+        body: JSON.stringify({ pin, mode, person }),
     });
     if (res.status === 404) return { ok: false, noPin: true };
     if (res.status === 429) return { ok: false, error: 'locked' };

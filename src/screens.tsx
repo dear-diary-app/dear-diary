@@ -144,8 +144,9 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
 export function Pin({ person }: { person: PersonId }) {
     const p = personById(person);
     const store = useStore();
+    const auth = useAuth();
     const { go, portal } = useGo();
-    const [stage, setStage] = useState<'enter' | 'create' | 'confirm'>('enter');
+    const [stage, setStage] = useState<'enter' | 'create' | 'confirm' | 'owner'>('enter');
     const [pin, setPin] = useState('');
     const [firstPin, setFirstPin] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -158,7 +159,7 @@ export function Pin({ person }: { person: PersonId }) {
         // If this diary has no PIN yet, the owner creates one now.
         if (checked.current) return;
         checked.current = true;
-        verifyPin('0000', 'verify').then(r => { if (r.noPin) setStage('create'); });
+        verifyPin('0000', 'verify', person).then(r => { if (r.noPin) setStage(person === auth.me ? 'create' : 'owner'); });
     }, [person]);
 
     const finish = () => {
@@ -178,10 +179,10 @@ export function Pin({ person }: { person: PersonId }) {
         if (next.length < need) return;
         setBusy(true);
         if (stage === 'enter') {
-            const r = await verifyPin(next, 'verify');
+            const r = await verifyPin(next, 'verify', person);
             setBusy(false);
             if (r.ok) { finish(); return; }
-            if (r.noPin) { setStage('create'); setPin(''); setBusy(false); return; }
+            if (r.noPin) { setStage(person === auth.me ? 'create' : 'owner'); setPin(''); setBusy(false); return; }
             setError(r.error === 'locked' ? 'Too many tries - locked for 15 minutes' : 'Not quite - try again');
             setTimeout(() => setPin(''), 420);
         } else if (stage === 'create') {
@@ -198,7 +199,7 @@ export function Pin({ person }: { person: PersonId }) {
                 setStage('create');
                 return;
             }
-            const r = await verifyPin(next, 'set');
+            const r = await verifyPin(next, 'set', person);
             setBusy(false);
             if (r.ok) { finish(); return; }
             setError('Could not set the PIN - try again');
@@ -213,10 +214,12 @@ export function Pin({ person }: { person: PersonId }) {
                 <span className={`dd-avatar dd-avatar-lg dd-av-${store.avatars[person]}`}>{p.initial}</span>
                 <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
                 <p className="dd-sub">
-                    {stage === 'enter' ? 'Enter the 4-digit PIN to open this diary'
+                    {stage === 'enter' ? `Enter ${p.name}'s 4-digit PIN to open this diary`
                         : stage === 'create' ? 'First time here - choose your 4-digit PIN'
-                        : 'Once more, to confirm your PIN'}
+                        : stage === 'confirm' ? 'Once more, to confirm your PIN'
+                        : `This diary is private - only ${p.name} can set its PIN and open it`}
                 </p>
+                {stage !== 'owner' && (<>
                 <div className={`dd-pin-dots${error ? ' is-error' : ''}${ok ? ' is-ok' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>
                     {[0, 1, 2, 3].map(i => (
                         <span key={i} className={`dd-pin-dot${i < pin.length ? ' is-filled' : ''}`}>
@@ -237,6 +240,12 @@ export function Pin({ person }: { person: PersonId }) {
                             </button>
                         ))}
                 </div>
+                </>)}
+                {stage === 'owner' && (
+                    <p className="dd-pin-msg">
+                        Ask {p.name} to unlock it on this device, or go back to your own diary.
+                    </p>
+                )}
             </div>
             {portal}
         </main>
