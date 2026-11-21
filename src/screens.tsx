@@ -151,7 +151,7 @@ export function Pin({ person }: { person: PersonId }) {
         // If this diary has no PIN yet, the owner creates one now.
         if (checked.current) return;
         checked.current = true;
-        verifyPin('____', 'verify').then(r => { if (r.noPin) setStage('create'); });
+        verifyPin('0000', 'verify').then(r => { if (r.noPin) setStage('create'); });
     }, [person]);
 
     const finish = () => {
@@ -174,6 +174,7 @@ export function Pin({ person }: { person: PersonId }) {
             const r = await verifyPin(next, 'verify');
             setBusy(false);
             if (r.ok) { finish(); return; }
+            if (r.noPin) { setStage('create'); setPin(''); setBusy(false); return; }
             setError(r.error === 'locked' ? 'Too many tries - locked for 15 minutes' : 'Not quite - try again');
             setTimeout(() => setPin(''), 420);
         } else if (stage === 'create') {
