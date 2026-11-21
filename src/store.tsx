@@ -301,11 +301,17 @@ export async function verifyPin(pin: string, mode: 'verify' | 'set', person?: Pe
         session = (await supabase.auth.getSession()).data.session;
     }
     if (!session) return { ok: false, error: 'signed_out' };
-    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-pin`, {
+    const call = (token: string) => fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-pin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ pin, mode, person }),
     });
+    let res = await call(session.access_token);
+    if (res.status === 401) {
+        // Cached token can be stale right after a session restore; refresh and retry once.
+        const { data } = await supabase.auth.refreshSession();
+        if (data.session) res = await call(data.session.access_token);
+    }
     if (res.status === 404) return { ok: false, noPin: true };
     if (res.status === 429) return { ok: false, error: 'locked' };
     if (!res.ok) {
