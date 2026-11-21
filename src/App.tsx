@@ -1,0 +1,76 @@
+import React from 'react';
+import { Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { AuthProvider, StoreProvider, isUnlocked, useAuth } from './store';
+import { PersonId } from './model';
+import { Calendar, Home, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
+import grain from './photos/grain.png';
+
+function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
+    if (!isUnlocked(person)) return <Navigate to={`/pin/${person}`} replace />;
+    return <>{children}</>;
+}
+
+function HubRoute() {
+    const { person } = useParams();
+    return <Guarded person={person as PersonId}><Hub person={person as PersonId} /></Guarded>;
+}
+function WriteRoute() {
+    const { person } = useParams();
+    return <Guarded person={person as PersonId}><Write person={person as PersonId} /></Guarded>;
+}
+function ReadRoute() {
+    const { viewer } = useParams();
+    return <Guarded person={viewer as PersonId}><Read viewer={viewer as PersonId} /></Guarded>;
+}
+function CalendarRoute() {
+    const { viewer } = useParams();
+    return <Guarded person={viewer as PersonId}><Calendar viewer={viewer as PersonId} /></Guarded>;
+}
+function PinRoute() {
+    const { person } = useParams();
+    return <Pin person={person as PersonId} />;
+}
+
+function Shell() {
+    const auth = useAuth();
+    const [live, setLive] = React.useState(false);
+    React.useEffect(() => setLive(true), []);
+
+    if (!auth.ready) {
+        return <main className="dd-shell dd-shell-narrow"><p className="dd-sub" style={{ marginTop: '40vh', textAlign: 'center' }}>Opening your diaries...</p></main>;
+    }
+    if (!auth.session || !auth.me) {
+        return (
+            <div className={live ? 'dd-app dd-live' : 'dd-app'}>
+                <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
+                <Login />
+            </div>
+        );
+    }
+    return (
+        <StoreProvider me={auth.me}>
+            <div className={live ? 'dd-app dd-live' : 'dd-app'}>
+                <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/pin/:person" element={<PinRoute />} />
+                    <Route path="/hub/:person" element={<HubRoute />} />
+                    <Route path="/write/:person" element={<WriteRoute />} />
+                    <Route path="/read/:viewer" element={<ReadRoute />} />
+                    <Route path="/calendar/:viewer" element={<CalendarRoute />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/notifications" element={<Notifications />} />
+                    <Route path="*" element={<Home />} />
+                </Routes>
+            </div>
+        </StoreProvider>
+    );
+}
+
+export function App() {
+    return (
+        <AuthProvider>
+            <Shell />
+        </AuthProvider>
+    );
+}
