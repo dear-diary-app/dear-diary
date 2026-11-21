@@ -1,0 +1,122 @@
+[
+  {
+    "id": "rose-bow",
+    "name": "Rose ribbon",
+    "group": "Botanical"
+  },
+  {
+    "id": "sage-bow",
+    "name": "Sage ribbon",
+    "group": "Botanical"
+  },
+  {
+    "id": "pressed-rose",
+    "name": "Pressed rose",
+    "group": "Botanical"
+  },
+  {
+    "id": "daisy",
+    "name": "Garden daisy",
+    "group": "Botanical"
+  },
+  {
+    "id": "bouquet",
+    "name": "Little bouquet",
+    "group": "Botanical"
+  },
+  {
+    "id": "olive",
+    "name": "Olive branch",
+    "group": "Botanical"
+  },
+  {
+    "id": "lavender",
+    "name": "Lavender sprigs",
+    "group": "Botanical"
+  },
+  {
+    "id": "butterfly",
+    "name": "Sage butterfly",
+    "group": "Botanical"
+  },
+  {
+    "id": "books",
+    "name": "Well-loved books",
+    "group": "Cozy"
+  },
+  {
+    "id": "teacup",
+    "name": "Afternoon tea",
+    "group": "Cozy"
+  },
+  {
+    "id": "candle",
+    "name": "Evening candle",
+    "group": "Cozy"
+  },
+  {
+    "id": "envelope",
+    "name": "Sealed letter",
+    "group": "Cozy"
+  },
+  {
+    "id": "key",
+    "name": "Keepsake key",
+    "group": "Cozy"
+  },
+  {
+    "id": "cat",
+    "name": "Sleepy cat",
+    "group": "Cozy"
+  },
+  {
+    "id": "camera",
+    "name": "Old camera",
+    "group": "Cozy"
+  },
+  {
+    "id": "frame",
+    "name": "Memory frame",
+    "group": "Cozy"
+  },
+  {
+    "id": "moon",
+    "name": "Golden crescent",
+    "group": "Celestial"
+  },
+  {
+    "id": "starlight",
+    "name": "Scattered starlight",
+    "group": "Celestial"
+  },
+  {
+    "id": "sun",
+    "name": "Little sun",
+    "group": "Celestial"
+  },
+  {
+    "id": "constellation",
+    "name": "Little constellation",
+    "group": "Celestial"
+  },
+  {
+    "id": "rose-heart",
+    "name": "Rose heart",
+    "group": "Love"
+  },
+  {
+    "id": "sage-heart",
+    "name": "Sage heart",
+    "group": "Love"
+  },
+  {
+    "id": "love-stamp",
+    "name": "Love postage",
+    "group": "Love"
+  },
+  {
+    "id": "heart-lock",
+    "name": "Heart keepsake",
+    "group": "Love"
+  }
+]

@@ -8,6 +8,7 @@ import { Avatar, Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, use
 import { isUnlocked, setUnlocked, useAuth, useStore, pinStatus, verifyPin } from './store';
 import { supabase } from './lib/supabase';
 import { ProfileCrop } from './ProfileCrop';
+import { Stickers } from './Stickers';
 import {
     Bell, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, Erase, Eye, EyeOff,
     Gear, Heart, ImagePlus, KeyRound, Lock, Moon, PenLine, Search, Sparkles, Users, XIcon,
@@ -385,6 +386,7 @@ export function Write({ person }: { person: PersonId }) {
     const save = store.saveState[ekey(p.id, today)] ?? 'saved';
     const [photoErr, setPhotoErr] = useState<string | null>(null);
     useEffect(() => { if (save === 'error') store.retrySave(p.id, today); }, [save]);
+    if (store.loading) return <main className="dd-shell"><p className="dd-sub" role="status">Opening your page...</p></main>;
 
     return (
         <main className="dd-shell">
@@ -413,6 +415,7 @@ export function Write({ person }: { person: PersonId }) {
                         aria-label={`${p.name}'s diary page for ${fmtDateLong(today)}`}
                         rows={12}
                     />
+                    <Stickers value={entry?.stickers ?? []} onChange={locked ? undefined : v => store.saveStickers(p.id,today,v)} />
                 </div>
                 <div className="dd-editor-foot">
                     <span>{words} {words === 1 ? 'word' : 'words'}</span>
@@ -499,6 +502,7 @@ export function Read({ viewer, publishedOwner }: { viewer: PersonId; publishedOw
                     <>
                         <div className="dd-paper dd-paper-read">
                             <p className="dd-read-text">{entry.text}</p>
+                            <Stickers value={entry.stickers ?? []} />
                         </div>
                         <PhotoGallery photos={entry.photos} title={`${other.name}'s photos`} />
                         {viewer !== other.id && <div className="dd-react">
@@ -654,6 +658,7 @@ export function Calendar({ viewer }: { viewer: PersonId }) {
                                         {entry && readable ? (
                                             <>
                                                 <p className="dd-dayentry-text">{entry.text}</p>
+                                                <Stickers value={entry.stickers ?? []} />
                                                 <PhotoGallery photos={entry.photos} title={`${person.name}'s photos`} />
                                                 {Object.keys(reacts).length > 0 && (
                                                     <p className="dd-dayentry-react">
@@ -874,7 +879,7 @@ export function HowToUse() {
         { title: '1. Come in as yourself', text: "Welcome to your little space for two. Joydeep and Aruba each sign in with their own email and password. Your own diary appears first on the books screen. There is no public sign-up." },
         { title: '2. Give your book its own PIN', text: "Tap your diary. The first time, choose a 4-digit PIN and enter it again to confirm. Only the owner can set or change their diary PIN. Joydeep's book and Aruba's book have separate PINs. If the other book has no PIN yet, its owner needs to set one first." },
         { title: "3. Write a little of today's story", text: "Open your book and choose Write today's page. Writing is open from 6:00 AM until 10:00 PM IST. You can return and edit today's draft during those hours. Your partner cannot read an unpublished draft. Older pages cannot be rewritten." },
-        { title: '4. Let it save, and add a photo', text: "Your words autosave as you write. Look for Saved before leaving the page, especially on a weak connection. If you see Saving or a retry message, keep the page open until it finishes. Use Add photo in the editor to choose an image from your device. Check that the photo appears before you leave." },
+        { title: '4. Let it save, and add a photo', text: "Your words autosave as you write. Look for Saved before leaving the page, especially on a weak connection. If you see Saving or a retry message, keep the page open until it finishes. Use Stickers to add a ribbon, flower or keepsake to your page. Tap a placed sticker, drag to move it and use Size to resize. Stickers autosave and appear on the published page. Use Add photo in the editor to choose an image from your device. Check that the photo appears before you leave." },
         { title: '5. Meet here at 10 PM', text: "At 10:00 PM IST, saved drafts lock and publish automatically. There is no Send button. From 10:00 PM to 6:00 AM, it is your nightly reading time: no more edits, just each other's words. Before 10 PM, the other book's entry screen shows a live countdown to today's publish time. At 10 PM the diary PIN is no longer needed to read that night's published page. Account sign-in is still required." },
         { title: "6. Read each other's page", text: "From 10 PM to 6 AM IST, tap either book to read its latest nightly page without a diary PIN. Only that night's page is shown from the books screen. From 6 AM to 10 PM, your own book asks for your PIN and the partner's book shows a countdown. Your account password is still required to sign in." },
         { title: '7. Leave a small sign you were here', text: "On a published page, tap an emoji to react. You can have one reaction on each page; choose another to change it or tap the selected one to remove it. Opening a page in the reading view marks it as read, so the app can tell new pages from pages you have already opened." },

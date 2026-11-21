@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
+import { cleanStickers, Sticker } from './Stickers';
 import { Entry, PersonId, ekey, isReadable, latestReadable, otherId, todayKey } from './model';
 
 // ---------- auth ----------
@@ -61,6 +62,7 @@ export interface Store {
     refreshEntries: () => Promise<void>;
     entries: Record<string, Entry>;
     saveText: (p: PersonId, d: string, text: string) => void;
+    saveStickers: (p: PersonId, d: string, stickers: Sticker[]) => void;
     retrySave: (p: PersonId, d: string) => void;
     addPhoto: (p: PersonId, d: string, file: File) => Promise<void>;
     removePhoto: (p: PersonId, d: string, idx: number) => void;
@@ -82,7 +84,7 @@ export interface Store {
 const StoreCtx = createContext<Store | null>(null);
 export const useStore = () => useContext(StoreCtx)!;
 
-interface Row { id: string; user_id: string; entry_date: string; content: string; status: string }
+interface Row { id: string; user_id: string; entry_date: string; content: string; status: string; stickers: unknown }
 interface PhotoRow { id: string; entry_id: string; storage_path: string; sort_order: number }
 interface ReactionRow { entry_id: string; user_id: string; reaction_type: string }
 
@@ -98,6 +100,8 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
     const entryIds = useRef<Record<string, string>>({}); // ekey -> entry id
     const photoIds = useRef<Record<string, string[]>>({}); // ekey -> photo ids in order
     const userIds = useRef<Record<PersonId, string>>({} as Record<PersonId, string>);
+    const drafts = useRef<Record<string, { text: string; stickers: Sticker[]; version: number }>>({});
+    const inFlight = useRef<Record<string, boolean>>({});
     const saveTimer = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
     async function loadAvatarPictures(profiles: any[]) {
@@ -141,7 +145,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
     }
 
     async function reloadEntries() {
-        const { data: rows } = await supabase.from('diary_entries').select('id, user_id, entry_date, content, status');
+        const { data: rows } = await supabase.from('diary_entries').select('id, user_id, entry_date, content, status, stickers');
         const list = (rows ?? []) as Row[];
         const byId: Record<string, PersonId> = {};
         (Object.entries(userIds.current) as [PersonId, string][]).forEach(([p, id]) => { byId[id] = p; });
@@ -151,7 +155,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
             const person = byId[r.user_id];
             if (!person) return;
             const k = ekey(person, r.entry_date);
-            next[k] = { date: r.entry_date, person, text: r.content, photos: [], status: r.status as Entry['status'] };
+            next[k] = { date: r.entry_date, person, text: r.content, photos: [], stickers: cleanStickers(r.stickers), status: r.status as Entry['status'] };
             entryIds.current[k] = r.id;
         });
         const ids = list.map(r => r.id);
@@ -182,9 +186,9 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
             const k = ekey(me, todayKey());
             const raw = localStorage.getItem(`dd_draft_${k}`);
             if (raw) {
-                const draft = JSON.parse(raw) as { text: string };
-                if (typeof draft.text === 'string' && draft.text && draft.text !== next[k]?.text) {
-                    store_save(me, todayKey(), draft.text);
+                const draft = JSON.parse(raw) as { text: string; stickers?: Sticker[] };
+                if (typeof draft.text === 'string' && (draft.text !== next[k]?.text || (Array.isArray(draft.stickers) && JSON.stringify(draft.stickers) !== JSON.stringify(next[k]?.stickers ?? [])))) {
+                    store_save(me, todayKey(), draft.text, Array.isArray(draft.stickers) ? cleanStickers(draft.stickers) : next[k]?.stickers ?? []);
                 }
             }
         } catch { /* ignore */ }
@@ -205,32 +209,43 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
         return data.id;
     }
 
-    const store_save = (p: PersonId, d: string, text: string) => {
-        const k = ekey(p, d);
-        setEntries(prev => ({ ...prev, [k]: { date: d, person: p, text, photos: prev[k]?.photos ?? [], status: prev[k]?.status ?? 'draft' } }));
-        try { localStorage.setItem(`dd_draft_${k}`, JSON.stringify({ text, ts: Date.now() })); } catch { /* full */ }
-        setSaveState(prev => ({ ...prev, [k]: 'saving' }));
+    async function flush(p: PersonId, d: string) {
+        const k = ekey(p,d);
+        if (inFlight.current[k]) return;
+        const draft = drafts.current[k];
+        const uid = userIds.current[p];
+        if (!draft || !uid) return;
+        inFlight.current[k] = true;
+        const { data, error } = await supabase.from('diary_entries')
+            .upsert({ user_id: uid, entry_date: d, content: draft.text, stickers: draft.stickers, status: 'draft' }, { onConflict: 'user_id,entry_date' }).select('id').single();
+        inFlight.current[k] = false;
+        if (error) { setSaveState(prev => ({ ...prev, [k]: 'error' })); return; }
+        if (data) entryIds.current[k] = data.id;
+        if (drafts.current[k]?.version !== draft.version) { void flush(p,d); return; }
+        try { localStorage.removeItem(`dd_draft_${k}`); } catch { /* ignore */ }
+        setSaveState(prev => ({ ...prev, [k]: 'saved' }));
+    }
+    const store_save = (p: PersonId, d: string, text: string, stickers?: Sticker[]) => {
+        if (p !== me) return;
+        const k = ekey(p,d);
+        const nextStickers = stickers ?? drafts.current[k]?.stickers ?? entries[k]?.stickers ?? [];
+        const draft = { text, stickers: nextStickers, version: (drafts.current[k]?.version ?? 0) + 1 };
+        drafts.current[k] = draft;
+        setEntries(prev => ({ ...prev, [k]: { ...prev[k], date:d, person:p, text, stickers:nextStickers, photos:prev[k]?.photos ?? [], status:prev[k]?.status ?? 'draft' } }));
+        try { localStorage.setItem(`dd_draft_${k}`,JSON.stringify(draft)); } catch { /* full */ }
+        setSaveState(prev => ({ ...prev,[k]:'saving' }));
         clearTimeout(saveTimer.current[k]);
-        saveTimer.current[k] = setTimeout(async () => {
-            const uid = userIds.current[p];
-            if (!uid) return;
-            const { data, error } = await supabase.from('diary_entries')
-                .upsert({ user_id: uid, entry_date: d, content: text, status: 'draft' }, { onConflict: 'user_id,entry_date' })
-                .select('id').single();
-            if (error) { setSaveState(prev => ({ ...prev, [k]: 'error' })); return; }
-            if (data) entryIds.current[k] = data.id;
-            try { localStorage.removeItem(`dd_draft_${k}`); } catch { /* ignore */ }
-            setSaveState(prev => ({ ...prev, [k]: 'saved' }));
-        }, 700);
+        saveTimer.current[k] = setTimeout(() => { void flush(p,d); },700);
     };
 
     const store: Store = {
         loading, refreshEntries: reloadEntries, entries, reactions, saveState, readSet, avatars, avatarPhotos, notifPrefs,
         saveText: store_save,
+        saveStickers: (p,d,stickers) => store_save(p,d,drafts.current[ekey(p,d)]?.text ?? entries[ekey(p,d)]?.text ?? '',cleanStickers(stickers)),
         retrySave: (p, d) => {
             const k = ekey(p, d);
             const text = entries[k]?.text;
-            if (typeof text === 'string') store_save(p, d, text);
+            if (typeof text === 'string') store_save(p, d, text, drafts.current[k]?.stickers ?? entries[k]?.stickers ?? []);
         },
         addPhoto: async (p, d, file) => {
             const k = ekey(p, d);

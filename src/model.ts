@@ -19,11 +19,14 @@ export const otherId = (id: PersonId): PersonId => (id === 'joydeep' ? 'aruba' :
 
 export const EMOJIS = ['❤️', '🥺', '😭', '😂', '✨', '🫂', '🤍', '😊', '🌸', '🫶'];
 
+import type { Sticker } from './Stickers';
+
 export interface Entry {
     date: string; // IST calendar date, yyyy-mm-dd
     person: PersonId;
     text: string;
     photos: string[]; // signed URLs or data URIs
+    stickers?: Sticker[];
     status?: 'draft' | 'published';
 }
 
