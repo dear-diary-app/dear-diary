@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Entry, PEOPLE, PersonId, EMOJIS, ekey, fmtCountdown, fmtDateLong, fmtDateShort,
-    isReadable, istClock, istParts, latestReadable, otherId, personById, schedule, todayKey,
+    isReadable, istClock, istParts, latestReadable, otherId, personById, publishWaitMs, schedule, todayKey,
 } from './model';
 import { Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, useNow } from './ui';
 import { isUnlocked, setUnlocked, useAuth, useStore, pinStatus, verifyPin } from './store';
@@ -145,6 +145,8 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
 
 export function Pin({ person }: { person: PersonId }) {
     const p = personById(person);
+    const now = useNow(1000);
+    const waitMs = publishWaitMs(now);
     const store = useStore();
     const auth = useAuth();
     const { go, portal } = useGo();
@@ -222,6 +224,12 @@ export function Pin({ person }: { person: PersonId }) {
                         : stage === 'confirm' ? 'Once more, to confirm your PIN'
                         : `This diary is private - only ${p.name} can set its PIN and open it`}
                 </p>
+                {person !== auth.me && waitMs !== null && (
+                    <div className="dd-publish-wait" role="timer" aria-label="Time until today's pages publish">
+                        <span className="dd-publish-wait-time"><Clock size={16} /> Opens in {fmtCountdown(waitMs)}</span>
+                        <span className="dd-publish-wait-note">Today's pages publish at 10:00 PM IST. PIN still required.</span>
+                    </div>
+                )}
                 {stage !== 'owner' && (<>
                 <div className={`dd-pin-dots${error ? ' is-error' : ''}${ok ? ' is-ok' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>
                     {[0, 1, 2, 3].map(i => (

@@ -100,6 +100,13 @@ export function schedule(d = new Date()): Schedule {
     };
 }
 
+// Display-only countdown to today's publish, never used to grant access.
+export function publishWaitMs(now = new Date()): number | null {
+    const p = istParts(now);
+    if (p.h >= 22) return null;
+    return Math.max(0, istTimestamp(p.y, p.mo, p.d, 22, 0) - now.getTime());
+}
+
 export function fmtCountdown(ms: number): string {
     const m = Math.max(0, Math.ceil(ms / 60000));
     const h = Math.floor(m / 60);
