@@ -336,7 +336,7 @@ export function Hub({ person }: { person: PersonId }) {
                         <span className="dd-menu-icon"><Gear /></span>
                         <span className="dd-menu-text">
                             <strong>Profile &amp; settings</strong>
-                            <small>Avatars, names and the launch plan</small>
+                            <small>Avatars, passwords, PINs and how to use</small>
                         </span>
                         <ChevronRight size={18} />
                     </Link>
@@ -844,6 +844,39 @@ export function ChangePin() {
     );
 }
 
+// ---------- First-time guide ----------
+
+export function HowToUse() {
+    const sections = [
+        { title: '1. Come in as yourself', text: "Welcome to your little space for two. Joydeep and Aruba each sign in with their own email and password. Your own diary appears first on the books screen. There is no public sign-up." },
+        { title: '2. Give your book its own PIN', text: "Tap your diary. The first time, choose a 4-digit PIN and enter it again to confirm. Only the owner can set or change their diary PIN. Joydeep's book and Aruba's book have separate PINs. If the other book has no PIN yet, its owner needs to set one first." },
+        { title: "3. Write a little of today's story", text: "Open your book and choose Write today's page. Writing is open from 6:00 AM until 10:00 PM IST. You can return and edit today's draft during those hours. Your partner cannot read an unpublished draft. Older pages cannot be rewritten." },
+        { title: '4. Let it save, and add a photo', text: "Your words autosave as you write. Look for Saved before leaving the page, especially on a weak connection. If you see Saving or a retry message, keep the page open until it finishes. Use Add photo in the editor to choose an image from your device. Check that the photo appears before you leave." },
+        { title: '5. Meet here at 10 PM', text: "At 10:00 PM IST, saved drafts lock and publish automatically. There is no Send button. From 10:00 PM to 6:00 AM, it is your nightly reading time: no more edits, just each other's words. Before 10 PM, the other book's entry screen shows a live countdown to today's publish time. The countdown does not skip the PIN or publish a draft early." },
+        { title: "6. Read each other's page", text: "From inside your unlocked book, choose Read Aruba's diary or Read Joydeep's diary to see your partner's published page. If you instead tap their book on the books screen, enter that book owner's PIN when asked. A book stays unlocked for that browser-tab session. Keep PINs private, and close the tab when you are finished on a shared device." },
+        { title: '7. Leave a small sign you were here', text: "On a published page, tap an emoji to react. You can have one reaction on each page; choose another to change it or tap the selected one to remove it. Opening a page in the reading view marks it as read, so the app can tell new pages from pages you have already opened." },
+        { title: '8. Keep your days together', text: "Calendar & history keeps saved pages together, month by month. Pick a date, search for words, or filter by Joydeep or Aruba. Published pages remain available in history after the nightly reading hours, including during the day. Pages do not disappear at 6 AM and have no automatic expiry. They are meant to stay with you, but no online service can promise storage forever." },
+        { title: '9. A little care for your keys', text: "Five wrong PIN attempts lock that diary PIN for 15 minutes. Wait before trying again; changing the PIN cannot bypass the wait. In Profile & settings, Change password asks for your current password and a new one twice. Change diary PIN asks for your current PIN and a new 4-digit PIN twice. If you have never set a PIN, it starts with choosing one." },
+    ];
+    return (
+        <main className="dd-shell dd-shell-narrow">
+            <TopBar back="/settings" backLabel="Back to settings" />
+            <article className="dd-anim dd-guide" aria-label="How to use Dear Diary">
+                <h1 className="dd-title">How to use</h1>
+                <p className="dd-sub">Two little books. A moment for each other, every night.</p>
+                <p className="dd-guide-time"><Clock size={15} /> All diary times are India Standard Time (IST).</p>
+                {sections.map(section => (
+                    <section className="dd-card" key={section.title}>
+                        <h2 className="dd-guide-heading">{section.title}</h2>
+                        <p className="dd-card-body">{section.text}</p>
+                    </section>
+                ))}
+                <Link className="dd-btn dd-btn-primary" to="/settings">Back to settings</Link>
+            </article>
+        </main>
+    );
+}
+
 export function Settings() {
     const store = useStore();
     const auth = useAuth();
@@ -882,6 +915,15 @@ export function Settings() {
                         )}
                     </section>
                 ))}
+
+                <Link className="dd-menu-card" to="/settings/how-to-use">
+                    <span className="dd-menu-icon"><BookOpen /></span>
+                    <span className="dd-menu-text">
+                        <strong>How to use</strong>
+                        <small>Your first page, nightly reading and the little rules</small>
+                    </span>
+                    <ChevronRight size={18} />
+                </Link>
 
                 <section className="dd-card">
                     <p className="dd-card-label">Names</p>

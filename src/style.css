@@ -395,3 +395,8 @@ body { background: var(--ds-page); }
 .dd-publish-wait { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 0 auto 22px; padding: 13px 16px; max-width: 360px; border-radius: 16px; background: #f5e8e9; color: #76545e; }
 .dd-publish-wait-time { display: inline-flex; align-items: center; gap: 7px; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .dd-publish-wait-note { font-size: 12px; line-height: 1.5; text-align: center; }
+
+.dd-guide-time { display: flex; align-items: center; gap: 7px; font-size: 13px; line-height: 1.6; color: #886f78; margin: 16px 0 22px; }
+.dd-guide-heading { font-family: Georgia, serif; font-size: 20px; line-height: 1.35; color: #70505b; margin: 0 0 12px; }
+.dd-guide .dd-card-body { line-height: 1.85; }
+.dd-guide .dd-card { margin-bottom: 16px; }
