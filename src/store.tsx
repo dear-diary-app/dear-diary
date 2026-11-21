@@ -301,20 +301,19 @@ export async function pinStatus(person: PersonId): Promise<{ hasPin: boolean; lo
         session = (await supabase.auth.getSession()).data.session;
     }
     if (!session) return { hasPin: true, locked: false, unavailable: true }; // No claim about PIN state when status cannot be checked
-    const call = (token: string) => fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-pin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ mode: 'status', person }),
-    });
-    let res = await call(session.access_token);
-    if (res.status === 401) {
-        const { data } = await supabase.auth.refreshSession();
-        if (data.session) res = await call(data.session.access_token);
+    // Use the same authenticated PostgREST transport as profiles and entries.
+    // A status read must not depend on the separate PIN verification service.
+    for (let attempt = 0; attempt < 2; attempt++) {
+        const { data, error } = await supabase.rpc('diary_pin_status', { p_person: person });
+        if (!error && data && typeof data.hasPin === 'boolean') {
+            return { hasPin: data.hasPin, locked: !!data.locked };
+        }
+        if (attempt === 0) {
+            // Retry once after restoring auth. Never turn a failed read into a PIN claim.
+            await supabase.auth.refreshSession();
+        }
     }
-    if (!res.ok) return { hasPin: true, locked: false, unavailable: true };
-    const b = await res.json().catch(() => null);
-    if (!b || typeof b.hasPin !== 'boolean') return { hasPin: true, locked: false, unavailable: true };
-    return { hasPin: b.hasPin, locked: !!b.locked };
+    return { hasPin: true, locked: false, unavailable: true };
 }
 
 export async function verifyPin(pin: string, mode: 'verify' | 'set', person?: PersonId, current?: string): Promise<{ ok: boolean; error?: string; attemptsLeft?: number; noPin?: boolean }> {
@@ -327,7 +326,7 @@ export async function verifyPin(pin: string, mode: 'verify' | 'set', person?: Pe
     if (!session) return { ok: false, error: 'signed_out' };
     const call = (token: string) => fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-pin`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${token}` },
         body: JSON.stringify({ pin, mode, person, current }),
     });
     let res = await call(session.access_token);

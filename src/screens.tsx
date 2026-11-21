@@ -228,7 +228,7 @@ export function Pin({ person }: { person: PersonId }) {
                 <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
                 <p className="dd-sub">
                     {stage === 'checking' ? 'Checking this diary...'
-                        : stage === 'unavailable' ? 'Could not check this diary. Please try again.'
+                        : stage === 'unavailable' ? ''
                         : stage === 'enter' ? `Enter ${p.name}'s 4-digit PIN to open this diary`
                         : stage === 'create' ? 'First time here - choose your 4-digit PIN'
                         : stage === 'confirm' ? 'Once more, to confirm your PIN'
@@ -262,7 +262,7 @@ export function Pin({ person }: { person: PersonId }) {
                         ))}
                 </div>
                 </>)}
-                {stage === 'unavailable' && <button type="button" className="dd-btn dd-btn-primary" onClick={() => void checkStatus()}>Try again</button>}
+                {stage === 'unavailable' && <Link className="dd-btn dd-btn-primary" to="/">Back</Link>}
                 {stage === 'owner' && (
                     <p className="dd-pin-msg">
                         Ask {p.name} to unlock it on this device, or go back to your own diary.
