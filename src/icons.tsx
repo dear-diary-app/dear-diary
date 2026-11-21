@@ -38,3 +38,4 @@ export const Erase = make(['M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Z',
 export const Eye = make(['M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z', 'M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0']);
 export const EyeOff = make(['M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z', 'M12 12m-3 0a3 3 0 1 0 6 0 3 3 0 1 0-6 0', 'M3 3l18 18']);
 export const Users = make(['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z', 'M22 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75']);
+export const HomeIcon = make(['M3 10l9-7 9 7', 'M5 9v12h14V9', 'M9 21v-8h6v8']);

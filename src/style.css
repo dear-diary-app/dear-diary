@@ -552,3 +552,30 @@ html { background:#fdf9f4; }
 .dd-install-dialog form { margin-top: 22px; }
 .dd-install-dialog .dd-btn { width: 100%; }
 .dd-entry-label { margin: -2px 0 10px; color: #8a6a72; font-size: 14px; }
+
+/* A quiet glass dock, only mounted after the app PIN has been unlocked. */
+.dd-with-nav { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+.dd-bottom-nav {
+    position: fixed; z-index: 30; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    left: 50%; transform: translateX(-50%); box-sizing: border-box;
+    width: calc(100% - 28px); max-width: 540px;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px;
+    padding: 7px; border-radius: 24px; border: 1px solid #ffffffd9;
+    background: rgba(255, 250, 247, 0.78);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: 0 6px 28px #84636b24, inset 0 1px 0 #ffffffb3;
+}
+.dd-bottom-tab {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; min-height: 52px; min-width: 0; border-radius: 17px;
+    font-size: 11px; font-weight: 600; text-decoration: none; color: #846c74;
+    -webkit-tap-highlight-color: transparent;
+}
+.dd-bottom-tab.is-current { background: #efd9e2c7; color: #754856; }
+.dd-bottom-tab:focus-visible { outline: 2px solid #a96d80; outline-offset: -2px; }
+.dd-bottom-tab:active { background: #f2e3e8; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .dd-bottom-nav { background: #fffaf7; }
+}
+@media (prefers-reduced-transparency: reduce) { .dd-bottom-nav { background: #fffaf7; backdrop-filter: none; } }

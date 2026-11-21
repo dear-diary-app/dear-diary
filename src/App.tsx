@@ -6,6 +6,7 @@ import { useNow } from './ui';
 import { AppEntryGate, Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
 import grain from './photos/grain.png';
 import { OfflineNotice } from './pwa';
+import { BottomNav } from './BottomNav';
 
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
     const auth = useAuth();
@@ -75,6 +76,7 @@ function Shell() {
             <div className={live ? 'dd-app dd-live' : 'dd-app'}>
                 <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
                 <AppEntryGate>
+                <div className="dd-with-nav">
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/pin/:person" element={<PinRoute />} />
@@ -90,6 +92,8 @@ function Shell() {
                     <Route path="/notifications" element={<Notifications />} />
                     <Route path="*" element={<Home />} />
                 </Routes>
+                <BottomNav />
+                </div>
                 </AppEntryGate>
             </div>
         </StoreProvider>
