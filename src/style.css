@@ -651,3 +651,52 @@ html { background:#fdf9f4; }
 .dd-app[data-theme="midnight"] .dd-switch.is-on { background:#8da37e; }
 .dd-app[data-theme="midnight"] .dd-sticker-tabs button[aria-pressed=true] { background:#46553f; color:#e6f0df; }
 .dd-app[data-theme="midnight"] .dd-streak-badge { color:#d8b3a1; }
+
+/* Soft liquid-glass controls, with the original theme colours underneath. */
+.dd-app { --dd-control-edge:#ffffffb8; --dd-control-glint:#ffffffb8; --dd-control-shadow:#75525f1c; --dd-key-glow:#d77eaa8c; }
+.dd-app[data-theme="midnight"] { --dd-control-edge:#d9b9d04d; --dd-control-glint:#ffdef32e; --dd-control-shadow:#0005; --dd-key-glow:#f4a3d4a6; }
+.dd-app:is(.dd-app,[data-theme]) :is(.dd-btn,.dd-btn-ghost,.dd-iconbtn,.dd-key,.dd-menu-card,.dd-theme-option,.dd-filter,.dd-emoji,.dd-page-nav button,.dd-sticker-add,.dd-sticker-tabs button,.dd-sticker-controls button,.dd-cal-day.is-sel,.dd-result) {
+    background-image:linear-gradient(155deg,var(--dd-control-glint) 0%,#ffffff08 42%,#ffffff00 56%,#c495b00d 100%);
+    border-color:var(--dd-control-edge);
+    box-shadow:inset 0 1px 0 var(--dd-control-glint),inset 0 -1px 0 #805c7614,0 4px 14px var(--dd-control-shadow);
+    -webkit-backdrop-filter:blur(14px) saturate(135%); backdrop-filter:blur(14px) saturate(135%);
+    transition:box-shadow .2s ease,border-color .2s ease,transform .16s ease;
+}
+.dd-app:is(.dd-app,[data-theme]) :is(.dd-btn,.dd-iconbtn,.dd-menu-card,.dd-filter,.dd-emoji,.dd-page-nav button):not(:disabled):active { box-shadow:inset 0 1px 0 var(--dd-control-glint),0 1px 5px var(--dd-control-shadow); }
+.dd-app:is(.dd-app,[data-theme]) :is(.dd-iconbtn,.dd-menu-card,.dd-theme-option,.dd-emoji,.dd-result,.dd-page-nav button) { background-color:rgba(var(--dd-glass,255,250,247),.5); }
+.dd-app[data-theme="midnight"] :is(.dd-iconbtn,.dd-menu-card,.dd-theme-option,.dd-emoji,.dd-result,.dd-page-nav button) { background-color:#352b3580; }
+.dd-app.dd-app .dd-emoji.is-on { background-color:#f7dee2; }
+.dd-app[data-theme="midnight"] .dd-emoji.is-on { background-color:#402a35; }
+.dd-app.dd-app .dd-theme-option.is-selected { border-color:#b77e90; }
+.dd-app[data-theme="midnight"] .dd-theme-option.is-selected { border-color:#d49aaf; }
+.dd-app .dd-key { background-color:rgba(var(--dd-glass,255,250,247),.5); }
+.dd-app[data-theme="midnight"] .dd-key { background-color:#352b354f; }
+.dd-app .dd-key.dd-key:not(:disabled):active {
+    border-color:#e7a4c4; background-color:#f5d6e5; color:#553044;
+    box-shadow:inset 0 1px 2px #fff,0 0 0 5px #e6a1c526,0 0 26px 7px var(--dd-key-glow);
+    transform:scale(.94); transition:box-shadow .06s ease,background-color .06s ease,transform .06s ease;
+}
+.dd-app[data-theme="midnight"] .dd-key.dd-key:not(:disabled):active { background-color:#6b405c; color:#fff0f8; box-shadow:inset 0 1px 2px #ffd5f0a6,0 0 0 5px #e6a1c526,0 0 28px 7px var(--dd-key-glow); }
+.dd-app .dd-key:focus-visible { outline:2px solid #b87296; outline-offset:5px; }
+.dd-app .dd-bottom-nav {
+    background:linear-gradient(150deg,#ffffff30,#ffffff05 48%,#ffffff12),rgba(var(--dd-glass,255,250,247),.36);
+    border-color:#ffffff99;
+    -webkit-backdrop-filter:blur(22px) saturate(155%); backdrop-filter:blur(22px) saturate(155%);
+    box-shadow:0 8px 30px #84636b20,inset 0 1px 0 #ffffffa6,inset 0 -1px 0 #ffffff26;
+}
+.dd-app[data-theme="midnight"] .dd-bottom-nav { background:linear-gradient(150deg,#e9c9e014,#ffffff00 48%,#ffffff06),rgba(var(--dd-glass),.32); border-color:#cfb1c24d; box-shadow:0 8px 30px #0005,inset 0 1px 0 #ffe2f52e; }
+.dd-app .dd-bottom-tab.is-current { background:linear-gradient(145deg,#ffffff4d,#ffffff05),#ebc9d994; box-shadow:inset 0 1px 0 #ffffff91,0 2px 8px #94657712; }
+.dd-app[data-theme="midnight"] .dd-bottom-tab.is-current { background:linear-gradient(145deg,#fff2 0%,#ffffff00 70%),#73435c80; box-shadow:inset 0 1px 0 #f9d9ec3d,0 2px 8px #0002; }
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+    .dd-app .dd-bottom-nav,.dd-app[data-theme="midnight"] .dd-bottom-nav { background:var(--dd-bg-top,#fffaf7); }
+    .dd-app .dd-key { background-color:var(--dd-bg-top,#fffaf7); }
+}
+@media (prefers-reduced-transparency:reduce) {
+    .dd-app .dd-bottom-nav,.dd-app[data-theme="midnight"] .dd-bottom-nav { background:var(--dd-bg-top,#fffaf7); -webkit-backdrop-filter:none; backdrop-filter:none; }
+    .dd-app:is(.dd-app,[data-theme]) :is(.dd-btn,.dd-btn-ghost,.dd-iconbtn,.dd-key,.dd-menu-card,.dd-theme-option,.dd-filter,.dd-emoji,.dd-page-nav button,.dd-sticker-add,.dd-sticker-tabs button,.dd-sticker-controls button,.dd-result) { -webkit-backdrop-filter:none; backdrop-filter:none; }
+    .dd-app .dd-key { background-color:var(--dd-bg-top,#fffaf7); }
+}
+@media (prefers-reduced-motion:reduce) {
+    .dd-app:is(.dd-app,[data-theme]) :is(.dd-btn,.dd-btn-ghost,.dd-iconbtn,.dd-key,.dd-menu-card,.dd-theme-option,.dd-filter,.dd-emoji,.dd-page-nav button,.dd-sticker-add,.dd-sticker-tabs button,.dd-sticker-controls button,.dd-result) { transition:none; }
+    .dd-app .dd-key.dd-key:not(:disabled):active { transform:none; }
+}
