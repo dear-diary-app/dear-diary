@@ -242,7 +242,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
     );
 
     return (
-        <main className="dd-shell dd-shell-narrow">
+        <main className={`dd-shell dd-shell-narrow${appEntry ? ' dd-entry-shell' : ''}`}>
             {!appEntry && <TopBar back="/" backLabel="Back to the books" />}
             <div className="dd-anim dd-pin" key={`pin-${person}`} aria-label={appEntry ? "Unlock Dear Diary" : undefined}>
                 <Avatar person={p} size="lg" />

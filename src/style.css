@@ -355,7 +355,7 @@ body { background: var(--ds-page); }
 }
 
 .dd-grain { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.55; }
-.dd-app > *:not(.dd-grain) { position: relative; z-index: 1; }
+.dd-app > *:not(.dd-grain):not(.dd-overlay) { position: relative; z-index: 1; }
 
 /* standalone app tokens (kit replacements) */
 :root {
@@ -579,3 +579,18 @@ html { background:#fdf9f4; }
     .dd-bottom-nav { background: #fffaf7; }
 }
 @media (prefers-reduced-transparency: reduce) { .dd-bottom-nav { background: #fffaf7; backdrop-filter: none; } }
+
+/* Entry screens fill the viewport independently of the normal page shell. */
+.dd-app > .dd-overlay {
+    position: fixed; z-index: 40; inset: 0; box-sizing: border-box;
+    min-height: 100vh; min-height: 100dvh; overflow-y: auto;
+    display: flex; flex-direction: column; align-items: center;
+    padding: max(24px, env(safe-area-inset-top, 0px)) 24px max(24px, env(safe-area-inset-bottom, 0px));
+}
+.dd-app > .dd-overlay > .dd-welcome { flex: none; margin-block: auto; }
+.dd-app > .dd-entry-shell {
+    box-sizing: border-box; min-height: 100vh; min-height: 100dvh;
+    display: flex; flex-direction: column; align-items: stretch;
+    padding: max(24px, env(safe-area-inset-top, 0px)) 20px max(24px, env(safe-area-inset-bottom, 0px));
+}
+.dd-entry-shell > .dd-pin { flex: none; margin-block: auto; padding-top: 0; }
