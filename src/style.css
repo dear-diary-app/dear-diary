@@ -428,3 +428,15 @@ body { background: var(--ds-page); }
   .dd-settings .dd-menu-icon { width: 36px; height: 36px; }
   .dd-settings .dd-menu-text strong { font-size: 14px; }
 }
+
+.dd-crop-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(49,35,42,.6); }
+.dd-crop-dialog { width: 100%; max-width: 440px; max-height: calc(100dvh - 32px); overflow-y: auto; background: #fffaf6; border-radius: 22px; padding: 22px; box-shadow: 0 18px 60px #24121a44; }
+.dd-crop-dialog .dd-title { font-size: 25px; margin: 0 0 7px; }
+.dd-crop-dialog .dd-card-sub { line-height: 1.6; }
+.dd-crop-frame { position: relative; width: 100%; aspect-ratio: 1; margin: 18px 0; border-radius: 12px; overflow: hidden; background: #332b30; touch-action: none; }
+.dd-crop-zoom { display: flex; align-items: center; gap: 16px; font-size: 14px; color: #6d565d; }
+.dd-crop-zoom input { flex: 1; min-width: 0; accent-color: #c88495; min-height: 44px; }
+.dd-crop-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.dd-crop-actions .dd-btn { min-height: 44px; padding: 11px 20px; font-size: 14px; }
+.dd-crop-frame[aria-busy=true] { pointer-events: none; }
+@media (max-width: 480px) { .dd-crop-dialog { padding: 18px; } }

@@ -7,6 +7,7 @@ import {
 import { Avatar, Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, useNow } from './ui';
 import { isUnlocked, setUnlocked, useAuth, useStore, pinStatus, verifyPin } from './store';
 import { supabase } from './lib/supabase';
+import { ProfileCrop } from './ProfileCrop';
 import {
     Bell, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, Erase, Eye, EyeOff,
     Gear, Heart, ImagePlus, KeyRound, Lock, Moon, PenLine, Search, Sparkles, Users, XIcon,
@@ -880,7 +881,7 @@ export function HowToUse() {
 
 export function Settings() {
     const store = useStore();
-    const [photoBusy, setPhotoBusy] = useState(false);
+    const [cropFile, setCropFile] = useState<File | null>(null);
     const [photoMessage, setPhotoMessage] = useState('');
     const auth = useAuth();
     const now = useNow(30000);
@@ -904,15 +905,15 @@ export function Settings() {
                             <>
                                 <div className="dd-profile-upload">
                                     <label className="dd-btn dd-btn-primary">
-                                        {photoBusy ? 'Uploading...' : store.avatarPhotos[p.id] ? 'Change profile picture' : 'Upload profile picture'}
-                                        <input type="file" accept="image/jpeg,image/png,image/webp" hidden disabled={photoBusy}
+                                        {store.avatarPhotos[p.id] ? 'Change profile picture' : 'Upload profile picture'}
+                                        <input type="file" accept="image/jpeg,image/png,image/webp" hidden
                                             onChange={async e => {
                                                 const file = e.target.files?.[0]; e.target.value = '';
                                                 if (!file) return;
-                                                setPhotoBusy(true); setPhotoMessage('');
-                                                try { await store.uploadAvatar(p.id, file); setPhotoMessage('Profile picture saved.'); }
-                                                catch (err) { setPhotoMessage(err instanceof Error ? err.message : 'Could not upload this photo.'); }
-                                                finally { setPhotoBusy(false); }
+                                                setPhotoMessage('');
+                                                if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setPhotoMessage('Choose a JPG, PNG or WebP photo.'); return; }
+                                                if (file.size > 10 * 1024 * 1024) { setPhotoMessage('Choose a photo smaller than 10 MB.'); return; }
+                                                setCropFile(file);
                                             }} />
                                     </label>
                                     <p className="dd-card-sub">JPG, PNG or WebP · Up to 10 MB</p>
@@ -976,6 +977,9 @@ export function Settings() {
                 <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>
                 <span style={{ display: 'none' }}>{now.toISOString()}</span>
             </div>
+            {cropFile && auth.me && <ProfileCrop file={cropFile} person={auth.me}
+                onClose={() => setCropFile(null)}
+                onSaved={() => { setCropFile(null); setPhotoMessage('Profile picture saved.'); }} />}
         </main>
     );
 }

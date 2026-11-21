@@ -71,7 +71,7 @@ export interface Store {
     unreadLatest: (reader: PersonId, now: Date) => string | null;
     unreadAny: (now: Date) => boolean;
     avatarPhotos: Partial<Record<PersonId, string>>;
-    uploadAvatar: (p: PersonId, file: File) => Promise<void>;
+    uploadAvatar: (p: PersonId, file: File, crop?: { x: number; y: number; width: number; height: number }) => Promise<void>;
     avatars: Record<PersonId, number>;
     setAvatar: (p: PersonId, n: number) => void;
     notifPrefs: Record<string, boolean>;
@@ -294,7 +294,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
                 const e = entries[ekey(owner, latest)];
                 return e && e.status === 'published' && !readSet[`${owner}|${latest}|${r}`];
             })),
-        uploadAvatar: async (p, file) => {
+        uploadAvatar: async (p, file, crop) => {
             if (p !== me) throw new Error('Only your own picture can be changed.');
             if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Choose a JPG, PNG or WebP photo.');
             if (file.size > 10 * 1024 * 1024) throw new Error('Choose a photo smaller than 10 MB.');
@@ -306,7 +306,8 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
             if (!ctx) { bitmap.close(); throw new Error('Could not prepare this image.'); }
             const size = Math.min(bitmap.width, bitmap.height);
             ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 512, 512);
-            ctx.drawImage(bitmap, (bitmap.width-size)/2, (bitmap.height-size)/2, size, size, 0, 0, 512, 512);
+            const c = crop ?? { x: (bitmap.width-size)/2, y: (bitmap.height-size)/2, width: size, height: size };
+            ctx.drawImage(bitmap, c.x, c.y, c.width, c.height, 0, 0, 512, 512);
             bitmap.close();
             const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error('Could not prepare this image.')), 'image/jpeg', 0.85));
             const path = `${uid}/${crypto.randomUUID()}.jpg`;
