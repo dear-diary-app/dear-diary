@@ -7,7 +7,7 @@ import {
 import { Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, useNow } from './ui';
 import { isUnlocked, setUnlocked, useAuth, useStore, verifyPin } from './store';
 import {
-    Bell, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, Erase,
+    Bell, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, Erase, Eye, EyeOff,
     Gear, Heart, ImagePlus, Lock, Moon, PenLine, Search, Sparkles, Users, XIcon,
 } from './icons';
 
@@ -20,6 +20,7 @@ export function Login() {
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
+    const [showPw, setShowPw] = useState(false);
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,8 +54,15 @@ export function Login() {
                     </label>
                     <label className="dd-field">
                         <span>Password</span>
-                        <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                            autoComplete="current-password" required placeholder="Your password" />
+                        <span className="dd-pass-wrap">
+                            <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                                autoComplete="current-password" required placeholder="Your password" />
+                            <button type="button" className="dd-eye" onClick={() => setShowPw(v => !v)}
+                                aria-label={showPw ? 'Hide password' : 'Show password'}
+                                aria-pressed={showPw} tabIndex={-1}>
+                                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </span>
                     </label>
                     {error && <p className="dd-pin-msg is-error">{error}</p>}
                     {notice && <p className="dd-pin-msg">{notice}</p>}

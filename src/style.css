@@ -374,6 +374,14 @@ body { background: var(--ds-page); }
     border: 1px solid #e8ddd4; background: #fffdfb; color: #4a3f38; outline: none;
 }
 .dd-field input:focus { border-color: #d9a7b2; box-shadow: 0 0 0 3px #f6dfe5; }
+.dd-pass-wrap { position: relative; display: block; }
+.dd-pass-wrap input { width: 100%; padding-right: 46px; box-sizing: border-box; }
+.dd-eye {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: #b08a94; cursor: pointer;
+    padding: 6px; display: flex; align-items: center; border-radius: 8px;
+}
+.dd-eye:hover, .dd-eye:focus-visible { color: #8a5a66; background: #f6dfe5; outline: none; }
 .dd-btn-ghost { background: none; border: 1px solid #e8ddd4; border-radius: 14px; padding: 12px; font: inherit; color: #8a7f76; cursor: pointer; margin-top: 10px; }
 .dd-linklike { background: none; border: none; color: #b08a94; font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; }
 
