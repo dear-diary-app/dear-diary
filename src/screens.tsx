@@ -155,11 +155,12 @@ export function Pin({ person }: { person: PersonId }) {
     const checked = useRef(false);
 
     useEffect(() => {
+        console.log('[pin-debug] effect', person, 'unlocked=', isUnlocked(person), 'me=', auth.me, 'checked=', checked.current);
         if (isUnlocked(person)) { go(`/hub/${person}`, 10); return; }
         // If this diary has no PIN yet, the owner creates one now.
         if (checked.current) return;
         checked.current = true;
-        verifyPin('0000', 'verify', person).then(r => { if (r.noPin) setStage(person === auth.me ? 'create' : 'owner'); });
+        verifyPin('0000', 'verify', person).then(r => { console.log('[pin-debug] probe', person, JSON.stringify(r), 'me=', auth.me); if (r.noPin) setStage(person === auth.me ? 'create' : 'owner'); });
     }, [person]);
 
     const finish = () => {
