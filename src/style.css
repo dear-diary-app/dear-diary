@@ -530,3 +530,24 @@ html { background:#fdf9f4; }
 .dd-offline-notice { padding:10px 18px; background:#f5e8e9; color:#76545e; text-align:center; font:13px/1.5 system-ui,sans-serif; }
 
 .dd-reading-options { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin:0 0 18px; }
+
+/* Device installation, with an opaque paper guide above Settings. */
+.dd-install-row { width: 100%; font-family: inherit; text-align: left; cursor: pointer; }
+.dd-install-row:disabled { opacity: 0.65; cursor: wait; }
+.dd-install-notice { margin: 4px 4px 14px; font-size: 13px; line-height: 1.5; }
+.dd-install-dialog {
+    box-sizing: border-box; width: calc(100% - 40px); max-width: 420px;
+    max-height: calc(100dvh - 48px); overflow-y: auto;
+    border: 1px solid #eadbd7; border-radius: 22px; padding: 26px;
+    color: #5b464a; background: #fdf9f4; font-family: var(--ds-font-text);
+    box-shadow: 0 18px 60px #d7c5bf;
+}
+.dd-install-dialog::backdrop { background: #f5eee8; }
+.dd-install-dialog h2 { font-family: var(--ds-font-display); font-size: 27px; font-weight: 400; margin: 12px 0; color: #6d4a52; }
+.dd-install-dialog p, .dd-install-dialog li { font-size: 14px; line-height: 1.65; }
+.dd-install-dialog ol { padding-left: 20px; }
+.dd-install-dialog li { padding-left: 4px; margin-bottom: 9px; }
+.dd-install-dialog .dd-install-help { font-size: 12px; color: #856d73; }
+.dd-install-dialog a { color: #865363; font-size: 13px; text-underline-offset: 3px; }
+.dd-install-dialog form { margin-top: 22px; }
+.dd-install-dialog .dd-btn { width: 100%; }
