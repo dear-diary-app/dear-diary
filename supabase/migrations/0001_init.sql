@@ -191,3 +191,5 @@ create policy photos_storage_delete on storage.objects for delete to authenticat
 -- table privileges for the authenticated role (RLS policies gate row access on top of this)
 grant select, insert, update, delete on public.profiles, public.friendship, public.diary_entries, public.entry_photos, public.reactions, public.diary_pins, public.app_settings to authenticated;
 grant usage on all sequences in schema public to authenticated;
+grant select, insert, update, delete on all tables in schema public to service_role;
+grant usage on all sequences in schema public to service_role;
