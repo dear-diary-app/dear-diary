@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, StoreProvider, isUnlocked, useAuth } from './store';
 import { PersonId, publishWaitMs, schedule } from './model';
 import { useNow } from './ui';
-import { Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
+import { AppEntryGate, Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
 import grain from './photos/grain.png';
 import { OfflineNotice } from './pwa';
 
@@ -74,6 +74,7 @@ function Shell() {
         <StoreProvider me={auth.me}>
             <div className={live ? 'dd-app dd-live' : 'dd-app'}>
                 <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
+                <AppEntryGate>
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/pin/:person" element={<PinRoute />} />
@@ -89,6 +90,7 @@ function Shell() {
                     <Route path="/notifications" element={<Notifications />} />
                     <Route path="*" element={<Home />} />
                 </Routes>
+                </AppEntryGate>
             </div>
         </StoreProvider>
     );

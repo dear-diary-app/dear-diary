@@ -551,3 +551,4 @@ html { background:#fdf9f4; }
 .dd-install-dialog a { color: #865363; font-size: 13px; text-underline-offset: 3px; }
 .dd-install-dialog form { margin-top: 22px; }
 .dd-install-dialog .dd-btn { width: 100%; }
+.dd-entry-label { margin: -2px 0 10px; color: #8a6a72; font-size: 14px; }

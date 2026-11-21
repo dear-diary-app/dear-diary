@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
     Entry, PEOPLE, PersonId, EMOJIS, ekey, fmtCountdown, fmtPublishCountdown, fmtDateLong, fmtDateShort,
     isReadable, istClock, istParts, latestReadable, otherId, personById, publishWaitMs, schedule, todayKey,
@@ -83,33 +83,36 @@ export function Login() {
 
 // ---------- Welcome / Home ----------
 
+// This sits above every route, so a restored URL cannot bypass the app lock.
+export function AppEntryGate({ children }: { children: React.ReactNode }) {
+    const auth = useAuth();
+    const navigate = useNavigate();
+    const [stage, setStage] = useState<'welcome' | 'pin' | 'open'>('welcome');
+    if (stage === 'welcome') return (
+        <div className="dd-overlay" role="dialog" aria-label="Welcome to Dear Diary">
+            <div className="dd-welcome">
+                <span className="dd-welcome-heart"><Heart size={26} /></span>
+                <h1 className="dd-welcome-title">Dear Diary</h1>
+                <p className="dd-welcome-tag">A little space for two, a new page every day.</p>
+                <button type="button" className="dd-btn dd-btn-primary" onClick={() => setStage('pin')}>Open your diaries</button>
+            </div>
+        </div>
+    );
+    if (stage === 'pin') return <Pin person={auth.me!} appEntry onEntryUnlock={() => { navigate('/', { replace: true }); setStage('open'); }} />;
+    return <>{children}</>;
+}
+
 export function Home() {
     const store = useStore();
     const auth = useAuth();
     const now = useNow(1000);
     const { go, portal } = useGo();
-    const [welcome, setWelcome] = useState(() => {
-        if (typeof window === 'undefined' || !window.location) return false;
-        return !window.location.hash.includes('nowelcome');
-    });
     const sched = schedule(now);
     const PhaseIcon = sched.phase === 'writing' ? PenLine : sched.phase === 'quiet' ? Moon : BookOpen;
 
     return (
         <main className="dd-shell">
             <TopBar alert={store.unreadAny(now)} />
-            {welcome && (
-                <div className="dd-overlay" role="dialog" aria-label="Welcome to Dear Diary">
-                    <div className="dd-welcome">
-                        <span className="dd-welcome-heart"><Heart size={26} /></span>
-                        <h1 className="dd-welcome-title">Dear Diary</h1>
-                        <p className="dd-welcome-tag">A little space for two, a new page every day.</p>
-                        <button type="button" className="dd-btn dd-btn-primary" onClick={() => setWelcome(false)}>
-                            Open your diaries
-                        </button>
-                    </div>
-                </div>
-            )}
             <div className="dd-anim" key="home">
                 <section className="dd-books" aria-label="Your two diary books">
                     {[...PEOPLE].sort((a, b) => (a.id === auth.me ? -1 : b.id === auth.me ? 1 : 0)).map(p => (
@@ -146,7 +149,7 @@ export function Home() {
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
 
-export function Pin({ person }: { person: PersonId }) {
+export function Pin({ person, appEntry = false, onEntryUnlock }: { person: PersonId; appEntry?: boolean; onEntryUnlock?: () => void }) {
     const p = personById(person);
     const now = useNow(1000);
     const waitMs = publishWaitMs(now);
@@ -160,7 +163,7 @@ export function Pin({ person }: { person: PersonId }) {
     const [ok, setOk] = useState(false);
     const [busy, setBusy] = useState(false);
     const checked = useRef(false);
-    const readingOpen = schedule(now).phase !== 'writing';
+    const readingOpen = !appEntry && schedule(now).phase !== 'writing';
     const waitingForPublish = person !== auth.me && !readingOpen;
 
     const checkStatus = async () => {
@@ -173,7 +176,7 @@ export function Pin({ person }: { person: PersonId }) {
 
     useEffect(() => {
         if (waitingForPublish || readingOpen) return;
-        if (isUnlocked(person)) { go(`/hub/${person}`, 10); return; }
+        if (!appEntry && isUnlocked(person)) { go(`/hub/${person}`, 10); return; }
         // If this diary has no PIN yet, only its owner can create one.
         // Status check is not a PIN attempt, so it never counts toward lockout.
         if (checked.current) return;
@@ -184,7 +187,8 @@ export function Pin({ person }: { person: PersonId }) {
     const finish = () => {
         setOk(true);
         setUnlocked(person);
-        go(`/hub/${person}`, 750);
+        if (appEntry) onEntryUnlock?.();
+        else go(`/hub/${person}`, 750);
     };
 
     const submitting = useRef(false);
@@ -221,7 +225,7 @@ export function Pin({ person }: { person: PersonId }) {
         if (stage === 'enter' && next.length === 4) void submitPin(next);
     };
 
-    if (readingOpen) return <Navigate to={person === auth.me ? `/hub/${person}` : `/published/${person}`} replace />;
+    if (readingOpen) return <Navigate to={appEntry ? '/?nowelcome' : person === auth.me ? `/hub/${person}` : `/published/${person}`} replace />;
 
     if (waitingForPublish) return (
         <main className="dd-shell dd-shell-narrow">
@@ -239,14 +243,15 @@ export function Pin({ person }: { person: PersonId }) {
 
     return (
         <main className="dd-shell dd-shell-narrow">
-            <TopBar back="/" backLabel="Back to the books" />
-            <div className="dd-anim dd-pin" key={`pin-${person}`}>
+            {!appEntry && <TopBar back="/" backLabel="Back to the books" />}
+            <div className="dd-anim dd-pin" key={`pin-${person}`} aria-label={appEntry ? "Unlock Dear Diary" : undefined}>
                 <Avatar person={p} size="lg" />
                 <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
+                {appEntry && <p className="dd-entry-label">Welcome back, {p.name}</p>}
                 <p className="dd-sub">
                     {stage === 'checking' ? 'Checking this diary...'
                         : stage === 'unavailable' ? ''
-                        : stage === 'enter' ? `Enter ${p.name}'s 4-digit PIN to open this diary`
+                        : stage === 'enter' ? appEntry ? 'Enter your 4-digit diary PIN to open your diaries' : `Enter ${p.name}'s 4-digit PIN to open this diary`
                         : stage === 'create' ? 'First time here - choose your 4-digit PIN'
                         : stage === 'confirm' ? 'Once more, to confirm your PIN'
                         : `This diary is private - only ${p.name} can set its PIN and open it`}
@@ -279,7 +284,9 @@ export function Pin({ person }: { person: PersonId }) {
                     </button>
                 )}
                 </>)}
-                {stage === 'unavailable' && <Link className="dd-btn dd-btn-primary" to="/">Back</Link>}
+                {stage === 'unavailable' && (appEntry
+                    ? <button type="button" className="dd-btn dd-btn-primary" onClick={() => void checkStatus()}>Retry PIN check</button>
+                    : <Link className="dd-btn dd-btn-primary" to="/">Back</Link>)}
                 {stage === 'owner' && (
                     <p className="dd-pin-msg">
                         Ask {p.name} to unlock it on this device, or go back to your own diary.
@@ -869,7 +876,7 @@ export function ChangePin() {
 
 export function HowToUse() {
     const sections = [
-        { title: '1. Come in as yourself', text: "Welcome to your little space for two. Joydeep and Aruba each sign in with their own email and password. Your own diary appears first on the books screen. There is no public sign-up." },
+        { title: '1. Come in as yourself', text: "Welcome to your little space for two. Joydeep and Aruba each sign in with their own email and password. Open your diaries first asks for your own 4-digit diary PIN at any time of day or night, showing your name and profile picture. Unlock once to reach the books without entering it again straight away. After 10 PM, your partner's nightly page needs no additional PIN once you are inside. Your own diary appears first on the books screen. There is no public sign-up." },
         { title: '2. Give your book its own PIN', text: "Tap your diary. The first time, choose a 4-digit PIN and enter it again to confirm. Only the owner can set or change their diary PIN. Joydeep's book and Aruba's book have separate PINs. If the other book has no PIN yet, its owner needs to set one first." },
         { title: "3. Write a little of today's story", text: "Open your book and choose Write today's page. Writing is open from 6:00 AM until 10:00 PM IST. You can return and edit today's draft during those hours. Your partner cannot read an unpublished draft. Older pages cannot be rewritten." },
         { title: '4. Let it save, and add a photo', text: "Your words autosave as you write. Look for Saved before leaving the page, especially on a weak connection. If you see Saving or a retry message, keep the page open until it finishes. Use Stickers to add a ribbon, flower or keepsake to your page. Tap a placed sticker, drag it anywhere on the page, pinch to resize and twist with two fingers to rotate. Corner handles and Size and Rotate controls work too. Tap uncovered words to keep writing. Each sheet has 14 lines. Writing flows automatically to another sheet when the current one fills; use the page arrows to go back. Stickers stay on their numbered sheet, autosave and appear on the published page. Use Add photo in the editor to choose an image from your device. Check that the photo appears before you leave." },
