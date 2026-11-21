@@ -7,6 +7,7 @@ import { AppEntryGate, Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub,
 import grain from './photos/grain.png';
 import { OfflineNotice } from './pwa';
 import { BottomNav } from './BottomNav';
+import { ThemeFrame } from './Themes';
 
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
     const auth = useAuth();
@@ -72,8 +73,8 @@ function Shell() {
         );
     }
     return (
-        <StoreProvider me={auth.me}>
-            <div className={live ? 'dd-app dd-live' : 'dd-app'}>
+        <StoreProvider key={auth.session.user.id} me={auth.me}>
+            <ThemeFrame key={auth.session.user.id} className={live ? 'dd-app dd-live' : 'dd-app'}>
                 <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
                 <AppEntryGate>
                 <div className="dd-with-nav">
@@ -95,7 +96,7 @@ function Shell() {
                 <BottomNav />
                 </div>
                 </AppEntryGate>
-            </div>
+            </ThemeFrame>
         </StoreProvider>
     );
 }

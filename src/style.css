@@ -7,7 +7,7 @@ body { background: var(--ds-page); }
     min-height: 100vh;
     color: #5b464a;
     font-family: var(--ds-font-text);
-    background: linear-gradient(180deg, #fdf9f4 0%, #faf3ee 60%, #f7efe9 100%);
+    background: linear-gradient(180deg, var(--dd-bg-top, #fdf9f4) 0%, var(--dd-bg-mid, #faf3ee) 60%, var(--dd-bg-bottom, #f7efe9) 100%);
 }
 
 .dd-shell { max-width: 1024px; margin: 0 auto; padding: 14px 20px 56px; }
@@ -43,7 +43,7 @@ body { background: var(--ds-page); }
 /* welcome overlay */
 .dd-overlay {
     position: fixed; inset: 0; z-index: 40; display: grid; place-items: center;
-    background: #fdf9f4; padding: 24px;
+    background: var(--dd-bg-top, #fdf9f4); padding: 24px;
 }
 .dd-welcome { text-align: center; max-width: 340px; }
 .dd-welcome-heart { color: #e29aa4; display: inline-flex; }
@@ -539,10 +539,10 @@ html { background:#fdf9f4; }
     box-sizing: border-box; width: calc(100% - 40px); max-width: 420px;
     max-height: calc(100dvh - 48px); overflow-y: auto;
     border: 1px solid #eadbd7; border-radius: 22px; padding: 26px;
-    color: #5b464a; background: #fdf9f4; font-family: var(--ds-font-text);
+    color: #5b464a; background: var(--dd-bg-top, #fdf9f4); font-family: var(--ds-font-text);
     box-shadow: 0 18px 60px #d7c5bf;
 }
-.dd-install-dialog::backdrop { background: #f5eee8; }
+.dd-install-dialog::backdrop { background: var(--dd-bg-bottom, #f5eee8); }
 .dd-install-dialog h2 { font-family: var(--ds-font-display); font-size: 27px; font-weight: 400; margin: 12px 0; color: #6d4a52; }
 .dd-install-dialog p, .dd-install-dialog li { font-size: 14px; line-height: 1.65; }
 .dd-install-dialog ol { padding-left: 20px; }
@@ -561,7 +561,7 @@ html { background:#fdf9f4; }
     width: calc(100% - 28px); max-width: 540px;
     display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px;
     padding: 7px; border-radius: 24px; border: 1px solid #ffffffd9;
-    background: rgba(255, 250, 247, 0.78);
+    background: rgba(var(--dd-glass, 255, 250, 247), 0.78);
     -webkit-backdrop-filter: blur(18px) saturate(140%);
     backdrop-filter: blur(18px) saturate(140%);
     box-shadow: 0 6px 28px #84636b24, inset 0 1px 0 #ffffffb3;
@@ -576,9 +576,9 @@ html { background:#fdf9f4; }
 .dd-bottom-tab:focus-visible { outline: 2px solid #a96d80; outline-offset: -2px; }
 .dd-bottom-tab:active { background: #f2e3e8; }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .dd-bottom-nav { background: #fffaf7; }
+    .dd-bottom-nav { background: var(--dd-bg-top, #fffaf7); }
 }
-@media (prefers-reduced-transparency: reduce) { .dd-bottom-nav { background: #fffaf7; backdrop-filter: none; } }
+@media (prefers-reduced-transparency: reduce) { .dd-bottom-nav { background: var(--dd-bg-top, #fffaf7); backdrop-filter: none; } }
 
 /* Entry screens fill the viewport independently of the normal page shell. */
 .dd-app > .dd-overlay {
@@ -594,3 +594,15 @@ html { background:#fdf9f4; }
     padding: max(24px, env(safe-area-inset-top, 0px)) 20px max(24px, env(safe-area-inset-bottom, 0px));
 }
 .dd-entry-shell > .dd-pin { flex: none; margin-block: auto; padding-top: 0; }
+
+.dd-theme-picker h2 { margin: 0 0 6px; }
+.dd-theme-picker > .dd-card-sub { line-height: 1.6; }
+.dd-theme-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 16px; }
+.dd-theme-option { display: flex; align-items: center; gap: 9px; min-height: 65px; text-align: left; padding: 10px; border: 1px solid #e9dfe0; border-radius: 14px; background: #fffdfb; color: #654e56; font-family: inherit; cursor: pointer; }
+.dd-theme-option.is-selected { border: 2px solid #b77e90; padding: 9px; background: #fffafa; }
+.dd-theme-option:disabled { cursor: wait; }
+.dd-theme-option:focus-visible { outline: 2px solid #a96d80; outline-offset: 2px; }
+.dd-theme-swatch { display: flex; flex: none; align-items: center; justify-content: center; width: 30px; height: 38px; border-radius: 9px; border: 1px solid #8065712b; color: #754856; }
+.dd-theme-option strong { display: block; font-size: 12px; font-weight: 600; }
+.dd-theme-option small { display: block; margin-top: 3px; font-size: 10px; color: #8c747c; }
+.dd-theme-message { margin-bottom: 0; font-size: 12px; line-height: 1.5; color: #856d73; }

@@ -11,6 +11,7 @@ import { ProfileCrop } from './ProfileCrop';
 import { ProfileStreak, useProfileStreaks } from './ProfileStreak';
 import { Stickers } from './Stickers';
 import { DiaryInstall } from './DiaryInstall';
+import { ThemePicker } from './Themes';
 import {
     Bell, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, Erase, Eye, EyeOff,
     Gear, Heart, ImagePlus, KeyRound, Lock, Moon, PenLine, Search, Sparkles, Users, XIcon,
@@ -966,6 +967,8 @@ export function Settings() {
                         )}
                     </section>
                 ))}
+
+                <ThemePicker />
 
                 <DiaryInstall />
 
