@@ -108,8 +108,9 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
         });
         const uid = userIds.current[me];
         if (uid) {
-            const { data: settings } = await supabase.from('app_settings').select('notifications').eq('user_id', uid).maybeSingle();
+            const { data: settings } = await supabase.from('app_settings').select('notifications, read_entries').eq('user_id', uid).maybeSingle();
             if (settings?.notifications) setNotifPrefs(prev => ({ ...prev, ...(settings.notifications as Record<string, boolean>) }));
+            if (settings?.read_entries) setReadSet(settings.read_entries as Record<string, true>);
         }
         await reloadEntries();
         setLoading(false);
@@ -247,7 +248,16 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
             if (removing) supabase.from('reactions').delete().eq('entry_id', entryId).eq('user_id', uid).then(() => {});
             else supabase.from('reactions').upsert({ entry_id: entryId, user_id: uid, reaction_type: emoji }, { onConflict: 'entry_id,user_id' }).then(() => {});
         },
-        markRead: (owner, d, reader) => setReadSet(prev => ({ ...prev, [`${owner}|${d}|${reader}`]: true })),
+        markRead: (owner, d, reader) => {
+            const key = `${owner}|${d}|${reader}`;
+            setReadSet(prev => {
+                if (prev[key]) return prev;
+                const next = { ...prev, [key]: true as const };
+                const uid = userIds.current[me];
+                if (uid) supabase.from('app_settings').upsert({ user_id: uid, read_entries: next }, { onConflict: 'user_id' }).then(() => {});
+                return next;
+            });
+        },
         unreadLatest: (reader, now) => {
             const owner = otherId(reader);
             const latest = latestReadable(now);
