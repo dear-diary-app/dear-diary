@@ -939,7 +939,8 @@ html.dd-chat-typing .dd-chat { padding-bottom:6px; }
 .dd-chat-empty { margin:auto; text-align:center; color:#9b8977; font-size:14px; max-width:260px; display:flex; flex-direction:column; align-items:center; gap:8px; }
 .dd-chat-row { position:relative; display:flex; flex-direction:column; max-width:100%; }
 .dd-chat-row.is-mine { align-items:flex-end; } .dd-chat-row.is-theirs { align-items:flex-start; }
-.dd-chat-swipe-icon { position:absolute; left:2px; top:50%; margin-top:-14px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; color:#7b866f; opacity:0; pointer-events:none; }
+.dd-chat-swipe-icon { position:absolute; left:4px; top:50%; margin-top:-16px; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#7b866f; background:#e9e1d2; opacity:0; pointer-events:none; transition:background .15s ease,color .15s ease; }
+.dd-chat-swipe-icon.is-armed { background:#c9788f; color:#fff; }
 .dd-chat-msg { position:relative; max-width:min(78%,420px); box-sizing:border-box; padding:7px 11px 5px; border-radius:18px; background:#fffdf8; border:1px solid #e8ddcc; color:#54434a; touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:pointer; will-change:transform; outline-offset:2px; }
 .dd-chat-row.is-mine .dd-chat-msg { background:#e4ead9; border-color:#cfd8c0; border-bottom-right-radius:6px; }
 .dd-chat-row.is-theirs .dd-chat-msg { border-bottom-left-radius:6px; }
@@ -999,3 +1000,8 @@ html.dd-chat-typing .dd-chat { padding-bottom:6px; }
 .dd-app[data-theme="midnight"] .dd-whatsnew-date { color:#c3aeb7; }
 @media (prefers-reduced-motion: no-preference) { .dd-whatsnew-item { animation:dd-wn-in .35s ease both; } .dd-whatsnew-list li:nth-child(2){animation-delay:.04s} .dd-whatsnew-list li:nth-child(3){animation-delay:.08s} .dd-whatsnew-list li:nth-child(n+4){animation-delay:.12s} }
 @keyframes dd-wn-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+/* Beats the global [role=button] touch-action so horizontal swipes reach the chat bubble instead of the browser. */
+.dd-app .dd-chat-row .dd-chat-msg { touch-action:pan-y; -webkit-touch-callout:none; }
+.dd-app[data-theme="midnight"] .dd-chat-swipe-icon { background:#3a2c38; color:#f0c5ce; }
+.dd-app[data-theme="midnight"] .dd-chat-swipe-icon.is-armed { background:#c9788f; color:#fff; }

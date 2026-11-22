@@ -30,24 +30,38 @@ function Row({ m, mine, partner, original, selected, onSelect, onReply, onJump, 
 }) {
     const chat = useChat();
     const [dx, setDx] = useState(0);
+    const [rest, setRest] = useState(true);
+    const dxRef = useRef(0);
+    const armed = useRef(false);
     const drag = useRef<{ x: number; y: number; id: number; on: boolean; moved: boolean } | null>(null);
-    const down = (e: React.PointerEvent) => { if (e.button > 0) return; drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false }; };
+    const REPLY_AT = 56, MAX = 84;
+    const setX = (v: number) => { dxRef.current = v; setDx(v); };
+    const down = (e: React.PointerEvent) => { if (e.button > 0) return; drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false }; armed.current = false; };
     const move = (e: React.PointerEvent) => {
         const d = drag.current; if (!d || d.id !== e.pointerId) return;
         const ax = e.clientX - d.x, ay = e.clientY - d.y;
         if (!d.on) {
             if (Math.abs(ay) > 10 && Math.abs(ay) > Math.abs(ax)) { drag.current = null; return; }
-            if (ax > 8 && ax > Math.abs(ay)) { d.on = true; d.moved = true; try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* ignore */ } }
+            if (ax > 8 && ax > Math.abs(ay)) { d.on = true; d.moved = true; setRest(false); try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* ignore */ } }
         }
-        if (d.on) setDx(Math.max(0, Math.min(72, ax * 0.8)));
+        if (d.on) {
+            // Follows the finger, then stiffens past the reply point like Instagram.
+            const raw = Math.max(0, ax - 8);
+            const v = raw <= REPLY_AT ? raw : Math.min(MAX, REPLY_AT + (raw - REPLY_AT) * 0.35);
+            setX(v);
+            if (v >= REPLY_AT && !armed.current) { armed.current = true; try { navigator.vibrate?.(10); } catch { /* ignore */ } }
+            else if (v < REPLY_AT - 6) armed.current = false;
+        }
     };
     const up = (e: React.PointerEvent) => {
         const d = drag.current; if (!d || d.id !== e.pointerId) return;
         drag.current = null;
-        if (d.on && dx >= 52) { try { navigator.vibrate?.(8); } catch { /* ignore */ } onReply(); }
+        const go = d.on && dxRef.current >= REPLY_AT;
+        setRest(true); setX(0);
+        if (go) onReply();
         else if (!d.moved) onSelect();
-        setDx(0);
     };
+    const cancel = () => { drag.current = null; setRest(true); setX(0); };
     const groups = useMemo(() => {
         const c = new Map<string, number>();
         Object.values(m.reactions).forEach(e => c.set(e, (c.get(e) ?? 0) + 1));
@@ -56,10 +70,10 @@ function Row({ m, mine, partner, original, selected, onSelect, onReply, onJump, 
     const mineReact = m.reactions[chat.uid];
     const sticker = m.sticker && known(m.sticker);
     return <div className={`dd-chat-row ${mine ? 'is-mine' : 'is-theirs'}${flash ? ' is-flash' : ''}`} data-id={m.id}>
-        <span className="dd-chat-swipe-icon" style={{ opacity: Math.min(1, dx / 52), transform: `scale(${0.6 + Math.min(1, dx / 52) * 0.4})` }}><Reply /></span>
+        <span className={`dd-chat-swipe-icon${dx >= REPLY_AT ? ' is-armed' : ''}`} aria-hidden="true" style={{ opacity: Math.min(1, dx / 36), transform: `translateX(${Math.min(dx, REPLY_AT) * 0.35}px) scale(${0.5 + Math.min(1, dx / REPLY_AT) * 0.5})` }}><Reply /></span>
         <div className={`dd-chat-msg${sticker ? ' is-sticker' : ''}${m.state === 'failed' ? ' is-failed' : ''}${m.state === 'sending' ? ' is-sending' : ''}`}
-            style={{ transform: dx ? `translateX(${dx}px)` : undefined, transition: dx ? 'none' : 'transform .22s cubic-bezier(.2,.8,.2,1)' }}
-            onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={() => { drag.current = null; setDx(0); }}
+            style={{ transform: dx ? `translateX(${dx}px)` : undefined, transition: rest ? 'transform .32s cubic-bezier(.2,1.3,.4,1)' : 'none' }}
+            onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}
             role="button" tabIndex={0} aria-label={`${mine ? 'Your' : `${partner.name}'s`} message: ${snippet(m)}. Press Enter for actions.`}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } else if (e.key === 'r') onReply(); }}>
             {m.reply_to && <button type="button" className="dd-chat-quote" disabled={!original} onPointerDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); original && onJump(original.id); }}>
