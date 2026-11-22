@@ -10,6 +10,7 @@ import { BottomNav } from './BottomNav';
 import { ThemeFrame } from './Themes';
 import { PageSlide } from './PageSlide';
 import { NotificationInbox } from './NotificationInbox';
+import { finishLaunch } from './launch';
 
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
     const auth = useAuth();
@@ -62,6 +63,9 @@ function Shell() {
         document.title = auth.session && auth.me ? 'Dear Diary - Joydeep & Aruba' : 'Dear Diary';
     }, [auth.session, auth.me]);
     React.useEffect(() => setLive(true), []);
+    React.useEffect(() => {
+        if (auth.ready || auth.loadError) finishLaunch();
+    }, [auth.ready, auth.loadError]);
     React.useEffect(() => {
         if (auth.ready && !auth.session) {
             document.documentElement.style.removeProperty('--dd-canvas');
