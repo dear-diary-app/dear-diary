@@ -1,3 +1,4 @@
+import { DiaryExport } from './DiaryExport';
 import { PushSettings } from './PushSettings';
 import { dismissMotion } from './motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -1010,6 +1011,8 @@ export function Settings() {
                     </span>
                     <ChevronRight size={18} />
                 </Link>
+
+                <DiaryExport />
 
                 <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>
                 <span style={{ display: 'none' }}>{now.toISOString()}</span>
