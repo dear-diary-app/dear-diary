@@ -62,6 +62,11 @@ self.addEventListener('push', event => {
  const tag=typeof data.tag==='string'?data.tag.slice(0,150):'diary-reminder';
  event.waitUntil((async()=>{
   // Old payloads without an account remain generic OS alerts, never mixed into an inbox.
+  if(data.type==='chat'){
+   const who=typeof data.title==='string'?data.title.slice(0,40):'Dear Diary';
+   await self.registration.showNotification(who,{body,icon:BASE+'icons/diary-192.png',badge:BASE+'icons/diary-192.png',tag,data:{chat:true},renotify:true});
+   return;
+  }
   if(typeof data.account_id==='string' && /^[0-9a-f-]{36}$/i.test(data.account_id)){
    const type=['open','writing','lock','published'].includes(data.type)?data.type:'reminder';
    await storeInbox({id:data.account_id+':'+tag,account_id:data.account_id,title:'Dear Diary',body,received_at:Date.now(),type}).catch(()=>{});
@@ -73,8 +78,10 @@ self.addEventListener('push', event => {
 self.addEventListener('notificationclick', event => {
  event.notification.close();
  event.waitUntil((async()=>{
-  const url=BASE+'#/inbox';const windows=await clients.matchAll({type:'window',includeUncontrolled:true});
+  const chat=Boolean(event.notification.data&&event.notification.data.chat);
+  const url=BASE+(chat?'#/chat':'#/inbox');const windows=await clients.matchAll({type:'window',includeUncontrolled:true});
   const app=windows.find(client=>new URL(client.url).pathname.startsWith(BASE));
+  if(app&&chat)app.postMessage({type:'diary-open-chat'});
   // Do not navigate an open editor away from an unsaved diary page.
   if(app)return app.focus();
   return clients.openWindow(url);

@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 
@@ -27,6 +28,16 @@ const Ctx = createContext<ChatApi | null>(null);
 export const useChat = () => useContext(Ctx)!;
 
 export function ChatProvider({ uid, children }: { uid: string; children: React.ReactNode }) {
+    const nav = useNavigate();
+    const loc = useLocation();
+    const pathRef = useRef(loc.pathname);
+    pathRef.current = loc.pathname;
+    useEffect(() => {
+        // A tapped chat notification asks the open app to show the chat, but never leaves a diary page being written.
+        const onMsg = (e: MessageEvent) => { if (e.data?.type === 'diary-open-chat' && !pathRef.current.startsWith('/write/') && pathRef.current !== '/chat') nav('/chat'); };
+        navigator.serviceWorker?.addEventListener('message', onMsg);
+        return () => navigator.serviceWorker?.removeEventListener('message', onMsg);
+    }, [nav]);
     const [messages, setMessages] = useState<ChatMsg[]>([]);
     const [loaded, setLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);

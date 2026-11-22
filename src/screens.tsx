@@ -1035,7 +1035,7 @@ const NOTIFS: { key: string; label: string; hint: string }[] = [
     { key: 'writing', label: 'Daily writing reminder', hint: 'A nudge at 9:00 PM to write today\u2019s page before the evening gets away' },
     { key: 'lock', label: 'Diaries lock', hint: 'A reminder at 9:45 PM, before everything locks at 10:00 PM' },
     { key: 'published', label: 'Nightly reading time', hint: 'A 10:00 PM reminder that writing is closed and reading time has begun' },
-    
+    { key: 'chat', label: 'New chat messages', hint: 'A notice when a message or sticker arrives. The message text is never shown' },
 ];
 
 export function Notifications() {
