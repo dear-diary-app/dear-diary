@@ -1005,3 +1005,4 @@ html.dd-chat-typing .dd-chat { padding-bottom:6px; }
 .dd-app .dd-chat-row .dd-chat-msg { touch-action:pan-y; -webkit-touch-callout:none; }
 .dd-app[data-theme="midnight"] .dd-chat-swipe-icon { background:#3a2c38; color:#f0c5ce; }
 .dd-app[data-theme="midnight"] .dd-chat-swipe-icon.is-armed { background:#c9788f; color:#fff; }
+.dd-chat-swipe-icon.is-right { left:auto; right:4px; }

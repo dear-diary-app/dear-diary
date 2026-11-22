@@ -35,11 +35,13 @@ function Row({ m, mine, partner, original, selected, onSelect, onReply, onJump, 
     const armed = useRef(false);
     const drag = useRef<{ x: number; y: number; id: number; on: boolean; moved: boolean } | null>(null);
     const REPLY_AT = 56, MAX = 84;
+    // Friend's messages swipe right, your own swipe left, like Instagram.
+    const dir = mine ? -1 : 1;
     const setX = (v: number) => { dxRef.current = v; setDx(v); };
     const down = (e: React.PointerEvent) => { if (e.button > 0) return; drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false }; armed.current = false; };
     const move = (e: React.PointerEvent) => {
         const d = drag.current; if (!d || d.id !== e.pointerId) return;
-        const ax = e.clientX - d.x, ay = e.clientY - d.y;
+        const ax = (e.clientX - d.x) * dir, ay = e.clientY - d.y;
         if (!d.on) {
             if (Math.abs(ay) > 10 && Math.abs(ay) > Math.abs(ax)) { drag.current = null; return; }
             if (ax > 8 && ax > Math.abs(ay)) { d.on = true; d.moved = true; setRest(false); try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* ignore */ } }
@@ -70,9 +72,9 @@ function Row({ m, mine, partner, original, selected, onSelect, onReply, onJump, 
     const mineReact = m.reactions[chat.uid];
     const sticker = m.sticker && known(m.sticker);
     return <div className={`dd-chat-row ${mine ? 'is-mine' : 'is-theirs'}${flash ? ' is-flash' : ''}`} data-id={m.id}>
-        <span className={`dd-chat-swipe-icon${dx >= REPLY_AT ? ' is-armed' : ''}`} aria-hidden="true" style={{ opacity: Math.min(1, dx / 36), transform: `translateX(${Math.min(dx, REPLY_AT) * 0.35}px) scale(${0.5 + Math.min(1, dx / REPLY_AT) * 0.5})` }}><Reply /></span>
+        <span className={`dd-chat-swipe-icon${mine ? ' is-right' : ''}${dx >= REPLY_AT ? ' is-armed' : ''}`} aria-hidden="true" style={{ opacity: Math.min(1, dx / 36), transform: `translateX(${Math.min(dx, REPLY_AT) * 0.35 * dir}px) scale(${0.5 + Math.min(1, dx / REPLY_AT) * 0.5})` }}><Reply /></span>
         <div className={`dd-chat-msg${sticker ? ' is-sticker' : ''}${m.state === 'failed' ? ' is-failed' : ''}${m.state === 'sending' ? ' is-sending' : ''}`}
-            style={{ transform: dx ? `translateX(${dx}px)` : undefined, transition: rest ? 'transform .32s cubic-bezier(.2,1.3,.4,1)' : 'none' }}
+            style={{ transform: dx ? `translateX(${dx * dir}px)` : undefined, transition: rest ? 'transform .32s cubic-bezier(.2,1.3,.4,1)' : 'none' }}
             onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}
             role="button" tabIndex={0} aria-label={`${mine ? 'Your' : `${partner.name}'s`} message: ${snippet(m)}. Press Enter for actions.`}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } else if (e.key === 'r') onReply(); }}>
@@ -88,7 +90,7 @@ function Row({ m, mine, partner, original, selected, onSelect, onReply, onJump, 
         {selected && <div className="dd-chat-actions" role="group" aria-label="Message actions">
             <div className="dd-chat-emojis">{REACTS.map(e => <button key={e} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => { chat.react(m.id, e); onSelect(); }} aria-label={`React ${e}`}>{e}</button>)}</div>
             <div className="dd-chat-cmds">
-                <button type="button" onClick={() => { onReply(); onSelect(); }}><Reply /> Reply</button>
+                <button type="button" onClick={onReply}><Reply /> Reply</button>
                 {!sticker && m.body && <button type="button" onClick={() => { void navigator.clipboard?.writeText(m.body).catch(() => {}); onSelect(); }}>Copy</button>}
                 {mine && <button type="button" className="is-danger" onClick={() => { chat.unsend(m.id); }}>Unsend</button>}
             </div>
@@ -180,7 +182,7 @@ export function ChatView({ partner }: { partner: Person }) {
         {newBelow && <button type="button" className="dd-chat-new" onClick={() => { toBottom(true); setNewBelow(false); stick.current = true; }}>New messages ↓</button>}
         <div className="dd-chat-compose">
             {replyTo && <div className="dd-chat-replybar"><Reply /><div><strong>Replying to {original ? (original.sender_id === chat.uid ? 'yourself' : partner.name) : 'message'}</strong><span>{original ? snippet(original) : 'Original message is not available'}</span></div>
-                <button type="button" onClick={() => setReplyTo(null)} aria-label="Cancel reply"><XIcon size={16} /></button></div>}
+                <button type="button" onPointerDown={e => e.preventDefault()} onClick={() => setReplyTo(null)} aria-label="Cancel reply"><XIcon size={16} /></button></div>}
             {trayOpen && <div className="dd-chat-tray">
                 <div className="dd-chat-tray-tabs" role="group" aria-label="Sticker themes">{groups.map(g => <button type="button" key={g} aria-pressed={group === g} onClick={() => setGroup(g)}>{g}</button>)}</div>
                 <div className="dd-chat-tray-grid">{pack.filter(s => group === 'All' || s.group === group).map(s => <button key={s.id} type="button" aria-label={`Send ${s.name}`} onClick={() => { chat.send('', s.id, replyTo); setReplyTo(null); setTrayOpen(false); stick.current = true; }}><img src={art(s.id)} alt="" width="64" height="64" loading="lazy" /></button>)}</div>

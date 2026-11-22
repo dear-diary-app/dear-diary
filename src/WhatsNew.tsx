@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-22', label: 'Sunday, 22 November', features: [
+        { id: 'swipe', emoji: '↩️', title: 'Swipe to reply, Instagram-style', text: 'Swipe a friend\'s message to the right, or your own message to the left. The bubble follows your finger, a reply icon grows, and letting go sets the reply. Android phones give a light buzz.' },
         { id: 'whatsnew', emoji: '🆕', title: "This What's new page", text: 'A list of every new feature, newest first, with a small "New" badge in Settings when something has been added since you last looked.' },
         { id: 'chat', emoji: '💬', title: 'Chat', text: 'A private chat between you two, in its own tab. Swipe a message right to reply, tap it to react, copy or unsend. Send any sticker. You can see when the other person is typing, and when your message is Seen. Turn on "New chat messages" in Notifications to get an alert.' },
         { id: 'songs', emoji: '🎵', title: 'Songs on diary pages', text: 'Add a song to a page: search in English or Hindi, play a 30-second preview, then tap Use. Your reader sees the song at the top once the page is published.' },
