@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-22', label: 'Sunday, 22 November', features: [
+        { id: 'chatedgefades', emoji: '🌫️', title: 'Softer chat edges', text: 'Messages fade gently under the chat header and above the message box as you scroll. The newest message stays clear at rest, even when a reply or photo preview is open.' },
         { id: 'settingsbottom', emoji: '🗂️', title: 'Settings, tidied', text: 'Privacy on this device now folds open. All drop-down sections, including themes, avatar colour and diary downloads, are grouped at the bottom of Settings. Your saved choices are unchanged.' },
         { id: 'privacychoices', emoji: '🔐', title: 'Your privacy choices', text: 'Settings now lets you turn blur when minimized on or off for this device. Notifications has account-wide switches for message previews and an Open to reply shortcut. Both notification options start off. The shortcut opens chat rather than sending from the notification bar; button and keyboard behavior depend on your phone.' },
         { id: 'chatphotos', emoji: '📷', title: 'Send photos in chat', text: 'Tap the photo button next to the sticker button to send up to 3 photos at once (photos only, no videos). Add a caption if you like. Tap a photo to view it full screen and swipe between them. Photos are private to the two of you, work with Reply and reactions, and are deleted when you Unsend.' },
