@@ -8,7 +8,7 @@ Deno.serve(async req=>{
  let id='';try{id=String((await req.json()).id??'');}catch{}
  if(!/^[0-9a-f-]{36}$/i.test(id))return json({error:'bad_id'},400);
  const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
- const {data:msg,error:msgErr}=await db.from('chat_messages').select('id,sender_id,recipient_id,sticker,created_at').eq('id',id).maybeSingle();
+ const {data:msg,error:msgErr}=await db.from('chat_messages').select('id,sender_id,recipient_id,sticker,images,created_at').eq('id',id).maybeSingle();
  if(!msg){if(msgErr)console.error('chat_push_read',msgErr.message);return json({sent:0,reason:'gone',err:msgErr?.message??null});}
  // Only fresh messages, so a retried call never replays old chat.
  if(Date.now()-new Date(msg.created_at).getTime()>120000)return json({sent:0,reason:'stale'});
@@ -24,8 +24,8 @@ Deno.serve(async req=>{
   const allowed=['fcm.googleapis.com','updates.push.services.mozilla.com'].includes(host)||host.endsWith('.push.apple.com');
   if(!allowed||!s.endpoint.startsWith('https://')){await db.from('push_subscriptions').delete().eq('id',s.id);expired++;continue;}
   try{
-   // No message text in the notification, same privacy rule as the diary reminders.
-   await webpush.sendNotification({endpoint:s.endpoint,keys:{p256dh:s.p256dh,auth:s.auth}},JSON.stringify({title:name,account_id:msg.recipient_id,type:'chat',body:msg.sticker?'Sent you a sticker':'Sent you a message',tag:`chat-${msg.sender_id}`,url:'/dear-diary/#/chat'}),{TTL:3600,urgency:'high',timeout:10000});sent++;
+   // No message text or photo in the notification, same privacy rule as the diary reminders.
+   await webpush.sendNotification({endpoint:s.endpoint,keys:{p256dh:s.p256dh,auth:s.auth}},JSON.stringify({title:name,account_id:msg.recipient_id,type:'chat',body:msg.sticker?'Sent you a sticker':(msg.images?.length?(msg.images.length>1?'Sent you photos':'Sent you a photo'):'Sent you a message'),tag:`chat-${msg.sender_id}`,url:'/dear-diary/#/chat'}),{TTL:3600,urgency:'high',timeout:10000});sent++;
   }catch(err){
    const status=(err as {statusCode?:number}).statusCode;
    if(status===404||status===410){await db.from('push_subscriptions').delete().eq('id',s.id);expired++;}else failed++;

@@ -2,12 +2,13 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
+import { primeImage, removeImages, uploadImages } from './chatImages';
 
 export interface ChatMsg {
     id: string; sender_id: string; recipient_id: string; body: string; sticker: string | null; reply_to: string | null;
-    reactions: Record<string, string>; created_at: string; seen_at: string | null; edited_at: string | null; state?: 'sending' | 'failed';
+    reactions: Record<string, string>; created_at: string; seen_at: string | null; edited_at: string | null; images: string[]; state?: 'sending' | 'failed';
 }
-const COLS = 'id, sender_id, recipient_id, body, sticker, reply_to, reactions, created_at, seen_at, edited_at';
+const COLS = 'id, sender_id, recipient_id, body, sticker, reply_to, reactions, created_at, seen_at, edited_at, images';
 const PAGE = 60;
 const byTime = (a: ChatMsg, b: ChatMsg) => a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : a.id < b.id ? -1 : 1;
 function clean(r: unknown): ChatMsg | null {
@@ -15,12 +16,14 @@ function clean(r: unknown): ChatMsg | null {
     if (!m || typeof m.id !== 'string' || typeof m.sender_id !== 'string' || typeof m.created_at !== 'string') return null;
     return { id: m.id, sender_id: m.sender_id, recipient_id: String(m.recipient_id ?? ''), body: typeof m.body === 'string' ? m.body : '', sticker: typeof m.sticker === 'string' ? m.sticker : null,
         reply_to: typeof m.reply_to === 'string' ? m.reply_to : null, reactions: m.reactions && typeof m.reactions === 'object' ? m.reactions as Record<string, string> : {},
-        created_at: m.created_at, seen_at: typeof m.seen_at === 'string' ? m.seen_at : null, edited_at: typeof m.edited_at === 'string' ? m.edited_at : null };
+        created_at: m.created_at, seen_at: typeof m.seen_at === 'string' ? m.seen_at : null, edited_at: typeof m.edited_at === 'string' ? m.edited_at : null,
+        images: Array.isArray(m.images) ? (m.images as unknown[]).filter((x): x is string => typeof x === 'string').slice(0, 3) : [] };
 }
 
 export interface ChatApi {
     uid: string; messages: ChatMsg[]; loaded: boolean; loadError: boolean; hasMore: boolean; live: boolean; partnerTyping: boolean; unread: number;
     send: (body: string, sticker?: string | null, replyTo?: string | null) => void;
+    sendImages: (files: Blob[], body: string, replyTo?: string | null) => void;
     retry: (id: string) => void; discard: (id: string) => void; unsend: (id: string) => void; edit: (id: string, body: string) => void; react: (id: string, emoji: string) => void;
     loadOlder: () => Promise<void>; typing: (on: boolean) => void; setViewing: (on: boolean) => void; reload: () => void;
 }
@@ -146,8 +149,16 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
         });
     }, [viewing, visible, unseenIncoming, uid]);
 
+    const pending = useRef(new Map<string, Blob[]>());
+    // Photos upload first (private bucket), then the message row points at them.
+    const sendWithPhotos = useCallback(async (m: ChatMsg, blobs: Blob[]) => {
+        const paths = await uploadImages(m.sender_id, m.id, blobs);
+        if (!paths) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return; }
+        pending.current.delete(m.id);
+        insert({ ...m, images: paths });
+    }, []);
     const insert = useCallback((m: ChatMsg) => {
-        void Promise.resolve(supabase.from('chat_messages').insert({ id: m.id, body: m.body, sticker: m.sticker, reply_to: m.reply_to }).select(COLS).single()).then(({ data, error }) => {
+        void Promise.resolve(supabase.from('chat_messages').insert({ id: m.id, body: m.body, sticker: m.sticker, reply_to: m.reply_to, images: m.images }).select(COLS).single()).then(({ data, error }) => {
             if (error || !data) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return; }
             const row = clean(data);
             if (row) setMessages(prev => prev.map(x => x.id === m.id ? row : x).sort(byTime));
@@ -159,16 +170,32 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
         send: (body, sticker = null, replyTo = null) => {
             const text = body.trim().slice(0, 2000);
             if (!text && !sticker) return;
-            const m: ChatMsg = { id: crypto.randomUUID(), sender_id: uid, recipient_id: partner.current ?? '', body: sticker ? '' : text, sticker, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, state: 'sending' };
+            const m: ChatMsg = { id: crypto.randomUUID(), sender_id: uid, recipient_id: partner.current ?? '', body: sticker ? '' : text, sticker, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: [], state: 'sending' };
             setMessages(prev => [...prev, m].sort(byTime));
             insert(m);
         },
-        retry: id => { const m = list.current.find(x => x.id === id); if (!m) return; setMessages(prev => prev.map(x => x.id === id ? { ...x, state: 'sending' } : x)); insert(m); },
-        discard: id => setMessages(prev => prev.filter(m => m.id !== id)),
+        sendImages: (files, body, replyTo = null) => {
+            const blobs = files.slice(0, 3);
+            if (!blobs.length) return;
+            const id = crypto.randomUUID();
+            const paths = blobs.map((_, i) => `${uid}/${id}-${i}.jpg`);
+            paths.forEach((p, i) => primeImage(p, URL.createObjectURL(blobs[i])));
+            const m: ChatMsg = { id, sender_id: uid, recipient_id: partner.current ?? '', body: body.trim().slice(0, 2000), sticker: null, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: paths, state: 'sending' };
+            pending.current.set(id, blobs);
+            setMessages(prev => [...prev, m].sort(byTime));
+            void sendWithPhotos(m, blobs);
+        },
+        retry: id => {
+            const m = list.current.find(x => x.id === id); if (!m) return;
+            setMessages(prev => prev.map(x => x.id === id ? { ...x, state: 'sending' } : x));
+            const blobs = pending.current.get(id);
+            if (blobs) void sendWithPhotos(m, blobs); else insert(m);
+        },
+        discard: id => { pending.current.delete(id); setMessages(prev => prev.filter(m => m.id !== id)); },
         unsend: id => {
             const old = list.current.find(m => m.id === id);
             setMessages(prev => prev.filter(m => m.id !== id));
-            void Promise.resolve(supabase.from('chat_messages').delete().eq('id', id)).then(({ error }) => { if (error && old) merge([old]); });
+            void Promise.resolve(supabase.from('chat_messages').delete().eq('id', id)).then(({ error }) => { if (error && old) merge([old]); else if (old?.images.length) removeImages(old.images); });
         },
         edit: (id, body) => {
             const text = body.trim().slice(0, 2000);
@@ -197,6 +224,6 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             } else { lastTypingSent.current = 0; void ch.send({ type: 'broadcast', event: 'typing', payload: { uid, on: false } }); }
         },
         setViewing, reload: () => { void fetchLatest(); },
-    }), [uid, messages, loaded, loadError, hasMore, live, partnerTyping, unseenIncoming, loadOlder, insert, merge, fetchLatest]);
+    }), [uid, messages, loaded, loadError, hasMore, live, partnerTyping, unseenIncoming, loadOlder, insert, sendWithPhotos, merge, fetchLatest]);
     return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
 }
