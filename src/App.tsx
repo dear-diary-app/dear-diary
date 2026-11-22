@@ -111,7 +111,7 @@ function Shell() {
                     <Route path="/write/:person" element={<WriteRoute />} />
                     <Route path="/read/:viewer" element={<ReadRoute />} />
                     <Route path="/calendar/:viewer" element={<CalendarRoute />} />
-                    <Route path="/chat" element={<ChatRoute />} />
+                    <Route path="/chat/*" element={<ChatRoute />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/settings/how-to-use" element={<HowToUse />} />
                     <Route path="/settings/whats-new" element={<WhatsNew />} />

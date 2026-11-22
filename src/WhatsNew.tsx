@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'sharedcollection', emoji: '🖼️', title: 'Your shared photos and links', text: "Tap your partner's name or avatar in chat to open Contact info. Separate Photos and Links areas collect messages from your full chat history, including older photos. Open a photo larger or follow a web link. GIFs stay in chat, and unsent messages disappear from the collection." },
         { id: 'chatgifs', emoji: '🎞️', title: 'GIFs in your chat', text: 'Tap GIF to search GIPHY, preview a result and send it. Your old chat stickers stay in place. GIF searches and media load directly from GIPHY, with a shared free limit of 100 API calls per hour. Unavailable GIFs show a clear fallback.' },
         { id: 'onlineandnav', emoji: '💬', title: 'A clearer chat', text: 'The chat header now shows Online only while your partner has a connected, foreground app session. There is no permanent Private chat label or last-seen time. Status can take a short time to update after a connection drops. Chat is now the middle navigation tab, with History to its right.' },
     ] },

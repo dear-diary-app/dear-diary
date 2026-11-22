@@ -10,11 +10,11 @@ export function BottomNav() {
     const { pathname } = useLocation();
     const active = (pathname === '/' || pathname === '/inbox') ? 'home'
         : pathname.startsWith('/calendar/') ? 'calendar'
-        : pathname === '/chat' ? 'chat'
+        : pathname.startsWith('/chat') ? 'chat'
         : pathname.startsWith('/settings') || pathname === '/notifications' ? 'settings'
         : 'entries';
     // The conversation is full screen, like Instagram: it has its own back arrow.
-    if (pathname === '/chat') return null;
+    if (pathname.startsWith('/chat')) return null;
     const tabs = [
         { id: 'home', label: 'Home', to: '/', Icon: HomeIcon },
         { id: 'entries', label: 'My diary', to: `/hub/${me}`, Icon: BookOpen },

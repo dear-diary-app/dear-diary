@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import pack from './sticker-pack.json';
 import { useChat, type ChatMsg } from './ChatStore';
@@ -10,6 +10,7 @@ import { ImageIcon, Thumb, Viewer } from './ChatPhotos';
 import { GifPicker, GifMedia, GifCredit, useChatGifs, type Gif } from './ChatGifs';
 import { EmojiPicker } from './EmojiPicker';
 import { quickReactions } from './reactions';
+import { ChatProfile } from './ChatProfile';
 
 const art = (id: string) => `${import.meta.env.BASE_URL}stickers/${id}.webp`;
 const stickerName = (id: string) => pack.find(p => p.id === id)?.name ?? 'Sticker';
@@ -181,6 +182,9 @@ export function ChatView({ partner }: { partner: Person }) {
     const scroller = useRef<HTMLDivElement>(null);
     const input = useRef<HTMLTextAreaElement>(null);
     const route = useLocation();
+    const profileOpen = route.pathname === '/chat/profile';
+    const wasProfile = useRef(false);
+    useEffect(() => { if (!profileOpen && wasProfile.current) document.querySelector<HTMLAnchorElement>('.dd-chat-contact')?.focus({ preventScroll: true }); wasProfile.current = profileOpen; }, [profileOpen]);
     useEffect(() => {
         const focus = () => input.current?.focus();
         if (new URLSearchParams(route.search).get('compose') === '1') focus();
@@ -190,7 +194,7 @@ export function ChatView({ partner }: { partner: Person }) {
     const stick = useRef(true);
     const prevLen = useRef(0);
     const { setViewing } = chat;
-    useEffect(() => { setViewing(true); return () => setViewing(false); }, [setViewing]);
+    useEffect(() => { setViewing(!profileOpen); return () => setViewing(false); }, [setViewing, profileOpen]);
 
     // Keep the layout above the phone keyboard and hide the dock while typing.
     const [vh, setVh] = useState<number | null>(null);
@@ -267,12 +271,12 @@ export function ChatView({ partner }: { partner: Person }) {
             selected={selected === m.id} gif={m.gif_id ? gifs.items[m.gif_id] : undefined} gifError={gifs.error} retryGif={gifs.retry} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => setSelected(m.id)} onPhoto={(paths, i) => setViewer({ paths, i })} onReply={() => startReply(m.id)} onMore={() => { input.current?.blur(); setEmojiFor(m.id); }} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
     });
 
-    return <main className="dd-chat" style={vh ? { height: vh } : undefined} aria-label={`Chat with ${partner.name}`}
+    return <><main {...(profileOpen ? { inert: '' } : {})} aria-hidden={profileOpen || undefined} className="dd-chat" style={vh ? { height: vh } : undefined} aria-label={`Chat with ${partner.name}`}
         onPointerDownCapture={e => { if (selected && !(e.target as Element).closest('.dd-chat-actions, .dd-chat-head-actions, .dd-chat-back, .dd-emoji-picker')) setSelected(null); }}>
         <header className="dd-chat-head">
             <button type="button" className="dd-chat-back" onClick={() => selected ? setSelected(null) : leave()} aria-label={selected ? "Cancel selection" : "Back"}><ArrowLeft size={22} /></button>
-            {selected ? <div className="dd-chat-selection"><h1>1 selected</h1><p>Choose a reaction</p></div> : <><Avatar person={partner} size="sm" />
-            <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerOnline ? 'Online' : ''}</p></div></>}
+            {selected ? <div className="dd-chat-selection"><h1>1 selected</h1><p>Choose a reaction</p></div> : <Link to="/chat/profile" state={{ ddChatProfile: true }} className="dd-chat-contact" aria-label={`View ${partner.name}'s profile`} onClick={()=>input.current?.blur()}><Avatar person={partner} size="sm" />
+            <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerOnline ? 'Online' : ''}</p></div></Link>}
             {selMsg && (isText || canUnsend) && <div className="dd-chat-head-actions">
                 <button type="button" className="dd-chat-more" aria-label="Message options" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(o => !o)}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg></button>
                 {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => { setMenuOpen(false); setSelected(null); }} />
@@ -314,5 +318,5 @@ export function ChatView({ partner }: { partner: Person }) {
                 <button type="button" className="dd-chat-send" aria-label="Send message" disabled={!text.trim() && !staged.length} onPointerDown={e => e.preventDefault()} onClick={submit}><Send /></button>
             </div>
         </div>
-    </main>;
+    </main>{profileOpen&&<ChatProfile partner={partner}/>}</>;
 }
