@@ -593,7 +593,7 @@ export function Calendar({ viewer }: { viewer: PersonId }) {
                     {q && <button type="button" className="dd-iconbtn" onClick={() => setQ('')} aria-label="Clear search"><XIcon size={16} /></button>}
                 </div>
                 <div className="dd-filters" role="group" aria-label="Filter by person">
-                    {(['all', 'joydeep', 'aruba'] as const).map(f => (
+                    {(['all' as const, ...peopleOwnFirst(auth.me).map(p => p.id)]).map(f => (
                         <button key={f} type="button"
                             className={`dd-filter${filter === f ? ' is-on' : ''}`}
                             onClick={() => setFilter(f)}>
@@ -641,8 +641,7 @@ export function Calendar({ viewer }: { viewer: PersonId }) {
                                     ))}
                             </div>
                             <p className="dd-cal-legend">
-                                <span><i className="dd-hue-pink-bg" /> Joydeep wrote</span>
-                                <span><i className="dd-hue-lavender-bg" /> Aruba wrote</span>
+                                {peopleOwnFirst(auth.me).map(p => <span key={p.id}><i className={`dd-hue-${p.hue}-bg`} /> {p.name} wrote</span>)}
                             </p>
                         </div>
 
