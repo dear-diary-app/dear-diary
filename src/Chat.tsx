@@ -45,7 +45,7 @@ function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, on
     const down = (e: React.PointerEvent) => { if (e.button > 0) return; drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false, long: false }; armed.current = false;
         clearHold();
         // Press and hold opens the reactions and actions, like Instagram.
-        hold.current = window.setTimeout(() => { const d = drag.current; if (!d || d.on) return; d.long = true; try { navigator.vibrate?.(12); } catch { /* ignore */ } onOpen(); }, 1500); };
+        hold.current = window.setTimeout(() => { const d = drag.current; if (!d || d.on) return; d.long = true; try { navigator.vibrate?.(12); } catch { /* ignore */ } onOpen(); }, 450); };
     const move = (e: React.PointerEvent) => {
         const d = drag.current; if (!d || d.id !== e.pointerId) return;
         const ax = (e.clientX - d.x) * dir, ay = e.clientY - d.y;
