@@ -878,3 +878,7 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 
 .dd-app[data-theme="midnight"] .dd-settings-fold-note { color:var(--dd-dark-muted); }
 .dd-theme-picker .dd-settings-fold-content > .dd-card-sub { line-height:1.6; }
+
+/* Privacy blur while the app is minimised or unfocused. No entry transition so the app-switcher snapshot is already blurred. */
+html.dd-away body { filter:blur(26px) saturate(.75); pointer-events:none; user-select:none; -webkit-user-select:none; }
+html:not(.dd-away) body { transition:filter .18s ease; }
