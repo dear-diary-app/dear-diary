@@ -146,7 +146,7 @@ export function ChatView({ partner }: { partner: Person }) {
     useLayoutEffect(() => { if (chat.loaded) toBottom(); }, [chat.loaded]);
     useLayoutEffect(() => { if (stick.current) toBottom(); }, [vh, replyTo, trayOpen]);
 
-    const grow = () => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; };
+    const grow = () => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; el.style.overflowY = el.scrollHeight > 120 ? 'auto' : 'hidden'; };
     const submit = () => {
         if (!text.trim()) return;
         chat.send(text, null, replyTo); chat.typing(false);

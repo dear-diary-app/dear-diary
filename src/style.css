@@ -1010,3 +1010,7 @@ html.dd-chat-typing .dd-chat { padding-bottom:6px; }
 .dd-chat-back { flex:0 0 auto; width:40px; height:40px; border-radius:50%; border:0; background:transparent; color:#6e5d4b; display:grid; place-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .dd-chat-back:active { background:#0000000d; }
 .dd-app[data-theme="midnight"] .dd-chat-back { color:#f4e3e8; } .dd-app[data-theme="midnight"] .dd-chat-back:active { background:#ffffff14; }
+
+/* No scrollbar thumb inside the message box; it scrolls by touch once the text is taller than the box. */
+.dd-chat-bar textarea { overflow-y:hidden; scrollbar-width:none; -ms-overflow-style:none; }
+.dd-chat-bar textarea::-webkit-scrollbar { display:none; width:0; height:0; }
