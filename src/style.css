@@ -946,7 +946,7 @@ html.dd-chat-typing .dd-chat { padding-bottom:6px; }
 .dd-chat-row.is-theirs .dd-chat-msg { border-bottom-left-radius:6px; }
 .dd-chat-msg.is-sending { opacity:.65; } .dd-chat-msg.is-failed { border-color:#c9697a; }
 .dd-chat-msg.is-sticker { background:none; border:0; padding:2px; } .dd-chat-msg.is-sticker .dd-chat-time { display:block; text-align:right; }
-.dd-chat-text { display:block; font-size:15.5px; line-height:1.4; white-space:pre-wrap; overflow-wrap:anywhere; user-select:text; -webkit-user-select:text; }
+.dd-chat-text { display:block; font-size:15.5px; line-height:1.4; white-space:pre-wrap; overflow-wrap:anywhere; }
 .dd-chat-sticker { display:block; width:128px; height:128px; object-fit:contain; }
 .dd-chat-time { display:inline-block; float:right; margin:4px 0 0 10px; font-size:10px; color:#9b8977; }
 .dd-chat-quote { display:flex; flex-direction:column; gap:1px; width:100%; text-align:left; border:0; border-left:3px solid #7b866f; border-radius:8px; background:rgba(123,134,111,.14); padding:4px 8px; margin:0 0 5px; font:inherit; color:inherit; cursor:pointer; min-width:0; }
@@ -1023,3 +1023,10 @@ html.dd-chat-typing .dd-chat { padding-bottom:6px; }
 .dd-app[data-theme="midnight"] .dd-chat-head-actions button { background:var(--dd-dark-card); border-color:var(--dd-dark-line); color:#f0e3e6; }
 @media (prefers-reduced-motion:reduce) { .dd-chat-emojis button, .dd-chat-head-actions { animation:none; } }
 .dd-app .dd-chat-text { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
+
+/* Nothing in the app can be selected or copied by pressing and holding. Typing fields stay normal. */
+html, body, body * { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
+input, textarea, [contenteditable="true"], [contenteditable=""] { -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
+img, svg, a { -webkit-user-drag:none; user-drag:none; }
+::selection { background:transparent; }
+input::selection, textarea::selection { background:rgba(123,134,111,.35); }
