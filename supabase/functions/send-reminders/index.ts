@@ -2,6 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 const messages:Record<string,string>={
  open:'A new diary page is ready. Your writing window is open until 10 PM.',
+ writing:'A gentle reminder to write today’s diary page. Your writing window closes at 10 PM.',
  lock:'15 minutes left to write. Your diary locks at 10 PM.',
  published:'It is 10 PM. Writing is closed and nightly reading time has begun.',
 };

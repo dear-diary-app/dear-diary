@@ -122,7 +122,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
     const [readSet, setReadSet] = useState<Record<string, true>>({});
     const [avatarPhotos, setAvatarPhotos] = useState<Partial<Record<PersonId, string>>>({});
     const [avatars, setAvatars] = useState<Record<PersonId, number>>({ joydeep: 0, aruba: 1 });
-    const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({ open: true, lock: true, published: true, reaction: true });
+    const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({ open: true, writing: false, lock: true, published: true, reaction: true });
     const [notifSaving, setNotifSaving] = useState(false);
     const [notifMessage, setNotifMessage] = useState('');
     const notifPending = useRef(false);

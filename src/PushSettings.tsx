@@ -41,6 +41,6 @@ export function PushSettings(){
  <p className="dd-card-sub" role="status">{message}</p>
  {ios()&&!installed()&&<p className="dd-card-note">Use the Home Screen app on iPad or iPhone, not a normal Safari tab.</p>}
  {supported()&&<button type="button" className="dd-btn dd-btn-primary" disabled={busy} onClick={()=>{if(!enabled)void enable();else{setBusy(true);void disableDevicePush().then(()=>{setEnabled(false);setMessage('Notifications disabled on this device.');}).catch(e=>setMessage(e.message)).finally(()=>setBusy(false));}}}>{busy?'Checking...':enabled?'Disable on this device':'Enable notifications on this device'}</button>}
- <p className="dd-card-note">Times are India Standard Time: 6:00 AM new page, 9:45 PM before lock, and 10:00 PM reading time. Only reminders you leave on below are sent. No diary text appears in notifications.</p>
+ <p className="dd-card-note">Times are India Standard Time: 6:00 AM new page, 9:00 PM writing reminder, 9:45 PM before lock, and 10:00 PM reading time. Only reminders you leave on below are sent. No diary text appears in notifications.</p>
  <p className="dd-card-note">Delivery needs internet and browser/OS permission. Battery saving, Focus/Do Not Disturb, or a force-stopped browser can delay or block alerts. Timing is best effort, not an alarm.</p></section>;
 }
