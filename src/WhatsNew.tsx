@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-22', label: 'Sunday, 22 November', features: [
+        { id: 'chatmenu', emoji: '⋮', title: 'Three-dot message menu', text: 'When you hold a message, a three-dot button appears at the top right. Tap it for Copy, Edit and Unsend (only the options that fit that message).' },
         { id: 'chatanchor', emoji: '🎯', title: 'Reactions right above the message', text: 'Hold a message and the reaction bar appears right above it, with that message highlighted and the rest softly faded. Copy, Edit and Unsend are at the top. Reply is still a swipe.' },
         { id: 'noselect', emoji: '🔒', title: 'No accidental text selection', text: 'Pressing and holding text, photos or links no longer selects them or opens the phone\'s Copy and search bar. Typing boxes work as usual, and Copy on your own chat messages still works.' },
         { id: 'chathold', emoji: '👆', title: 'Hold a message', text: 'Press and hold any message and the reactions pop up one by one, with Reply below. On your own messages, Copy and Edit appear at the top right. After you edit, the message shows "edited" for both of you.' },

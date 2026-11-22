@@ -1040,3 +1040,16 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-chat-head-actions button { padding:0 11px; } .dd-chat-head-actions .is-danger { color:#b04a5e; }
 .dd-app[data-theme="midnight"] .dd-chat-head-actions .is-danger { color:#f0a3b3; }
 .dd-chat-head > div:nth-of-type(1) { min-width:0; } .dd-chat-head p, .dd-chat-head h1 { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .dd-chat-head-actions { flex-shrink:0; }
+
+/* One three-dot button at the far right of the header; it opens the message options. */
+.dd-chat-head { position:relative; }
+.dd-chat-head-actions { position:static; }
+.dd-chat-more { width:40px; height:40px; min-height:0; padding:0 !important; border-radius:50% !important; display:grid; place-items:center; border:0 !important; background:transparent !important; color:#6e5d4b; }
+.dd-chat-more:active { background:#0000000d !important; }
+.dd-chat-menu-scrim { position:fixed; inset:0; z-index:40; background:transparent !important; border:0 !important; border-radius:0 !important; padding:0 !important; min-height:0 !important; }
+.dd-chat-menu { position:absolute; z-index:41; top:calc(100% - 4px); right:12px; min-width:150px; display:flex; flex-direction:column; padding:6px; background:#fffdf8; border:1px solid #e2d5c5; border-radius:16px; box-shadow:0 10px 28px #5b3f4a2e; animation:dd-chat-pop .14s ease; transform-origin:top right; }
+.dd-chat-menu button { border:0 !important; background:transparent !important; text-align:left; padding:0 14px !important; min-height:44px !important; border-radius:10px !important; font:inherit; font-size:15px !important; color:#54434a !important; cursor:pointer; }
+.dd-chat-menu button:active { background:#00000010 !important; } .dd-chat-menu button.is-danger { color:#b04a5e !important; }
+.dd-app[data-theme="midnight"] .dd-chat-more { color:#f4e3e8; } .dd-app[data-theme="midnight"] .dd-chat-more:active { background:#ffffff14 !important; }
+.dd-app[data-theme="midnight"] .dd-chat-menu { background:var(--dd-dark-card); border-color:var(--dd-dark-line); box-shadow:0 10px 28px #00000080; }
+.dd-app[data-theme="midnight"] .dd-chat-menu button { color:#f0e3e6 !important; } .dd-app[data-theme="midnight"] .dd-chat-menu button.is-danger { color:#f0a3b3 !important; }

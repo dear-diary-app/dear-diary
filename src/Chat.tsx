@@ -128,6 +128,8 @@ export function ChatView({ partner }: { partner: Person }) {
     const [replyTo, setReplyTo] = useState<string | null>(null);
     const [selected, setSelected] = useState<string | null>(null);
     const [editing, setEditing] = useState<string | null>(null);
+    const [menuOpen, setMenuOpen] = useState(false);
+    useEffect(() => { setMenuOpen(false); }, [selected]);
     const [trayOpen, setTrayOpen] = useState(false);
     const [group, setGroup] = useState('All');
     const [flash, setFlash] = useState<string | null>(null);
@@ -200,7 +202,15 @@ export function ChatView({ partner }: { partner: Person }) {
             <button type="button" className="dd-chat-back" onClick={leave} aria-label="Back"><ArrowLeft size={22} /></button>
             <Avatar person={partner} size="sm" />
             <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerTyping ? <span className="dd-chat-typing-label">typing<i>.</i><i>.</i><i>.</i></span> : chat.live ? 'Private chat' : 'Connecting...'}</p></div>
-            {selMsg && (isText || canUnsend) && <div className="dd-chat-head-actions" role="group" aria-label="Message actions">{isText && <button type="button" onClick={copySel}>Copy</button>}{canEdit && <button type="button" onClick={startEdit}>Edit</button>}{canUnsend && <button type="button" className="is-danger" onClick={() => { chat.unsend(selMsg.id); setSelected(null); }}>Unsend</button>}</div>}
+            {selMsg && (isText || canUnsend) && <div className="dd-chat-head-actions">
+                <button type="button" className="dd-chat-more" aria-label="Message options" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(o => !o)}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg></button>
+                {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => setMenuOpen(false)} />
+                    <div className="dd-chat-menu" role="menu">
+                        {isText && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); copySel(); }}>Copy</button>}
+                        {canEdit && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); startEdit(); }}>Edit</button>}
+                        {canUnsend && <button type="button" role="menuitem" className="is-danger" onClick={() => { setMenuOpen(false); chat.unsend(selMsg.id); setSelected(null); }}>Unsend</button>}
+                    </div></>}
+            </div>}
         </header>
         <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onScroll={e => { const el = e.currentTarget; const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80; stick.current = near; if (near) setNewBelow(false); }} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
