@@ -928,7 +928,7 @@ html:not(.dd-away) body { transition:filter .18s ease; }
 html.dd-chat-typing .dd-bottom-nav { display:none; }
 .dd-chat { position:fixed; z-index:20; top:0; left:0; right:0; height:100dvh; box-sizing:border-box; display:flex; flex-direction:column; max-width:720px; margin:0 auto; padding:max(10px, env(safe-area-inset-top,0px)) 0 calc(8px + env(safe-area-inset-bottom,0px)); background:linear-gradient(var(--dd-bg-top,#fdf9f4),var(--dd-bg-bottom,#f8ede2)); }
 html.dd-chat-typing .dd-chat { padding-bottom:6px; }
-.dd-chat-head { display:flex; align-items:center; gap:10px; padding:6px 16px 10px 8px; border-bottom:1px solid #e8ddcc; flex-shrink:0; }
+.dd-chat-head { display:flex; align-items:center; gap:10px; padding:6px 16px 10px 8px; flex-shrink:0; }
 .dd-chat-head h1 { margin:0; font-size:17px; color:#6e5d4b; font-family:var(--ds-font-text); line-height:1.2; }
 .dd-chat-head p { margin:2px 0 0; font-size:12px; color:#9b8977; min-height:15px; }
 .dd-chat-typing-label i { animation:dd-dot 1.2s infinite both; font-style:normal; } .dd-chat-typing-label i:nth-child(2){animation-delay:.2s} .dd-chat-typing-label i:nth-child(3){animation-delay:.4s}
@@ -983,7 +983,7 @@ html.dd-chat-typing .dd-chat { padding-bottom:6px; }
 .dd-chat-iconbtn, .dd-chat-send { width:44px; height:44px; flex-shrink:0; border-radius:50%; border:1px solid #ded4c2; background:#fffdf8; color:#786955; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; } .dd-chat-iconbtn.is-on { background:#eee9db; }
 .dd-chat-send { background:#7b866f; border-color:#7b866f; color:#fff; } .dd-chat-send:disabled { opacity:.35; cursor:default; }
 .dd-app[data-theme="midnight"] .dd-chat { background:linear-gradient(var(--dd-bg-top),var(--dd-bg-bottom)); }
-.dd-app[data-theme="midnight"] .dd-chat-head { border-color:var(--dd-dark-line); } .dd-app[data-theme="midnight"] .dd-chat-head h1 { color:#f4e3e8; }
+.dd-app[data-theme="midnight"] .dd-chat-head h1 { color:#f4e3e8; }
 .dd-app[data-theme="midnight"] :is(.dd-chat-head p,.dd-chat-time,.dd-chat-status,.dd-chat-empty,.dd-chat-day span,.dd-chat-quote span,.dd-chat-replybar span) { color:var(--dd-dark-muted); }
 .dd-app[data-theme="midnight"] .dd-chat-day span { background:var(--dd-dark-card); }
 .dd-app[data-theme="midnight"] .dd-chat-msg { background:var(--dd-dark-card); border-color:var(--dd-dark-line); color:#f0e3e6; }
