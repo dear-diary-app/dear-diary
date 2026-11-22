@@ -1093,3 +1093,5 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-app[data-theme="midnight"] .dd-chat-staged > span { color:var(--dd-dark-muted); }
 .dd-app[data-theme="midnight"] .dd-chat-note { background:#f0e3e6; color:#2c242b; }
 @media (prefers-reduced-motion:reduce) { .dd-chat-thumb.is-loading, .dd-chat-thumb-spin::after { animation-duration:3s; } }
+
+.dd-settings-dropdowns { margin-top:24px; }

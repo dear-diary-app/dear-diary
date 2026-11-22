@@ -373,9 +373,7 @@ export function Hub({ person }: { person: PersonId }) {
                         </span>
                         <ChevronRight size={18} />
                     </Link>
-                    <PrivacySettings />
-
-                <Link className="dd-menu-card" to="/notifications">
+                    <Link className="dd-menu-card" to="/notifications">
                         <span className="dd-menu-icon"><Bell /></span>
                         <span className="dd-menu-text">
                             <strong>Notification preferences</strong>
@@ -962,26 +960,11 @@ export function Settings() {
                                     <p className="dd-card-sub">JPG, PNG or WebP · Up to 10 MB</p>
                                     {photoMessage && <p className="dd-card-body" role="status">{photoMessage}</p>}
                                 </div>
-                                {!store.avatarPhotos[p.id] && <details className="dd-avatar-options">
-                                <summary>Avatar colour</summary>
-                                <div className="dd-swatches" role="group" aria-label={`Avatar colour for ${p.name}`}>
-                                    {Array.from({ length: AVATARS }, (_, i) => (
-                                        <button key={i} type="button"
-                                            className={`dd-swatch dd-av-${i}${store.avatars[p.id] === i ? ' is-on' : ''}`}
-                                            aria-label={`Avatar style ${i + 1}`}
-                                            aria-pressed={store.avatars[p.id] === i}
-                                            onClick={() => store.setAvatar(p.id, i)}>
-                                            {p.initial}
-                                        </button>
-                                    ))}
-                                </div>
-                                </details>}
+
                             </>
                         )}
                     </section>
                 ))}
-
-                <ThemePicker />
 
                 <DiaryInstall />
 
@@ -1002,8 +985,6 @@ export function Settings() {
                     </span>
                     <ChevronRight size={18} />
                 </Link>
-
-                <PrivacySettings />
 
                 <Link className="dd-menu-card" to="/notifications">
                     <span className="dd-menu-icon"><Bell /></span>
@@ -1032,9 +1013,26 @@ export function Settings() {
                     <ChevronRight size={18} />
                 </Link>
 
-                <DiaryExport />
-
                 <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>
+                <section className="dd-settings-dropdowns" aria-label="More settings">
+                    <PrivacySettings />
+                    <ThemePicker />
+                    {peopleOwnFirst(auth.me).filter(p => p.id === auth.me && !store.avatarPhotos[p.id]).map(p => (
+                        <section key={p.id} className="dd-card" aria-labelledby="avatar-colour-heading">
+                            <details className="dd-settings-fold">
+                                <summary><span className="dd-settings-fold-label"><h2 id="avatar-colour-heading" className="dd-card-title">Avatar colour</h2><span className="dd-settings-fold-note">Choose your profile colour</span></span><ChevronRight size={20} /></summary>
+                                <div className="dd-settings-fold-content">
+                                    <div className="dd-swatches" role="group" aria-label={`Avatar colour for ${p.name}`}>
+                                        {Array.from({ length: AVATARS }, (_, i) => (
+                                            <button key={i} type="button" className={`dd-swatch dd-av-${i}${store.avatars[p.id] === i ? ' is-on' : ''}`} aria-label={`Avatar style ${i + 1}`} aria-pressed={store.avatars[p.id] === i} onClick={() => store.setAvatar(p.id, i)}>{p.initial}</button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </details>
+                        </section>
+                    ))}
+                    <DiaryExport />
+                </section>
                 <span style={{ display: 'none' }}>{now.toISOString()}</span>
             </div>
             {cropFile && auth.me && <ProfileCrop file={cropFile} person={auth.me}
