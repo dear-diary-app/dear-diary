@@ -6,7 +6,7 @@ import { BookOpen, CalendarDays, Gear, HomeIcon } from './icons';
 export function BottomNav() {
     const { me } = useAuth();
     const { pathname } = useLocation();
-    const active = pathname === '/' ? 'home'
+    const active = (pathname === '/' || pathname === '/inbox') ? 'home'
         : pathname.startsWith('/calendar/') ? 'calendar'
         : pathname.startsWith('/settings') || pathname === '/notifications' ? 'settings'
         : 'entries';

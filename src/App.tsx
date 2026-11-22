@@ -9,6 +9,7 @@ import { OfflineNotice } from './pwa';
 import { BottomNav } from './BottomNav';
 import { ThemeFrame } from './Themes';
 import { PageSlide } from './PageSlide';
+import { NotificationInbox } from './NotificationInbox';
 
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
     const auth = useAuth();
@@ -103,6 +104,7 @@ function Shell() {
                     <Route path="/settings/password" element={<ChangePassword />} />
                     <Route path="/settings/pin" element={<ChangePin />} />
                     <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/inbox" element={<NotificationInbox />} />
                     <Route path="*" element={<Home />} />
                 </Routes>}</PageSlide>
                 <BottomNav />

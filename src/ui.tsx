@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Person, PersonId } from './model';
 import { useStore } from './store';
 import { Bell, Gear, ArrowLeft, Heart, ChevronLeft, ChevronRight, XIcon } from './icons';
@@ -34,6 +34,8 @@ export function useGo() {
 // ---------- shared UI ----------
 
 export function TopBar({ back, backLabel, alert }: { back?: string; backLabel?: string; alert?: boolean }) {
+    const { pathname } = useLocation();
+    const options = pathname.startsWith('/settings') || pathname === '/notifications';
     return (
         <header className={`dd-topbar${back ? ' has-back' : ''}`}>
             <div className="dd-topbar-side">
@@ -43,9 +45,8 @@ export function TopBar({ back, backLabel, alert }: { back?: string; backLabel?: 
             </div>
             <Link to="/" className="dd-wordmark"><img src={`${import.meta.env.BASE_URL}icons/diary-192.png`} width="32" height="32" alt="" /> <span>Dear Diary</span></Link>
             <div className="dd-topbar-side is-right">
-                <Link className="dd-iconbtn" to="/notifications" aria-label="Notification preferences">
+                <Link className="dd-iconbtn" to={options ? "/notifications" : "/inbox"} aria-label={options ? "Notification preferences" : "Notification inbox"}>
                     <Bell />
-                    {alert && <span className="dd-dot" aria-label="New pages to read" />}
                 </Link>
                 <Link className="dd-iconbtn" to="/settings" aria-label="Profile and settings"><Gear /></Link>
             </div>

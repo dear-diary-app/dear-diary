@@ -23,7 +23,9 @@ Deno.serve(async req=>{
    await db.from('push_subscriptions').delete().eq('id',row.subscription_id);expired++;continue;
   }
   try{
-   await webpush.sendNotification({endpoint:row.endpoint,keys:{p256dh:row.p256dh,auth:row.auth}},JSON.stringify({title:'Dear Diary',body:messages[row.event],tag:`diary-${row.event}-${row.day}`,url:'/dear-diary/'}),{TTL:600,urgency:'normal',timeout:10000});sent++;
+   const {data:recipient,error:recipientError}=await db.from('push_subscriptions').select('user_id').eq('id',row.subscription_id).single();
+   if(recipientError||!recipient)throw new Error('recipient_unavailable');
+   await webpush.sendNotification({endpoint:row.endpoint,keys:{p256dh:row.p256dh,auth:row.auth}},JSON.stringify({title:'Dear Diary',account_id:recipient.user_id,type:row.event,body:messages[row.event],tag:`diary-${row.event}-${row.day}`,url:'/dear-diary/'}),{TTL:600,urgency:'normal',timeout:10000});sent++;
   }catch(err){
    const status=(err as {statusCode?:number}).statusCode;
    if(status===404||status===410){await db.from('push_subscriptions').delete().eq('id',row.subscription_id);expired++;}

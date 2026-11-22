@@ -41,23 +41,44 @@ self.addEventListener('activate', event => {
     await self.clients.claim();
   })());
 });
+// Inbox is separate from the public shell cache and is filtered by recipient account.
+function storeInbox(notice) {
+ return new Promise((resolve,reject)=>{
+  const request=indexedDB.open('dear-diary-inbox',1);
+  request.onupgradeneeded=()=>{const store=request.result.createObjectStore('notifications',{keyPath:'id'});store.createIndex('account','account_id');};
+  request.onerror=()=>reject(request.error);
+  request.onsuccess=()=>{
+   const db=request.result;const tx=db.transaction('notifications','readwrite');const store=tx.objectStore('notifications');
+   store.put(notice);
+   const read=store.index('account').getAll(notice.account_id);
+   read.onsuccess=()=>{const rows=read.result.sort((a,b)=>b.received_at-a.received_at);for(const row of rows.slice(200))store.delete(row.id);};
+   tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};
+  };
+ });
+}
 self.addEventListener('push', event => {
-  let data = {}; try { data = event.data ? event.data.json() : {}; } catch {}
-  event.waitUntil(self.registration.showNotification('Dear Diary', {
-    body: typeof data.body === 'string' ? data.body : 'Open Dear Diary for your reminder.',
-    icon: BASE + 'icons/diary-192.png', badge: BASE + 'icons/diary-192.png',
-    tag: typeof data.tag === 'string' ? data.tag : 'diary-reminder',
-    data: {url:BASE}, renotify:false
-  }));
+ let data={};try{data=event.data?event.data.json():{};}catch{}
+ const body=typeof data.body==='string'?data.body.slice(0,500):'Open Dear Diary for your reminder.';
+ const tag=typeof data.tag==='string'?data.tag.slice(0,150):'diary-reminder';
+ event.waitUntil((async()=>{
+  // Old payloads without an account remain generic OS alerts, never mixed into an inbox.
+  if(typeof data.account_id==='string' && /^[0-9a-f-]{36}$/i.test(data.account_id)){
+   const type=['open','writing','lock','published'].includes(data.type)?data.type:'reminder';
+   await storeInbox({id:data.account_id+':'+tag,account_id:data.account_id,title:'Dear Diary',body,received_at:Date.now(),type}).catch(()=>{});
+   for(const client of await clients.matchAll({type:'window',includeUncontrolled:true}))client.postMessage({type:'diary-inbox-updated',account_id:data.account_id});
+  }
+  await self.registration.showNotification('Dear Diary',{body,icon:BASE+'icons/diary-192.png',badge:BASE+'icons/diary-192.png',tag,data:{url:BASE+'#/inbox'},renotify:false});
+ })());
 });
 self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  event.waitUntil((async () => {
-    const windows = await clients.matchAll({type:'window',includeUncontrolled:true});
-    const app = windows.find(client => new URL(client.url).pathname.startsWith(BASE));
-    if(app) return app.focus();
-    return clients.openWindow(BASE);
-  })());
+ event.notification.close();
+ event.waitUntil((async()=>{
+  const url=BASE+'#/inbox';const windows=await clients.matchAll({type:'window',includeUncontrolled:true});
+  const app=windows.find(client=>new URL(client.url).pathname.startsWith(BASE));
+  // Do not navigate an open editor away from an unsaved diary page.
+  if(app)return app.focus();
+  return clients.openWindow(url);
+ })());
 });
 self.addEventListener('fetch', event => {
   const req = event.request;

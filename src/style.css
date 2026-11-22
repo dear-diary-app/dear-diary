@@ -828,3 +828,25 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 .dd-push-settings .dd-card-sub { margin-top:10px; line-height:1.6; }
 .dd-push-settings .dd-card-note { line-height:1.6; margin-top:14px; }
 @media(max-width:360px){ .dd-topbar .dd-wordmark { gap:6px; font-size:17px; } .dd-wordmark img{width:28px;height:28px;} .dd-topbar{gap:6px;} }
+
+/* Received-notification inbox, private to the signed-in account on this device. */
+.dd-inbox-heading {display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px;}
+.dd-inbox-heading .dd-sub{margin-bottom:0;}
+.dd-inbox-empty{text-align:center;padding:46px 24px 34px;overflow:hidden;}
+.dd-inbox-orbit{position:relative;width:104px;height:104px;display:grid;place-items:center;margin:0 auto 25px;border:1px solid var(--dd-border,rgba(180,140,155,.22));border-radius:34px;background:linear-gradient(145deg,rgba(239,183,202,.26),rgba(186,170,218,.12));color:var(--dd-accent,#bd8297);box-shadow:inset 0 1px rgba(255,255,255,.3),0 15px 35px rgba(160,110,140,.1);transform:rotate(-7deg);}
+.dd-inbox-orbit svg{transform:rotate(7deg);}
+.dd-inbox-orbit span{position:absolute;width:10px;height:10px;border-radius:50%;background:#d7a0b3;right:-8px;top:18px;box-shadow:0 0 20px rgba(220,163,185,.4);}
+.dd-inbox-orbit span:last-child{width:6px;height:6px;left:-13px;top:78px;background:#b5a5ce;}
+.dd-inbox-empty h2{font-family:var(--font-display,Georgia,serif);font-size:25px;font-weight:400;margin:0 0 12px;}
+.dd-inbox-empty p{max-width:280px;margin:0 auto 25px;line-height:1.7;opacity:.76;}
+.dd-inbox-list{padding:0;margin:0;list-style:none;display:grid;gap:13px;}
+.dd-inbox-item{display:flex;align-items:flex-start;gap:14px;margin:0;padding:21px;}
+.dd-inbox-icon{width:42px;height:42px;flex-shrink:0;display:grid;place-items:center;border-radius:15px;background:rgba(205,158,181,.17);color:var(--dd-accent,#bd8297);border:1px solid rgba(205,158,181,.16);}
+.dd-inbox-copy{min-width:0;overflow-wrap:anywhere;}
+.dd-inbox-type{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.075em;opacity:.65;}
+.dd-inbox-copy h2{font-family:var(--font-display,Georgia,serif);font-size:21px;font-weight:400;margin:6px 0 8px;}
+.dd-inbox-copy p{font-size:14px;line-height:1.65;margin:0 0 14px;}
+.dd-inbox-copy time{display:flex;gap:5px;align-items:center;font-size:11px;line-height:1.6;opacity:.62;}
+.dd-inbox-note{line-height:1.65;margin-top:20px;}
+@media(max-width:420px){.dd-inbox-item{padding:18px;gap:12px;}.dd-inbox-heading .dd-title{font-size:27px;}.dd-inbox-empty{padding:38px 20px 28px;}}
+.dd-inbox .dd-btn{text-decoration:none;}
