@@ -14,6 +14,8 @@ export const PEOPLE: Person[] = [
     { id: 'aruba', name: 'Aruba', initial: 'A', hue: 'lavender' },
 ];
 
+export const peopleOwnFirst = (me: PersonId | null): Person[] => [...PEOPLE].sort((a, b) => Number(b.id === me) - Number(a.id === me));
+
 export const personById = (id: PersonId): Person => PEOPLE.find(p => p.id === id)!;
 export const otherId = (id: PersonId): PersonId => (id === 'joydeep' ? 'aruba' : 'joydeep');
 

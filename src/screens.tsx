@@ -2,7 +2,7 @@ import { dismissMotion } from './motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
-    Entry, PEOPLE, PersonId, EMOJIS, ekey, fmtCountdown, fmtPublishCountdown, fmtDateLong, fmtDateShort,
+    Entry, peopleOwnFirst, PersonId, EMOJIS, ekey, fmtCountdown, fmtPublishCountdown, fmtDateLong, fmtDateShort,
     isReadable, istClock, istParts, latestReadable, otherId, personById, publishWaitMs, schedule, todayKey,
 } from './model';
 import { Avatar, Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, useNow } from './ui';
@@ -117,7 +117,7 @@ export function Home() {
             <TopBar alert={store.unreadAny(now)} />
             <div className="dd-anim" key="home">
                 <section className="dd-books" aria-label="Your two diary books">
-                    {[...PEOPLE].sort((a, b) => (a.id === auth.me ? -1 : b.id === auth.me ? 1 : 0)).map(p => (
+                    {peopleOwnFirst(auth.me).map(p => (
                         <div key={p.id} className="dd-book-col">
                             <Book person={p} avatar={store.avatars[p.id]}
                                 unread={store.unreadLatest(otherId(p.id), now)}
@@ -541,6 +541,7 @@ export function Read({ viewer, publishedOwner }: { viewer: PersonId; publishedOw
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export function Calendar({ viewer }: { viewer: PersonId }) {
+    const auth = useAuth();
     const store = useStore();
     const now = useNow(30000);
     const today = todayKey(now);
@@ -576,7 +577,7 @@ export function Calendar({ viewer }: { viewer: PersonId }) {
         setYm({ y: ym.y + Math.floor(m / 12), m: ((m % 12) + 12) % 12 + 1 });
     };
 
-    const dayEntries = PEOPLE.map(p => ({ person: p, entry: store.entries[ekey(p.id, day)] }));
+    const dayEntries = peopleOwnFirst(auth.me).map(p => ({ person: p, entry: store.entries[ekey(p.id, day)] }));
 
     return (
         <main className="dd-shell">
@@ -910,6 +911,7 @@ export function HowToUse() {
 
 export function Settings() {
     const store = useStore();
+    const photoInput = useRef<HTMLInputElement>(null);
     const [cropFile, setCropFile] = useState<File | null>(null);
     const [photoMessage, setPhotoMessage] = useState('');
     const auth = useAuth();
@@ -922,7 +924,7 @@ export function Settings() {
                 <h1 className="dd-title">Profile &amp; settings</h1>
                 <p className="dd-sub">Your profile and account</p>
 
-                {PEOPLE.map(p => (
+                {peopleOwnFirst(auth.me).map(p => (
                     <section key={p.id} className="dd-card">
                         <div className="dd-dayentry-head">
                             <Avatar person={p} size="lg" />
@@ -935,9 +937,10 @@ export function Settings() {
                         {auth.me === p.id && (
                             <>
                                 <div className="dd-profile-upload">
-                                    <label className="dd-btn dd-btn-primary">
+                                    <button type="button" className="dd-btn dd-btn-primary" onClick={() => photoInput.current?.click()}>
                                         {store.avatarPhotos[p.id] ? 'Change profile picture' : 'Upload profile picture'}
-                                        <input type="file" accept="image/jpeg,image/png,image/webp" hidden
+                                    </button>
+                                        <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp" hidden
                                             onChange={async e => {
                                                 const file = e.target.files?.[0]; e.target.value = '';
                                                 if (!file) return;
@@ -946,7 +949,6 @@ export function Settings() {
                                                 if (file.size > 10 * 1024 * 1024) { setPhotoMessage('Choose a photo smaller than 10 MB.'); return; }
                                                 setCropFile(file);
                                             }} />
-                                    </label>
                                     <p className="dd-card-sub">JPG, PNG or WebP · Up to 10 MB</p>
                                     {photoMessage && <p className="dd-card-body" role="status">{photoMessage}</p>}
                                 </div>

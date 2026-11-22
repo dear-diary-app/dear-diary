@@ -801,3 +801,18 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 .dd-app.dd-app.dd-app .dd-key:not(:disabled):active { transition:transform 160ms var(--dd-spring); }
 .dd-app :is(.dd-result,.dd-dayentry,.dd-theme-option,.dd-sticker-tray,.dd-sticker-controls,.dd-save,.dd-pin-msg,.dd-install-notice,.dd-theme-message,.dd-avatar-options[open] > :not(summary)) { animation-fill-mode:backwards; }
 @media (prefers-reduced-motion:reduce) { .dd-app.dd-app.dd-app :is(button,a,summary,[role="button"]) { transition:none; } }
+
+/* Settings actions use real button boxes, roomy targets and separate help text. */
+.dd-settings .dd-profile-upload { margin-top:18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; }
+.dd-settings .dd-profile-upload .dd-btn {
+    box-sizing:border-box; display:flex; align-items:center; justify-content:center;
+    width:100%; min-height:48px; padding:13px 20px; font-size:15px; line-height:1.4; text-align:center;
+}
+.dd-settings .dd-profile-upload .dd-card-sub { margin:0; padding-inline:3px; font-size:12px; line-height:1.6; }
+.dd-settings .dd-profile-upload .dd-card-body { margin:0; }
+.dd-settings .dd-menu-card { box-sizing:border-box; width:100%; min-height:72px; padding:16px; gap:12px; }
+.dd-settings .dd-menu-text { min-width:0; flex:1; }
+.dd-settings .dd-menu-text strong { line-height:1.4; }
+.dd-settings .dd-menu-text small { margin-top:4px; line-height:1.4; }
+.dd-settings .dd-menu-card > svg { flex-shrink:0; }
+.dd-settings .dd-anim > .dd-btn-ghost { box-sizing:border-box; display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; padding:13px 20px; margin-top:20px; }
