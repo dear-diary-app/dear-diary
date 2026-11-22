@@ -8,6 +8,7 @@ import { useNow } from './ui';
 import { AppEntryGate, Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
 import grain from './photos/grain.png';
 import { OfflineNotice } from './pwa';
+import { WhatsNew } from './WhatsNew';
 import { BottomNav } from './BottomNav';
 import { ThemeFrame } from './Themes';
 import { PageSlide } from './PageSlide';
@@ -113,6 +114,7 @@ function Shell() {
                     <Route path="/chat" element={<ChatRoute />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/settings/how-to-use" element={<HowToUse />} />
+                    <Route path="/settings/whats-new" element={<WhatsNew />} />
                     <Route path="/settings/password" element={<ChangePassword />} />
                     <Route path="/settings/pin" element={<ChangePin />} />
                     <Route path="/notifications" element={<Notifications />} />

@@ -986,3 +986,16 @@ html.dd-chat-typing .dd-chat { padding-bottom:6px; }
 .dd-app[data-theme="midnight"] .dd-chat-reacts button.is-mine, .dd-app[data-theme="midnight"] .dd-chat-emojis button.is-mine { background:#5a3445; }
 .dd-app[data-theme="midnight"] .dd-tab-dot { border-color:#1c171d; }
 @media (prefers-reduced-motion:reduce) { .dd-chat-msg { transition:none !important; } .dd-chat-actions { animation:none; } .dd-chat-row.is-flash .dd-chat-msg { animation:none; } }
+
+/* What's new */
+.dd-whatsnew-date { margin:26px 0 10px; font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:#a1858d; font-weight:600; }
+.dd-whatsnew-list { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+.dd-whatsnew-item { display:flex; gap:14px; align-items:flex-start; margin:0; }
+.dd-whatsnew-emoji { flex:0 0 auto; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font-size:20px; background:#f6e6ea; }
+.dd-whatsnew-item .dd-card-body { margin:4px 0 0; line-height:1.5; }
+.dd-whatsnew-item > div { min-width:0; }
+.dd-new-pill { font-style:normal; margin-left:8px; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.04em; vertical-align:2px; background:#c9788f; color:#fff; }
+.dd-app[data-theme="midnight"] .dd-whatsnew-emoji { background:#3a2c38; }
+.dd-app[data-theme="midnight"] .dd-whatsnew-date { color:#c3aeb7; }
+@media (prefers-reduced-motion: no-preference) { .dd-whatsnew-item { animation:dd-wn-in .35s ease both; } .dd-whatsnew-list li:nth-child(2){animation-delay:.04s} .dd-whatsnew-list li:nth-child(3){animation-delay:.08s} .dd-whatsnew-list li:nth-child(n+4){animation-delay:.12s} }
+@keyframes dd-wn-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }

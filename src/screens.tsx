@@ -16,6 +16,7 @@ import { Stickers } from './Stickers';
 import { SongPicker, SongPill } from './Song';
 import { DiaryInstall } from './DiaryInstall';
 import { ThemePicker } from './Themes';
+import { hasNewFeatures } from './WhatsNew';
 import {
     Bell, BookOpen, CalendarDays, Check, ChevronLeft, ChevronRight, Clock, Erase, Eye, EyeOff,
     Gear, Heart, ImagePlus, KeyRound, Lock, Moon, PenLine, Search, Sparkles, Users, XIcon,
@@ -985,6 +986,15 @@ export function Settings() {
                     <span className="dd-menu-text">
                         <strong>How to use</strong>
                         <small>Writing, reading and your diary</small>
+                    </span>
+                    <ChevronRight size={18} />
+                </Link>
+
+                <Link className="dd-menu-card" to="/settings/whats-new">
+                    <span className="dd-menu-icon"><Sparkles /></span>
+                    <span className="dd-menu-text">
+                        <strong>What's new{hasNewFeatures(auth.session?.user.id) && <em className="dd-new-pill">New</em>}</strong>
+                        <small>Features added to Dear Diary</small>
                     </span>
                     <ChevronRight size={18} />
                 </Link>
