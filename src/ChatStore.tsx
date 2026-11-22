@@ -40,10 +40,12 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     pathRef.current = loc.pathname;
     useEffect(() => {
         // A tapped chat notification asks the open app to show the chat, but never leaves a diary page being written.
-        const onMsg = (e: MessageEvent) => { if (e.data?.type === 'diary-open-chat' && !pathRef.current.startsWith('/write/') && pathRef.current !== '/chat') nav('/chat'); };
+        const onMsg = (e: MessageEvent) => { if (e.data?.type !== 'diary-open-chat' || (e.data.account_id && e.data.account_id !== uid) || pathRef.current.startsWith('/write/')) return;
+            if (e.data.compose) { nav('/chat?compose=1', { state: { composeAt: Date.now() } }); window.dispatchEvent(new Event('dd-chat-compose')); }
+            else if (pathRef.current !== '/chat') nav('/chat'); };
         navigator.serviceWorker?.addEventListener('message', onMsg);
         return () => navigator.serviceWorker?.removeEventListener('message', onMsg);
-    }, [nav]);
+    }, [nav, uid]);
     const [messages, setMessages] = useState<ChatMsg[]>([]);
     const [loaded, setLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);

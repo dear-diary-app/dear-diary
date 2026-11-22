@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import pack from './sticker-pack.json';
 import { useChat, type ChatMsg } from './ChatStore';
@@ -166,6 +166,13 @@ export function ChatView({ partner }: { partner: Person }) {
     const setNewBelow = (v: boolean) => { if (!v) setBelowIds([]); };
     const scroller = useRef<HTMLDivElement>(null);
     const input = useRef<HTMLTextAreaElement>(null);
+    const route = useLocation();
+    useEffect(() => {
+        const focus = () => input.current?.focus();
+        if (new URLSearchParams(route.search).get('compose') === '1') focus();
+        window.addEventListener('dd-chat-compose', focus);
+        return () => window.removeEventListener('dd-chat-compose', focus);
+    }, [route.key, route.search]);
     const stick = useRef(true);
     const prevLen = useRef(0);
     const { setViewing } = chat;

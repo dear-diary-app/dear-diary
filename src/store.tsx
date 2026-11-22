@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import { cleanSong, type Song } from './Song';
+import { setPrivacyAccount } from './privacy';
 import { disableDevicePush } from './PushSettings';
 import { cleanStickers, Sticker } from './Stickers';
 import { Entry, PersonId, ekey, isReadable, latestReadable, otherId, todayKey } from './model';
@@ -29,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loadError, setLoadError] = useState('');
     const [attempt, setAttempt] = useState(0);
     const me = profile?.uid === session?.user.id ? profile?.me ?? null : null;
+    useEffect(() => { setPrivacyAccount(session?.user.id ?? null); }, [session?.user.id]);
     const ready = sessionReady && (!session || profile?.uid === session.user.id);
 
     useEffect(() => {
@@ -124,7 +126,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
     const [readSet, setReadSet] = useState<Record<string, true>>({});
     const [avatarPhotos, setAvatarPhotos] = useState<Partial<Record<PersonId, string>>>({});
     const [avatars, setAvatars] = useState<Record<PersonId, number>>({ joydeep: 0, aruba: 1 });
-    const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({ open: true, writing: false, lock: true, published: true, reaction: true, chat: true });
+    const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({ open: true, writing: false, lock: true, published: true, reaction: true, chat: true, chatPreview: false, chatReply: false });
     const [notifSaving, setNotifSaving] = useState(false);
     const [notifMessage, setNotifMessage] = useState('');
     const notifPending = useRef(false);
@@ -383,10 +385,10 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
             setNotifPrefs(next);
             const uid = userIds.current[me];
             if (!uid) { setNotifPrefs(previous); setNotifMessage('Account is still loading. Try again.'); return; }
-            notifPending.current=true; setNotifSaving(true); setNotifMessage('Saving reminder choices...');
+            notifPending.current=true; setNotifSaving(true); setNotifMessage('Saving notification choices...');
             supabase.from('app_settings').upsert({ user_id: uid, notifications: next }, { onConflict: 'user_id' }).then(({error}) => {
                 if (error) { setNotifPrefs(previous); setNotifMessage('Could not save. Your previous choices remain. Try again when connected.'); }
-                else setNotifMessage('Reminder choices saved.');
+                else setNotifMessage('Notification choices saved.');
                 notifPending.current=false; setNotifSaving(false);
             });
         },

@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-22', label: 'Sunday, 22 November', features: [
+        { id: 'privacychoices', emoji: '🔐', title: 'Your privacy choices', text: 'Settings now lets you turn blur when minimized on or off for this device. Notifications has account-wide switches for message previews and an Open to reply shortcut. Both notification options start off. The shortcut opens chat rather than sending from the notification bar; button and keyboard behavior depend on your phone.' },
         { id: 'chatphotos', emoji: '📷', title: 'Send photos in chat', text: 'Tap the photo button next to the sticker button to send up to 3 photos at once (photos only, no videos). Add a caption if you like. Tap a photo to view it full screen and swipe between them. Photos are private to the two of you, work with Reply and reactions, and are deleted when you Unsend.' },
         { id: 'chatmenu', emoji: '⋮', title: 'Three-dot message menu', text: 'When you hold a message, a three-dot button appears at the top right. Tap it for Copy, Edit and Unsend (only the options that fit that message).' },
         { id: 'chatanchor', emoji: '🎯', title: 'Reactions right above the message', text: 'Hold a message and the reaction bar appears right above it, with that message highlighted and the rest softly faded. Copy, Edit and Unsend are at the top. Reply is still a swipe.' },

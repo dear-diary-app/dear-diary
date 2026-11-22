@@ -1,3 +1,5 @@
+import { ChatNotificationSettings } from './ChatNotificationSettings';
+import { PrivacySettings } from './PrivacySettings';
 import { DiaryExport } from './DiaryExport';
 import { PushSettings } from './PushSettings';
 import { dismissMotion } from './motion';
@@ -371,7 +373,9 @@ export function Hub({ person }: { person: PersonId }) {
                         </span>
                         <ChevronRight size={18} />
                     </Link>
-                    <Link className="dd-menu-card" to="/notifications">
+                    <PrivacySettings />
+
+                <Link className="dd-menu-card" to="/notifications">
                         <span className="dd-menu-icon"><Bell /></span>
                         <span className="dd-menu-text">
                             <strong>Notification preferences</strong>
@@ -999,11 +1003,13 @@ export function Settings() {
                     <ChevronRight size={18} />
                 </Link>
 
+                <PrivacySettings />
+
                 <Link className="dd-menu-card" to="/notifications">
                     <span className="dd-menu-icon"><Bell /></span>
                     <span className="dd-menu-text">
                         <strong>Notifications</strong>
-                        <small>Reminders for 6 AM and 10 PM</small>
+                        <small>Chat previews, reply shortcut and reminders</small>
                     </span>
                     <ChevronRight size={18} />
                 </Link>
@@ -1045,7 +1051,7 @@ const NOTIFS: { key: string; label: string; hint: string }[] = [
     { key: 'writing', label: 'Daily writing reminder', hint: 'A nudge at 9:00 PM to write today\u2019s page before the evening gets away' },
     { key: 'lock', label: 'Diaries lock', hint: 'A reminder at 9:45 PM, before everything locks at 10:00 PM' },
     { key: 'published', label: 'Nightly reading time', hint: 'A 10:00 PM reminder that writing is closed and reading time has begun' },
-    { key: 'chat', label: 'New chat messages', hint: 'A notice when a message or sticker arrives. The message text is never shown' },
+    { key: 'chat', label: 'New chat messages', hint: 'A notice when a message, photo or sticker arrives' },
 ];
 
 export function Notifications() {
@@ -1057,6 +1063,7 @@ export function Notifications() {
                 <h1 className="dd-title">Notifications</h1>
                 <p className="dd-sub">Soft reminders, never noise</p>
                 <PushSettings />
+                <ChatNotificationSettings />
                 <section className="dd-card">
                     {NOTIFS.map(n => (
                         <Toggle key={n.key} label={n.label} hint={n.hint}
