@@ -13,6 +13,7 @@ import { supabase } from './lib/supabase';
 import { ProfileCrop } from './ProfileCrop';
 import { ProfileStreak, useProfileStreaks } from './ProfileStreak';
 import { Stickers } from './Stickers';
+import { SongPicker, SongPill } from './Song';
 import { DiaryInstall } from './DiaryInstall';
 import { ThemePicker } from './Themes';
 import {
@@ -419,6 +420,7 @@ export function Write({ person }: { person: PersonId }) {
                 {locked && (
                     <p className="dd-locked"><Lock size={14} /> This page locked at 10:00 PM. Editing and photos open again at 6:00 AM.</p>
                 )}
+                {locked ? (entry?.song ? <SongPill song={entry.song} /> : null) : <SongPicker song={entry?.song} onChange={s => store.saveSong(p.id,today,s)} />}
                 <Stickers text={text} value={entry?.stickers ?? []} onChange={locked ? undefined : v => store.saveStickers(p.id,today,v)} onTextChange={locked ? undefined : v => store.saveText(p.id,today,v)} label={`${p.name}'s diary page for ${fmtDateLong(today)}`} placeholder="Dear diary, today..." />
                 <div className="dd-editor-foot">
                     <span>{words} {words === 1 ? 'word' : 'words'}</span>
@@ -508,6 +510,7 @@ export function Read({ viewer, publishedOwner }: { viewer: PersonId; publishedOw
                 </div>}
                 {entry && (!publishedOwner || entry.status === 'published') ? (
                     <>
+                        {entry.song && <SongPill song={entry.song} />}
                         <Stickers text={entry.text} value={entry.stickers ?? []} />
                         <PhotoGallery photos={entry.photos} title={`${other.name}'s photos`} />
                         {viewer !== other.id && <div className="dd-react">
@@ -662,6 +665,7 @@ export function Calendar({ viewer }: { viewer: PersonId }) {
                                         </div>
                                         {entry && readable ? (
                                             <>
+                                                {entry.song && <SongPill song={entry.song} />}
                                                 <Stickers text={entry.text} value={entry.stickers ?? []} />
                                                 <PhotoGallery photos={entry.photos} title={`${person.name}'s photos`} />
                                                 {Object.keys(reacts).length > 0 && (

@@ -882,3 +882,41 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 /* Privacy blur while the app is minimised or unfocused. No entry transition so the app-switcher snapshot is already blurred. */
 html.dd-away body { filter:blur(26px) saturate(.75); pointer-events:none; user-select:none; -webkit-user-select:none; }
 html:not(.dd-away) body { transition:filter .18s ease; }
+
+/* Song on an entry: a small Instagram-style player card */
+.dd-songbox { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 10px; }
+.dd-songbox .dd-song { flex:1 1 100%; }
+.dd-song-add, .dd-song-change { background:#eee9db; border:1px solid #d7cdb6; border-radius:20px; min-height:44px; padding:8px 14px; color:#695c47; font:inherit; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+.dd-song-change { min-height:36px; font-size:12px; }
+.dd-song { position:relative; display:flex; align-items:center; gap:6px; margin:0 0 10px; padding:8px 10px 12px; border-radius:16px; background:#f5f1e8; border:1px solid #e2d8c7; overflow:hidden; flex-wrap:wrap; }
+.dd-song-main { flex:1; min-width:0; display:flex; align-items:center; gap:12px; background:none; border:0; padding:0; font:inherit; color:inherit; cursor:pointer; text-align:left; min-height:48px; }
+.dd-song img, .dd-song-hit img { border-radius:10px; object-fit:cover; flex-shrink:0; background:#e6dcc8; }
+.dd-song-text { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.dd-song-text strong { font-size:14px; color:#6e5d4b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dd-song-text small { font-size:12px; color:#9b8977; display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dd-song-play { width:40px; height:40px; border-radius:50%; background:#7b866f; color:#fff; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+.dd-song-remove { width:36px; height:36px; border-radius:50%; border:1px solid #d7cdb6; background:#fffdf8; color:#786955; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+.dd-song-bar { position:absolute; left:0; right:0; bottom:0; height:4px; background:rgba(123,134,111,.18); }
+.dd-song-bar i { display:block; height:100%; background:#7b866f; transition:width .25s linear; }
+.dd-song-error, .dd-song-note { flex-basis:100%; font-size:12px; color:#9b8977; margin:4px 0 0; }
+.dd-song-panel { flex:1 1 100%; background:#f5f1e8; border:1px solid #e2d8c7; border-radius:14px; padding:10px; }
+.dd-song-search { display:flex; align-items:center; gap:8px; background:#fffdf8; border:1px solid #ded4c2; border-radius:14px; padding:0 12px; min-height:46px; color:#9b8977; }
+.dd-song-search input { flex:1; min-width:0; border:0; outline:0; background:none; font:inherit; font-size:16px; color:#6e5d4b; }
+.dd-song-list { list-style:none; margin:8px 0 0; padding:0; max-height:300px; overflow:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:4px; }
+.dd-song-hit { display:flex; align-items:center; gap:10px; padding:4px; border-radius:12px; background:#fffcf6; }
+.dd-song-hit-play { position:relative; width:44px; height:44px; padding:0; border:0; background:none; border-radius:10px; cursor:pointer; flex-shrink:0; overflow:hidden; color:#fff; }
+.dd-song-hit-play span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(60,48,40,.35); }
+.dd-song-use { border:1px solid #d7cdb6; background:#eee9db; color:#695c47; border-radius:16px; min-height:40px; padding:6px 14px; font:inherit; font-size:12px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0; }
+.dd-app[data-theme="midnight"] :is(.dd-song,.dd-song-panel) { background:#2c242b; border-color:var(--dd-dark-line); }
+.dd-app[data-theme="midnight"] :is(.dd-song-add,.dd-song-change,.dd-song-use,.dd-song-remove) { background:var(--dd-dark-card); border-color:var(--dd-dark-line); color:#e0c3cd; }
+.dd-app[data-theme="midnight"] :is(.dd-song-hit,.dd-song-search) { background:var(--dd-dark-card); border-color:var(--dd-dark-line); }
+.dd-app[data-theme="midnight"] .dd-song-text strong, .dd-app[data-theme="midnight"] .dd-song-search input { color:#f4e3e8; }
+.dd-app[data-theme="midnight"] :is(.dd-song-text small,.dd-song-note,.dd-song-error,.dd-song-search) { color:var(--dd-dark-muted); }
+.dd-app[data-theme="midnight"] .dd-song-play { background:#a9647a; }
+@media (prefers-reduced-motion:reduce) { .dd-song-bar i { transition:none; } }
+.dd-songbox, .dd-song-panel, .dd-song-list, .dd-song-hit, .dd-song { min-width:0; max-width:100%; box-sizing:border-box; }
+.dd-song-panel, .dd-song-hit { overflow:hidden; }
+.dd-song-search { box-sizing:border-box; }
+.dd-song-hit { flex:0 0 auto; }
+.dd-song-search input[type=search]::-webkit-search-cancel-button { display:none; }
+.dd-song-search input[type=search] { -webkit-appearance:none; appearance:none; }

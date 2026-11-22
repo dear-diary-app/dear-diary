@@ -22,6 +22,7 @@ export const otherId = (id: PersonId): PersonId => (id === 'joydeep' ? 'aruba' :
 export const EMOJIS = ['❤️', '🥺', '😭', '😂', '✨', '🫂', '🤍', '😊', '🌸', '🫶'];
 
 import type { Sticker } from './Stickers';
+import type { Song } from './Song';
 
 export interface Entry {
     date: string; // IST calendar date, yyyy-mm-dd
@@ -29,6 +30,7 @@ export interface Entry {
     text: string;
     photos: string[]; // signed URLs or data URIs
     stickers?: Sticker[];
+    song?: Song | null;
     status?: 'draft' | 'published';
 }
 
