@@ -860,3 +860,6 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 .dd-export-pin .dd-field { margin-top:0; }
 .dd-export-pin .dd-btn { margin-top:8px; }
 .dd-export-pin input { letter-spacing:.4em; font-size:20px; }
+/* Keep this secondary action painted beside the focused PIN form. */
+.dd-app .dd-export .dd-export-json { -webkit-backdrop-filter:none; backdrop-filter:none; background:#f5eef0; color:#624c53; }
+.dd-app[data-theme="midnight"] .dd-export .dd-export-json { background:#39313b; color:#f0e3e6; }
