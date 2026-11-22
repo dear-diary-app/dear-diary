@@ -18,8 +18,8 @@ export function BottomNav() {
     const tabs = [
         { id: 'home', label: 'Home', to: '/', Icon: HomeIcon },
         { id: 'entries', label: 'My diary', to: `/hub/${me}`, Icon: BookOpen },
-        { id: 'calendar', label: 'History', to: `/calendar/${me}`, Icon: CalendarDays },
         { id: 'chat', label: 'Chat', to: '/chat', Icon: MessageCircle },
+        { id: 'calendar', label: 'History', to: `/calendar/${me}`, Icon: CalendarDays },
         { id: 'settings', label: 'Settings', to: '/settings', Icon: Gear },
     ];
     return <nav className="dd-bottom-nav" aria-label="Main navigation">

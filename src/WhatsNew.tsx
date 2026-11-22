@@ -8,6 +8,10 @@ export interface Feature { id: string; title: string; text: string; emoji: strin
 export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
+    { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'chatgifs', emoji: '🎞️', title: 'GIFs in your chat', text: 'Tap GIF to search GIPHY, preview a result and send it. Your old chat stickers stay in place. GIF searches and media load directly from GIPHY, with a shared free limit of 100 API calls per hour. Unavailable GIFs show a clear fallback.' },
+        { id: 'onlineandnav', emoji: '💬', title: 'A clearer chat', text: 'The chat header now shows Online only while your partner has a connected, foreground app session. There is no permanent Private chat label or last-seen time. Status can take a short time to update after a connection drops. Chat is now the middle navigation tab, with History to its right.' },
+    ] },
     { date: '2026-11-22', label: 'Sunday, 22 November', features: [
         { id: 'emojipulldown', emoji: '👇', title: 'Pull down to close emoji', text: 'Drag the emoji sheet handle or header down to close it without refreshing the page. Small drags spring back, and scrolling through emoji stays inside the sheet.' },
         { id: 'moreemoji', emoji: '😀', title: 'More ways to react', text: 'Hold a message for a scrollable reaction bar. Tap + to search thousands of native emoji or browse categories. Your chosen reaction is highlighted, and frequently used emoji are remembered separately for your account on this device. Tap your existing reaction to remove it.' },

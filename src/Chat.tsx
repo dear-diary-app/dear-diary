@@ -7,6 +7,7 @@ import type { Person } from './model';
 import { ArrowLeft, XIcon } from './icons';
 import { MAX_PHOTOS, prepareImage } from './chatImages';
 import { ImageIcon, Thumb, Viewer } from './ChatPhotos';
+import { GifPicker, GifMedia, GifCredit, useChatGifs, type Gif } from './ChatGifs';
 import { EmojiPicker } from './EmojiPicker';
 import { quickReactions } from './reactions';
 
@@ -26,12 +27,12 @@ function dayLabel(iso: string) {
 const Reply = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 6 6v3" /></svg>;
 const Pencil = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>;
 const Send = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.3 10l12 2-12 2Z" /></svg>;
-const Smile = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5" /><path d="M8 14.2a4.5 4.5 0 0 0 8 0" /><path d="M9 9.5h.01M15 9.5h.01" strokeWidth="2.6" /></svg>;
 
 const photoWord = (n: number) => n > 1 ? `${n} photos` : 'Photo';
-function snippet(m: ChatMsg) { if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
+function snippet(m: ChatMsg) { if (m.gif_id) return 'GIF'; if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
 
-function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, onPhoto, onReply, onJump, onMore, flash, lastMine }: {
+function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, onPhoto, onReply, onJump, onMore, gif, gifError, retryGif, flash, lastMine }: {
+    gif?: Gif | null; gifError: string; retryGif: () => void;
     m: ChatMsg; mine: boolean; partner: Person; original?: ChatMsg; selected: boolean; onSelect: () => void; onTap: () => void; onPhoto: (paths: string[], i: number) => void; onOpen: () => void; onReply: () => void; onJump: (id: string) => void; onMore: () => void; flash: boolean; lastMine: boolean;
 }) {
     const chat = useChat();
@@ -112,12 +113,13 @@ function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, on
             style={{ transform: dx ? `translateX(${dx * dir}px)` : undefined, transition: rest ? 'transform .32s cubic-bezier(.2,1.3,.4,1)' : 'none' }}
             onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}
             role="button" tabIndex={0} aria-label={`${mine ? 'Your' : `${partner.name}'s`} message: ${snippet(m)}. Press Enter for actions.`}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } else if (e.key === 'r') onReply(); }}>
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } else if (e.key === 'r') { e.preventDefault(); onReply(); } }}>
             {m.reply_to && <button type="button" className="dd-chat-quote" disabled={!original} onPointerDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); original && onJump(original.id); }}>
                 <strong>{original ? (original.sender_id === chat.uid ? 'You' : partner.name) : 'Message'}</strong>
                 <span>{original ? snippet(original) : 'Original message is not available'}</span>
             </button>}
             {m.images.length > 0 && <div className={`dd-chat-photos n${m.images.length}`}>{m.images.map((p, i) => <Thumb key={p} path={p} index={i} total={m.images.length} sending={m.state === 'sending'} onOpen={k => { if (Date.now() - noClick.current > 600) onPhoto(m.images, k); }} />)}</div>}
+            {m.gif_id && <div className="dd-chat-gif">{gif ? <><GifMedia gif={gif}/><GifCredit gif={gif}/></> : <div className="dd-gif-placeholder">{gif === null ? 'GIF is unavailable.' : gifError || 'Loading GIF...'}{gifError && <button type="button" onPointerDown={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();retryGif();}}>Retry GIF</button>}</div>}</div>}
             {sticker ? <img className="dd-chat-sticker" src={art(m.sticker!)} alt={stickerName(m.sticker!)} width="128" height="128" draggable={false} />
                 : m.sticker ? <span className="dd-chat-text">Sticker</span> : m.body ? <span className="dd-chat-text">{m.body}</span> : null}
             <span className="dd-chat-time">{m.edited_at && !sticker ? 'edited · ' : ''}{timeFmt.format(new Date(m.created_at))}</span>
@@ -170,8 +172,8 @@ export function ChatView({ partner }: { partner: Person }) {
         } catch (e) { say((e as Error).message === 'big' ? 'That photo is too large. Please choose a smaller one.' : 'Could not read that photo. Try a different one.'); }
     };
     useEffect(() => { setMenuOpen(false); }, [selected]);
+    const gifs = useChatGifs(chat.messages.flatMap(m => m.gif_id ? [m.gif_id] : []));
     const [trayOpen, setTrayOpen] = useState(false);
-    const [group, setGroup] = useState('All');
     const [flash, setFlash] = useState<string | null>(null);
     const [belowIds, setBelowIds] = useState<string[]>([]);
     const lastTs = useRef('');
@@ -246,12 +248,13 @@ export function ChatView({ partner }: { partner: Person }) {
         if (!el) return;
         el.scrollIntoView({ block: 'center', behavior: 'smooth' }); setFlash(id); window.setTimeout(() => setFlash(null), 1400);
     };
+    useLayoutEffect(() => { if (stick.current) toBottom(); }, [gifs.items]);
     const startReply = (id: string) => { setEditing(null); setReplyTo(id); setSelected(null); input.current?.focus(); };
     const selMsg = selected ? byId.get(selected) : undefined;
-    const isText = !!selMsg && !selMsg.sticker && !!selMsg.body;
+    const isText = !!selMsg && !selMsg.sticker && !selMsg.gif_id && !!selMsg.body;
     const canEdit = isText && selMsg!.sender_id === chat.uid && !selMsg!.state;
     const canUnsend = !!selMsg && selMsg.sender_id === chat.uid;
-    const startEdit = () => { if (!selMsg) return; clearStaged(); setReplyTo(null); setEditing(selMsg.id); setText(selMsg.body); setSelected(null); requestAnimationFrame(() => { grow(); const el = input.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }); };
+    const startEdit = () => { if (!selMsg) return; setTrayOpen(false); clearStaged(); setReplyTo(null); setEditing(selMsg.id); setText(selMsg.body); setSelected(null); requestAnimationFrame(() => { grow(); const el = input.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }); };
     const stopEdit = () => { setEditing(null); setText(''); requestAnimationFrame(grow); };
     const copySel = () => { if (selMsg) void navigator.clipboard?.writeText(selMsg.body).catch(() => {}); setSelected(null); };
     const original = replyTo ? byId.get(replyTo) : undefined;
@@ -261,16 +264,15 @@ export function ChatView({ partner }: { partner: Person }) {
         const d = dayKey.format(new Date(m.created_at));
         if (d !== lastDay) { lastDay = d; items.push(<p key={`d${d}`} className="dd-chat-day"><span>{dayLabel(m.created_at)}</span></p>); }
         items.push(<Row key={m.id} m={m} mine={m.sender_id === chat.uid} partner={partner} original={m.reply_to ? byId.get(m.reply_to) : undefined}
-            selected={selected === m.id} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => setSelected(m.id)} onPhoto={(paths, i) => setViewer({ paths, i })} onReply={() => startReply(m.id)} onMore={() => { input.current?.blur(); setEmojiFor(m.id); }} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
+            selected={selected === m.id} gif={m.gif_id ? gifs.items[m.gif_id] : undefined} gifError={gifs.error} retryGif={gifs.retry} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => setSelected(m.id)} onPhoto={(paths, i) => setViewer({ paths, i })} onReply={() => startReply(m.id)} onMore={() => { input.current?.blur(); setEmojiFor(m.id); }} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
     });
-    const groups = ['All', ...Array.from(new Set(pack.map(p => p.group)))];
 
     return <main className="dd-chat" style={vh ? { height: vh } : undefined} aria-label={`Chat with ${partner.name}`}
         onPointerDownCapture={e => { if (selected && !(e.target as Element).closest('.dd-chat-actions, .dd-chat-head-actions, .dd-chat-back, .dd-emoji-picker')) setSelected(null); }}>
         <header className="dd-chat-head">
             <button type="button" className="dd-chat-back" onClick={() => selected ? setSelected(null) : leave()} aria-label={selected ? "Cancel selection" : "Back"}><ArrowLeft size={22} /></button>
             {selected ? <div className="dd-chat-selection"><h1>1 selected</h1><p>Choose a reaction</p></div> : <><Avatar person={partner} size="sm" />
-            <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerTyping ? <span className="dd-chat-typing-label">typing<i>.</i><i>.</i><i>.</i></span> : chat.live ? 'Private chat' : 'Connecting...'}</p></div></>}
+            <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerOnline ? 'Online' : ''}</p></div></>}
             {selMsg && (isText || canUnsend) && <div className="dd-chat-head-actions">
                 <button type="button" className="dd-chat-more" aria-label="Message options" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(o => !o)}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg></button>
                 {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => { setMenuOpen(false); setSelected(null); }} />
@@ -299,12 +301,9 @@ export function ChatView({ partner }: { partner: Person }) {
                 <button type="button" onPointerDown={e => e.preventDefault()} onClick={() => setReplyTo(null)} aria-label="Cancel reply"><XIcon size={16} /></button></div>}
             {staged.length > 0 && <div className="dd-chat-staged" aria-label="Photos to send">{staged.map((x, i) => <div key={x.id} className="dd-chat-staged-item"><img src={x.url} alt={`Photo ${i + 1} to send`} draggable={false} /><button type="button" onPointerDown={e => e.preventDefault()} onClick={() => setStaged(prev => { URL.revokeObjectURL(x.url); return prev.filter(y => y.id !== x.id); })} aria-label={`Remove photo ${i + 1}`}><XIcon size={14} /></button></div>)}<span>{staged.length}/{MAX_PHOTOS}</span></div>}
             {note && <p className="dd-chat-note" role="status">{note}</p>}
-            {trayOpen && <div className="dd-chat-tray">
-                <div className="dd-chat-tray-tabs" role="group" aria-label="Sticker themes">{groups.map(g => <button type="button" key={g} aria-pressed={group === g} onClick={() => setGroup(g)}>{g}</button>)}</div>
-                <div className="dd-chat-tray-grid">{pack.filter(s => group === 'All' || s.group === group).map(s => <button key={s.id} type="button" aria-label={`Send ${s.name}`} onClick={() => { chat.send('', s.id, replyTo); setReplyTo(null); setTrayOpen(false); stick.current = true; }}><img src={art(s.id)} alt="" width="64" height="64" loading="lazy" /></button>)}</div>
-            </div>}
+            {trayOpen && <GifPicker height={Math.max(160, Math.min(330, (vh ?? window.innerHeight) * .45))} onClose={() => setTrayOpen(false)} onSend={id => { chat.sendGif(id, replyTo); chat.typing(false); setReplyTo(null); setTrayOpen(false); stick.current = true; }} />}
             <div className="dd-chat-bar">
-                <button type="button" className={`dd-chat-iconbtn${trayOpen ? ' is-on' : ''}`} aria-label={trayOpen ? 'Close stickers' : 'Open stickers'} aria-expanded={trayOpen} onClick={() => { setTrayOpen(o => !o); }}><Smile /></button>
+                <button type="button" className={`dd-chat-iconbtn${trayOpen ? ' is-on' : ''}`} aria-label={trayOpen ? 'Close GIF search' : 'Open GIF search'} aria-expanded={trayOpen} disabled={!!editing || staged.length > 0} onClick={() => { input.current?.blur(); setTrayOpen(o => !o); }}><span className="dd-gif-icon">GIF</span></button>
                 <button type="button" className="dd-chat-iconbtn" aria-label="Send photos" onClick={() => { if (editing) { say('Finish editing first.'); return; } fileInput.current?.click(); }}><ImageIcon /></button>
                 <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={e => { void pick(e.target.files); }} />
                 <textarea ref={input} rows={1} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="send"

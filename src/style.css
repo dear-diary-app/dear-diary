@@ -1146,3 +1146,37 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-app[data-theme="midnight"] :is(.dd-emoji-hint,.dd-emoji-scroll h3,.dd-emoji-categories button) { color:#c3aeb7; }
 .dd-app[data-theme="midnight"] :is(.dd-emoji-grid button.is-chosen,.dd-emoji-categories button[aria-pressed=true],.dd-chat-emojis button.is-mine) { background:#573a4a; color:#f0e3e6; }
 @media (prefers-reduced-motion:reduce) { .dd-chat-actions .dd-chat-emojis,.dd-emoji-picker[open] { animation:none; transition:none; } }
+
+/* GIPHY is a client-side picker, not a second message/photo upload path. */
+.dd-gif-icon { font:700 10px/1 system-ui,sans-serif; border:1.5px solid currentColor; border-radius:4px; padding:4px 2px; }
+.dd-gif-picker { box-sizing:border-box; display:flex; flex-direction:column; min-height:0; margin:0 0 8px; padding:10px; border:1px solid #e2d5c5; border-radius:20px; background:#fffaf5; color:#5b464a; }
+.dd-gif-picker header { display:flex; align-items:center; justify-content:space-between; flex-shrink:0; font:600 14px system-ui,sans-serif; }
+.dd-gif-picker header button { display:grid; place-items:center; width:32px; height:32px; padding:0; border:0; border-radius:50%; background:none; color:inherit; }
+.dd-gif-search { display:flex; gap:6px; flex-shrink:0; margin:4px 0 8px; }
+.dd-gif-search input { width:100%; min-width:0; height:38px; box-sizing:border-box; border:1px solid #e2d5c5; background:#f2ebe3; color:inherit; border-radius:15px; padding:7px 10px; font:16px system-ui,sans-serif; }
+.dd-gif-picker button { cursor:pointer; }
+.dd-gif-search button,.dd-gif-preview > div > button,.dd-gif-more { min-height:36px; border:1px solid #d6bfc7; border-radius:14px; padding:5px 10px; background:#f6dfe6; color:inherit; font:600 12px system-ui,sans-serif; }
+.dd-gif-results { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; }
+.dd-gif-results > p { margin:8px 2px; font:12px/1.5 system-ui,sans-serif; }
+.dd-gif-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:6px; }
+.dd-gif-grid > button { min-width:0; overflow:hidden; position:relative; border:0; border-radius:10px; background:#ede3df; padding:0; text-align:left; }
+.dd-gif-grid img { display:block; width:100%; height:85px; object-fit:cover; }
+.dd-gif-grid span { display:block; padding:4px; font:10px system-ui,sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#66505a; }
+.dd-gif-more { display:block; margin:8px auto; }
+.dd-gif-picker footer { display:flex; align-items:center; gap:8px; flex-shrink:0; margin-top:7px; }
+.dd-gif-picker footer img { width:100px; height:auto; background:#000; border-radius:3px; }
+.dd-gif-picker footer span { font:10px/1.4 system-ui,sans-serif; color:#856b73; }
+.dd-gif-media { position:relative; width:min(240px,60vw); max-width:100%; overflow:hidden; border-radius:12px; background:#e7dfdf; }
+.dd-gif-media > img { display:block; width:100%; height:auto; max-height:280px; object-fit:contain; }
+.dd-gif-play { position:absolute; bottom:5px; right:5px; padding:5px 8px; min-height:28px; border:0; border-radius:10px; background:#211920d9; color:#fff; font:10px system-ui,sans-serif; }
+.dd-gif-credit { display:block; width:min(240px,60vw); max-width:100%; margin:4px 0; color:inherit; opacity:.8; font:10px/1.4 system-ui,sans-serif; overflow-wrap:anywhere; }
+.dd-gif-preview { display:flex; flex-direction:column; align-items:center; padding:2px 0 8px; }
+.dd-gif-preview > div:last-child { display:flex; gap:8px; margin-top:4px; }
+.dd-gif-placeholder { display:grid; place-items:center; gap:8px; width:min(240px,60vw); min-height:150px; font:12px/1.5 system-ui,sans-serif; }
+.dd-gif-placeholder button { border:0; background:none; color:inherit; text-decoration:underline; }
+.dd-gif-failed { position:absolute; inset:0; display:grid; place-items:center; background:#312731d9; color:#fff; font:12px system-ui,sans-serif; }
+.dd-app[data-theme="midnight"] .dd-gif-picker { background:#201b22; color:#f0e3e6; border-color:#51414b; }
+.dd-app[data-theme="midnight"] .dd-gif-search input { background:#302730; color:#f0e3e6; border-color:#51414b; }
+.dd-app[data-theme="midnight"] :is(.dd-gif-search button,.dd-gif-preview > div > button,.dd-gif-more) { background:#573a4a; border-color:#785369; color:#f0e3e6; }
+.dd-app[data-theme="midnight"] :is(.dd-gif-grid > button,.dd-gif-media) { background:#302730; }
+.dd-app[data-theme="midnight"] :is(.dd-gif-picker footer span,.dd-gif-grid span) { color:#c3aeb7; }
