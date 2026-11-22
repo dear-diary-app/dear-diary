@@ -1024,9 +1024,7 @@ html.dd-chat-typing .dd-chat { padding-bottom:6px; }
 .dd-chat-bar textarea { overflow-y:hidden; scrollbar-width:none; -ms-overflow-style:none; }
 .dd-chat-bar textarea::-webkit-scrollbar { display:none; width:0; height:0; }
 
-/* Hold a message: reactions pop in one by one (done in about 1.4s). Own messages get Copy and Edit in the header. */
-.dd-chat-emojis button { animation:dd-emo-pop .3s cubic-bezier(.2,1.5,.4,1) both; animation-delay:calc(var(--i, 0) * 190ms); }
-@keyframes dd-emo-pop { from { opacity:0; transform:scale(.2) translateY(10px); } to { opacity:1; transform:none; } }
+/* A short bar pop, instead of making people wait for individual emoji. */
 .dd-chat-head-actions { margin-left:auto; display:flex; gap:6px; animation:dd-chat-pop .16s ease; }
 .dd-chat-head-actions button { border:1px solid #e2d5c5; background:#fffdf8; color:#6e5d4b; border-radius:16px; min-height:36px; padding:0 14px; font:inherit; font-size:13px; cursor:pointer; }
 .dd-app[data-theme="midnight"] .dd-chat-head-actions button { background:var(--dd-dark-card); border-color:var(--dd-dark-line); color:#f0e3e6; }
@@ -1104,3 +1102,45 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 @media (prefers-reduced-motion:reduce) { .dd-chat-thumb.is-loading, .dd-chat-thumb-spin::after { animation-duration:3s; } }
 
 .dd-settings-dropdowns { margin-top:24px; }
+
+/* Native-emoji reactions. Scrolling is confined to the strip and picker, never the bubble. */
+.dd-chat-actions .dd-chat-emojis { box-sizing:border-box; width:min(344px,calc(100vw - 40px)); padding:4px; gap:4px; border-radius:28px; align-items:center; animation:dd-reaction-pop 150ms cubic-bezier(.2,.8,.3,1.2) both; }
+@keyframes dd-reaction-pop { from { opacity:0; transform:translateY(6px) scale(.94); } to { opacity:1; transform:none; } }
+.dd-reaction-scroll { display:flex; flex:1; min-width:0; overflow-x:auto; scrollbar-width:none; overscroll-behavior:contain; touch-action:pan-x; border-radius:22px; }
+.dd-reaction-scroll::-webkit-scrollbar { display:none; }
+.dd-chat-emojis .dd-reaction-scroll button { flex:0 0 40px; padding:0; font-size:24px; font-family:system-ui,sans-serif; }
+.dd-chat-actions .dd-chat-emojis .dd-reaction-plus { flex:0 0 36px; width:36px; height:36px; padding:0; font:27px/1 system-ui,sans-serif; background:#e9e1d7; color:#796653; }
+.dd-chat-emojis button.is-mine { box-shadow:inset 0 0 0 2px #c9788f; }
+.dd-chat-row.is-held::before { content:''; position:absolute; inset:-2px -14px; background:rgba(201,120,143,.1); z-index:-1; pointer-events:none; }
+.dd-chat-selection { padding-block:7px; }
+.dd-emoji-picker { box-sizing:border-box; position:fixed; inset:auto 0 0; width:min(100%,720px); max-width:720px; height:min(610px,78dvh); max-height:calc(100dvh - 24px); margin:0 auto; padding:8px 12px max(8px,env(safe-area-inset-bottom,0px)); border:1px solid #e2d5c5; border-bottom:0; border-radius:24px 24px 0 0; background:#fffaf5; color:#5b464a; box-shadow:0 -8px 36px #35232930; overflow:hidden; }
+.dd-emoji-picker[open] { display:flex; flex-direction:column; animation:dd-emoji-up 200ms cubic-bezier(.2,.8,.2,1) both; }
+.dd-emoji-picker::backdrop { background:rgba(20,14,20,.25); }
+@keyframes dd-emoji-up { from { opacity:.5; transform:translateY(70px); } to { opacity:1; transform:none; } }
+.dd-emoji-grip { flex:0 0 4px; width:36px; background:#c6b9b1; margin:0 auto 5px; border-radius:3px; }
+.dd-emoji-title { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-shrink:0; }
+.dd-emoji-title h2 { font:600 15px/1.3 system-ui,sans-serif; margin:5px 0; }
+.dd-emoji-title button { display:grid; place-items:center; width:40px; height:40px; padding:0; border:0; background:none; color:inherit; border-radius:50%; cursor:pointer; }
+.dd-emoji-search { display:flex; flex:0 0 auto; align-items:center; gap:8px; padding:0 12px; border:1px solid #e2d5c5; border-radius:22px; background:#f2ebe3; margin:4px 0 8px; }
+.dd-emoji-search > span { font:25px system-ui,sans-serif; }
+.dd-emoji-search input { box-sizing:border-box; width:100%; height:40px; padding:6px 0; background:none; color:inherit; border:0; outline:none; font:16px system-ui,sans-serif; min-width:0; }
+.dd-emoji-search:focus-within { outline:2px solid #c9788f; outline-offset:1px; }
+.dd-emoji-scroll { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; scrollbar-width:thin; padding-bottom:10px; }
+.dd-emoji-scroll section { margin:4px 0 16px; }
+.dd-emoji-scroll h3 { font:600 12px/1.4 system-ui,sans-serif; color:#856b73; margin:8px 2px; }
+.dd-emoji-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(40px,1fr)); gap:2px; }
+.dd-emoji-grid button { display:grid; place-items:center; width:100%; height:42px; min-width:0; border:0; background:none; border-radius:12px; color:inherit; font:27px/1 system-ui,sans-serif; cursor:pointer; }
+.dd-emoji-grid button.is-chosen { background:#f6dfe6; box-shadow:inset 0 0 0 2px #c9788f; }
+.dd-emoji-picker button:focus-visible { outline:2px solid #c9788f; outline-offset:-2px; }
+.dd-emoji-hint { font:12px/1.5 system-ui,sans-serif; color:#856b73; margin:8px 2px; }
+.dd-emoji-more { display:block; margin:10px auto; min-height:40px; border:0; background:none; font:13px system-ui,sans-serif; color:inherit; text-decoration:underline; cursor:pointer; }
+.dd-emoji-categories { display:flex; flex:0 0 auto; justify-content:space-between; gap:2px; border-top:1px solid #e2d5c5; padding-top:5px; }
+.dd-emoji-categories button { flex:1; min-width:0; height:40px; padding:0; border:0; border-radius:14px; font:22px/1 system-ui,sans-serif; color:#8a757c; background:none; cursor:pointer; }
+.dd-emoji-categories button[aria-pressed=true] { background:#f6dfe6; color:#8a4f63; }
+.dd-app[data-theme="midnight"] .dd-chat-actions .dd-reaction-plus { background:#493c49; color:#f0e3e6; }
+.dd-app[data-theme="midnight"] .dd-emoji-picker { background:#201b22; color:#f0e3e6; border-color:#51414b; }
+.dd-app[data-theme="midnight"] .dd-emoji-search { background:#302730; border-color:#51414b; }
+.dd-app[data-theme="midnight"] .dd-emoji-categories { border-color:#51414b; }
+.dd-app[data-theme="midnight"] :is(.dd-emoji-hint,.dd-emoji-scroll h3,.dd-emoji-categories button) { color:#c3aeb7; }
+.dd-app[data-theme="midnight"] :is(.dd-emoji-grid button.is-chosen,.dd-emoji-categories button[aria-pressed=true],.dd-chat-emojis button.is-mine) { background:#573a4a; color:#f0e3e6; }
+@media (prefers-reduced-motion:reduce) { .dd-chat-actions .dd-chat-emojis,.dd-emoji-picker[open] { animation:none; } }

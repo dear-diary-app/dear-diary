@@ -7,8 +7,9 @@ import type { Person } from './model';
 import { ArrowLeft, XIcon } from './icons';
 import { MAX_PHOTOS, prepareImage } from './chatImages';
 import { ImageIcon, Thumb, Viewer } from './ChatPhotos';
+import { EmojiPicker } from './EmojiPicker';
+import { quickReactions } from './reactions';
 
-const REACTS = ['❤️', '😂', '😭', '🥺', '✨', '🫶'];
 const art = (id: string) => `${import.meta.env.BASE_URL}stickers/${id}.webp`;
 const stickerName = (id: string) => pack.find(p => p.id === id)?.name ?? 'Sticker';
 const known = (id: string | null) => !!id && pack.some(p => p.id === id);
@@ -30,8 +31,8 @@ const Smile = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" 
 const photoWord = (n: number) => n > 1 ? `${n} photos` : 'Photo';
 function snippet(m: ChatMsg) { if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
 
-function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, onPhoto, onReply, onJump, flash, lastMine }: {
-    m: ChatMsg; mine: boolean; partner: Person; original?: ChatMsg; selected: boolean; onSelect: () => void; onTap: () => void; onPhoto: (paths: string[], i: number) => void; onOpen: () => void; onReply: () => void; onJump: (id: string) => void; flash: boolean; lastMine: boolean;
+function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, onPhoto, onReply, onJump, onMore, flash, lastMine }: {
+    m: ChatMsg; mine: boolean; partner: Person; original?: ChatMsg; selected: boolean; onSelect: () => void; onTap: () => void; onPhoto: (paths: string[], i: number) => void; onOpen: () => void; onReply: () => void; onJump: (id: string) => void; onMore: () => void; flash: boolean; lastMine: boolean;
 }) {
     const chat = useChat();
     const [dx, setDx] = useState(0);
@@ -86,7 +87,7 @@ function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, on
         if (!selected) { setBelow(false); return; }
         const row = rowEl.current, sc = row?.closest('.dd-chat-list') as HTMLElement | null;
         if (!row || !sc) return;
-        const NEED = 64;
+        const NEED = 80;
         let space = row.getBoundingClientRect().top - sc.getBoundingClientRect().top;
         if (space < NEED) { sc.scrollTop -= NEED - space; space = row.getBoundingClientRect().top - sc.getBoundingClientRect().top; }
         setBelow(space < NEED - 4);
@@ -97,6 +98,13 @@ function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, on
         return [...c.entries()];
     }, [m.reactions]);
     const mineReact = m.reactions[chat.uid];
+    const quick = useMemo(() => quickReactions(chat.uid, mineReact), [chat.uid, mineReact, selected]);
+    useLayoutEffect(() => {
+        if (!selected) return;
+        const sc = rowEl.current?.querySelector('.dd-reaction-scroll');
+        const chosen = sc?.querySelector('[aria-pressed=true]');
+        if (sc && chosen) sc.scrollLeft += chosen.getBoundingClientRect().left - sc.getBoundingClientRect().left - sc.clientWidth / 2 + chosen.clientWidth / 2;
+    }, [selected, mineReact]);
     const sticker = m.sticker && known(m.sticker);
     return <div ref={rowEl} className={`dd-chat-row ${mine ? 'is-mine' : 'is-theirs'}${flash ? ' is-flash' : ''}${selected ? ' is-held' : ''}`} data-id={m.id}>
         <span className={`dd-chat-swipe-icon${mine ? ' is-right' : ''}${dx >= REPLY_AT ? ' is-armed' : ''}`} aria-hidden="true" style={{ opacity: Math.min(1, dx / 36), transform: `translateX(${Math.min(dx, REPLY_AT) * 0.35 * dir}px) scale(${0.5 + Math.min(1, dx / REPLY_AT) * 0.5})` }}><Reply /></span>
@@ -116,7 +124,10 @@ function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, on
         </div>
         {groups.length > 0 && <div className="dd-chat-reacts">{groups.map(([e, n]) => <button key={e} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => chat.react(m.id, e)} aria-label={`${e} ${n}. Tap to ${mineReact === e ? 'remove' : 'add'} your reaction`}>{e}{n > 1 ? ` ${n}` : ''}</button>)}</div>}
         {selected && <div className={`dd-chat-actions${below ? ' is-below' : ''}`} role="group" aria-label="Message actions">
-            <div className="dd-chat-emojis">{REACTS.map((e, i) => <button key={e} type="button" style={{ '--i': i } as React.CSSProperties} className={mineReact === e ? 'is-mine' : ''} onClick={() => { chat.react(m.id, e); onSelect(); }} aria-label={`React ${e}`}>{e}</button>)}</div>
+            <div className="dd-chat-emojis">
+                <div className="dd-reaction-scroll" aria-label="Quick reactions">{quick.map(e => <button key={e} type="button" className={mineReact === e ? 'is-mine' : ''} aria-pressed={mineReact === e} onClick={() => { chat.react(m.id, e); onSelect(); }} aria-label={`React ${e}`}>{e}</button>)}</div>
+                <button type="button" className="dd-reaction-plus" aria-label="More reactions" onClick={onMore}>+</button>
+            </div>
         </div>}
         {lastMine && mine && <p className="dd-chat-status" role="status">
             {m.state === 'failed' ? <>Not sent. <button type="button" onClick={() => chat.retry(m.id)}>Retry</button> <button type="button" onClick={() => chat.discard(m.id)}>Delete</button></>
@@ -135,6 +146,7 @@ export function ChatView({ partner }: { partner: Person }) {
     const [selected, setSelected] = useState<string | null>(null);
     const [editing, setEditing] = useState<string | null>(null);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [emojiFor, setEmojiFor] = useState<string | null>(null);
     const [viewer, setViewer] = useState<{ paths: string[]; i: number } | null>(null);
     const [staged, setStaged] = useState<{ id: string; blob: Blob; url: string }[]>([]);
     const [note, setNote] = useState('');
@@ -197,8 +209,9 @@ export function ChatView({ partner }: { partner: Person }) {
         if (selected && !byId.has(selected)) setSelected(null);
         if (replyTo && !byId.has(replyTo)) setReplyTo(null);
         if (editing && !byId.has(editing)) { setEditing(null); setText(''); }
+        if (emojiFor && !byId.has(emojiFor)) { setEmojiFor(null); if (window.history.state?.ddEmoji) window.history.back(); }
         if (viewer && !chat.messages.some(m => m.images.length && m.images[0] === viewer.paths[0])) { if (window.history.state?.ddv) window.history.back(); else setViewer(null); }
-    }, [byId, chat.loaded, chat.messages, selected, replyTo, editing, viewer]);
+    }, [byId, chat.loaded, chat.messages, selected, replyTo, editing, viewer, emojiFor]);
     const lastMineId = useMemo(() => { for (let i = chat.messages.length - 1; i >= 0; i--) if (chat.messages[i].sender_id === chat.uid) return chat.messages[i].id; return null; }, [chat.messages, chat.uid]);
     const toBottom = (smooth = false) => { const el = scroller.current; if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' }); };
     useLayoutEffect(() => {
@@ -248,16 +261,16 @@ export function ChatView({ partner }: { partner: Person }) {
         const d = dayKey.format(new Date(m.created_at));
         if (d !== lastDay) { lastDay = d; items.push(<p key={`d${d}`} className="dd-chat-day"><span>{dayLabel(m.created_at)}</span></p>); }
         items.push(<Row key={m.id} m={m} mine={m.sender_id === chat.uid} partner={partner} original={m.reply_to ? byId.get(m.reply_to) : undefined}
-            selected={selected === m.id} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => setSelected(m.id)} onPhoto={(paths, i) => setViewer({ paths, i })} onReply={() => startReply(m.id)} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
+            selected={selected === m.id} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => setSelected(m.id)} onPhoto={(paths, i) => setViewer({ paths, i })} onReply={() => startReply(m.id)} onMore={() => { input.current?.blur(); setEmojiFor(m.id); }} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
     });
     const groups = ['All', ...Array.from(new Set(pack.map(p => p.group)))];
 
     return <main className="dd-chat" style={vh ? { height: vh } : undefined} aria-label={`Chat with ${partner.name}`}
-        onPointerDownCapture={e => { if (selected && !(e.target as Element).closest('.dd-chat-actions, .dd-chat-head-actions')) setSelected(null); }}>
+        onPointerDownCapture={e => { if (selected && !(e.target as Element).closest('.dd-chat-actions, .dd-chat-head-actions, .dd-chat-back, .dd-emoji-picker')) setSelected(null); }}>
         <header className="dd-chat-head">
-            <button type="button" className="dd-chat-back" onClick={leave} aria-label="Back"><ArrowLeft size={22} /></button>
-            <Avatar person={partner} size="sm" />
-            <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerTyping ? <span className="dd-chat-typing-label">typing<i>.</i><i>.</i><i>.</i></span> : chat.live ? 'Private chat' : 'Connecting...'}</p></div>
+            <button type="button" className="dd-chat-back" onClick={() => selected ? setSelected(null) : leave()} aria-label={selected ? "Cancel selection" : "Back"}><ArrowLeft size={22} /></button>
+            {selected ? <div className="dd-chat-selection"><h1>1 selected</h1><p>Choose a reaction</p></div> : <><Avatar person={partner} size="sm" />
+            <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerTyping ? <span className="dd-chat-typing-label">typing<i>.</i><i>.</i><i>.</i></span> : chat.live ? 'Private chat' : 'Connecting...'}</p></div></>}
             {selMsg && (isText || canUnsend) && <div className="dd-chat-head-actions">
                 <button type="button" className="dd-chat-more" aria-label="Message options" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(o => !o)}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg></button>
                 {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => { setMenuOpen(false); setSelected(null); }} />
@@ -277,6 +290,7 @@ export function ChatView({ partner }: { partner: Person }) {
             {chat.partnerTyping && <div className="dd-chat-row is-theirs"><div className="dd-chat-msg dd-chat-typing-bubble" aria-hidden="true"><i /><i /><i /></div></div>}
         </div>
         {viewer && <Viewer paths={viewer.paths} start={viewer.i} onClose={() => setViewer(null)} />}
+        {emojiFor && byId.has(emojiFor) && <EmojiPicker uid={chat.uid} selected={byId.get(emojiFor)?.reactions[chat.uid]} onPick={e => chat.react(emojiFor, e)} onClose={() => { setEmojiFor(null); setSelected(null); }} />}
         {newBelow && <button type="button" className="dd-chat-new" onClick={() => { toBottom(true); setNewBelow(false); stick.current = true; }}>New messages ↓</button>}
         <div className="dd-chat-compose">
             {editing && <div className="dd-chat-replybar"><Pencil /><div><strong>Editing message</strong><span>Change the text, then tap send</span></div>

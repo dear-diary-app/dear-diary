@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-22', label: 'Sunday, 22 November', features: [
+        { id: 'moreemoji', emoji: '😀', title: 'More ways to react', text: 'Hold a message for a scrollable reaction bar. Tap + to search thousands of native emoji or browse categories. Your chosen reaction is highlighted, and frequently used emoji are remembered separately for your account on this device. Tap your existing reaction to remove it.' },
         { id: 'chatedgefades', emoji: '🌫️', title: 'Softer chat edges', text: 'Messages fade gently under the chat header and above the message box as you scroll. The newest message stays clear at rest, even when a reply or photo preview is open.' },
         { id: 'settingsbottom', emoji: '🗂️', title: 'Settings, tidied', text: 'Privacy on this device now folds open. All drop-down sections, including themes, avatar colour and diary downloads, are grouped at the bottom of Settings. Your saved choices are unchanged.' },
         { id: 'privacychoices', emoji: '🔐', title: 'Your privacy choices', text: 'Settings now lets you turn blur when minimized on or off for this device. Notifications has account-wide switches for message previews and an Open to reply shortcut. Both notification options start off. The shortcut opens chat rather than sending from the notification bar; button and keyboard behavior depend on your phone.' },

@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
+import { isEmojiReaction, rememberReaction } from './reactions';
 import { primeImage, removeImages, uploadImages } from './chatImages';
 
 export interface ChatMsg {
@@ -210,6 +211,8 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             void Promise.resolve(supabase.rpc('chat_edit', { p_id: id, p_body: text })).then(({ error }) => { if (error) merge([old]); });
         },
         react: (id, emoji) => {
+            if (!isEmojiReaction(emoji)) return;
+            if (list.current.find(m => m.id === id)?.reactions[uid] !== emoji) rememberReaction(uid, emoji);
             setMessages(prev => prev.map(m => {
                 if (m.id !== id) return m;
                 const r = { ...m.reactions };
