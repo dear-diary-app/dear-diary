@@ -853,3 +853,5 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 .dd-export{margin-top:18px;}
 .dd-export .dd-card-sub,.dd-export .dd-card-note{line-height:1.65;margin-top:12px;}
 .dd-export .dd-btn{width:100%;min-height:48px;margin-top:20px;white-space:normal;}
+
+.dd-export .dd-export-json { margin-top:10px; }
