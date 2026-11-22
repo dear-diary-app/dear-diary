@@ -1,7 +1,9 @@
 import React from 'react';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, StoreProvider, isUnlocked, useAuth } from './store';
-import { PersonId, publishWaitMs, schedule } from './model';
+import { PersonId, publishWaitMs, schedule, otherId, personById } from './model';
+import { ChatProvider } from './ChatStore';
+import { ChatView } from './Chat';
 import { useNow } from './ui';
 import { AppEntryGate, Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
 import grain from './photos/grain.png';
@@ -50,6 +52,10 @@ function PublishedRoute() {
     if (schedule(now).phase === 'writing') return <Navigate to={`/pin/${person}`} replace />;
     return <Read viewer={auth.me!} publishedOwner={person as PersonId} />;
 }
+function ChatRoute() {
+    const auth = useAuth();
+    return <ChatView partner={personById(otherId(auth.me!))} />;
+}
 function PinRoute() {
     const { person } = useParams();
     // Key by person: a fresh component per diary, so PIN state never leaks across books.
@@ -94,6 +100,7 @@ function Shell() {
             <ThemeFrame key={auth.session.user.id} className={live ? 'dd-app dd-live' : 'dd-app'}>
                 <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
                 <AppEntryGate>
+                <ChatProvider uid={auth.session.user.id}>
                 <div className="dd-with-nav">
                 <PageSlide>{location => <Routes location={location}>
                     <Route path="/" element={<Home />} />
@@ -103,6 +110,7 @@ function Shell() {
                     <Route path="/write/:person" element={<WriteRoute />} />
                     <Route path="/read/:viewer" element={<ReadRoute />} />
                     <Route path="/calendar/:viewer" element={<CalendarRoute />} />
+                    <Route path="/chat" element={<ChatRoute />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/settings/how-to-use" element={<HowToUse />} />
                     <Route path="/settings/password" element={<ChangePassword />} />
@@ -113,6 +121,7 @@ function Shell() {
                 </Routes>}</PageSlide>
                 <BottomNav />
                 </div>
+                </ChatProvider>
                 </AppEntryGate>
             </ThemeFrame>
         </StoreProvider>
