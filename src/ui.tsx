@@ -35,13 +35,13 @@ export function useGo() {
 
 export function TopBar({ back, backLabel, alert }: { back?: string; backLabel?: string; alert?: boolean }) {
     return (
-        <header className="dd-topbar">
+        <header className={`dd-topbar${back ? ' has-back' : ''}`}>
             <div className="dd-topbar-side">
                 {back
                     ? <Link className="dd-iconbtn" to={back} aria-label={backLabel ?? 'Back'}><ArrowLeft /></Link>
                     : <span className="dd-iconbtn is-placeholder" />}
             </div>
-            <Link to="/" className="dd-wordmark">Dear Diary <Heart size={15} /></Link>
+            <Link to="/" className="dd-wordmark"><img src={`${import.meta.env.BASE_URL}icons/diary-192.png`} width="32" height="32" alt="" /> <span>Dear Diary</span></Link>
             <div className="dd-topbar-side is-right">
                 <Link className="dd-iconbtn" to="/notifications" aria-label="Notification preferences">
                     <Bell />
@@ -137,14 +137,14 @@ export function PhotoGallery({ photos, title, onRemove }: { photos: string[]; ti
     );
 }
 
-export function Toggle({ label, hint, on, onChange }: { label: string; hint: string; on: boolean; onChange: (v: boolean) => void }) {
+export function Toggle({ label, hint, on, onChange, disabled = false }: { label: string; hint: string; on: boolean; disabled?: boolean; onChange: (v: boolean) => void }) {
     return (
         <div className="dd-toggle-row">
             <div>
                 <div className="dd-toggle-label">{label}</div>
                 <div className="dd-toggle-hint">{hint}</div>
             </div>
-            <button type="button" role="switch" aria-checked={on} aria-label={label}
+            <button type="button" role="switch" disabled={disabled} aria-checked={on} aria-label={label}
                 className={`dd-switch${on ? ' is-on' : ''}`} onClick={() => onChange(!on)}>
                 <span className="dd-switch-knob" />
             </button>

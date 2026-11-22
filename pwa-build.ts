@@ -41,6 +41,24 @@ self.addEventListener('activate', event => {
     await self.clients.claim();
   })());
 });
+self.addEventListener('push', event => {
+  let data = {}; try { data = event.data ? event.data.json() : {}; } catch {}
+  event.waitUntil(self.registration.showNotification('Dear Diary', {
+    body: typeof data.body === 'string' ? data.body : 'Open Dear Diary for your reminder.',
+    icon: BASE + 'icons/diary-192.png', badge: BASE + 'icons/diary-192.png',
+    tag: typeof data.tag === 'string' ? data.tag : 'diary-reminder',
+    data: {url:BASE}, renotify:false
+  }));
+});
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil((async () => {
+    const windows = await clients.matchAll({type:'window',includeUncontrolled:true});
+    const app = windows.find(client => new URL(client.url).pathname.startsWith(BASE));
+    if(app) return app.focus();
+    return clients.openWindow(BASE);
+  })());
+});
 self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);

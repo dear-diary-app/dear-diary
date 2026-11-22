@@ -816,3 +816,15 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 .dd-settings .dd-menu-text small { margin-top:4px; line-height:1.4; }
 .dd-settings .dd-menu-card > svg { flex-shrink:0; }
 .dd-settings .dd-anim > .dd-btn-ghost { box-sizing:border-box; display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; padding:13px 20px; margin-top:20px; }
+
+/* Shared app-icon branding, left aligned with the content, no heart suffix. */
+.dd-topbar { justify-content:flex-start; }
+.dd-topbar:not(.has-back) > .dd-topbar-side:first-child { display:none; }
+.dd-topbar.has-back > .dd-topbar-side:first-child { min-width:0; }
+.dd-topbar .dd-wordmark { margin-right:auto; gap:9px; min-width:0; font-size:20px; }
+.dd-wordmark img { display:block; border-radius:9px; flex-shrink:0; }
+.dd-topbar .dd-topbar-side.is-right { min-width:0; }
+.dd-push-settings .dd-btn { width:100%; min-height:48px; margin-top:14px; white-space:normal; }
+.dd-push-settings .dd-card-sub { margin-top:10px; line-height:1.6; }
+.dd-push-settings .dd-card-note { line-height:1.6; margin-top:14px; }
+@media(max-width:360px){ .dd-topbar .dd-wordmark { gap:6px; font-size:17px; } .dd-wordmark img{width:28px;height:28px;} .dd-topbar{gap:6px;} }

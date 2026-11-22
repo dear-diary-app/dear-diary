@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
+import { disableDevicePush } from './PushSettings';
 import { cleanStickers, Sticker } from './Stickers';
 import { Entry, PersonId, ekey, isReadable, latestReadable, otherId, todayKey } from './model';
 
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const { error } = await supabase.auth.signInWithPassword({ email, password });
             return error ? error.message : null;
         },
-        signOut: async () => { await supabase.auth.signOut(); },
+        signOut: async () => { try { await disableDevicePush(); } catch { /* Permission can also be revoked in browser settings. */ } await supabase.auth.signOut(); },
         resetPassword: async (email) => {
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: window.location.origin + '/#reset',
@@ -102,6 +103,8 @@ export interface Store {
     setAvatar: (p: PersonId, n: number) => void;
     notifPrefs: Record<string, boolean>;
     setNotifPref: (k: string, v: boolean) => void;
+    notifSaving: boolean;
+    notifMessage: string;
 }
 
 const StoreCtx = createContext<Store | null>(null);
@@ -120,6 +123,9 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
     const [avatarPhotos, setAvatarPhotos] = useState<Partial<Record<PersonId, string>>>({});
     const [avatars, setAvatars] = useState<Record<PersonId, number>>({ joydeep: 0, aruba: 1 });
     const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({ open: true, lock: true, published: true, reaction: true });
+    const [notifSaving, setNotifSaving] = useState(false);
+    const [notifMessage, setNotifMessage] = useState('');
+    const notifPending = useRef(false);
     const entryIds = useRef<Record<string, string>>({}); // ekey -> entry id
     const photoIds = useRef<Record<string, string[]>>({}); // ekey -> photo ids in order
     const userIds = useRef<Record<PersonId, string>>({} as Record<PersonId, string>);
@@ -365,11 +371,20 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
             const uid = userIds.current[p];
             if (uid && !avatarPhotos[p]) supabase.from('profiles').update({ avatar_url: `av:${n}` }).eq('id', uid).then(() => {});
         },
+        notifSaving, notifMessage,
         setNotifPref: (k, v) => {
+            if (notifPending.current) return;
+            const previous = notifPrefs;
             const next = { ...notifPrefs, [k]: v };
             setNotifPrefs(next);
             const uid = userIds.current[me];
-            if (uid) supabase.from('app_settings').upsert({ user_id: uid, notifications: next }, { onConflict: 'user_id' }).then(() => {});
+            if (!uid) { setNotifPrefs(previous); setNotifMessage('Account is still loading. Try again.'); return; }
+            notifPending.current=true; setNotifSaving(true); setNotifMessage('Saving reminder choices...');
+            supabase.from('app_settings').upsert({ user_id: uid, notifications: next }, { onConflict: 'user_id' }).then(({error}) => {
+                if (error) { setNotifPrefs(previous); setNotifMessage('Could not save. Your previous choices remain. Try again when connected.'); }
+                else setNotifMessage('Reminder choices saved.');
+                notifPending.current=false; setNotifSaving(false);
+            });
         },
     };
     return <StoreCtx.Provider value={store}>{children}</StoreCtx.Provider>;

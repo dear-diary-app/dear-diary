@@ -1,3 +1,4 @@
+import { PushSettings } from './PushSettings';
 import { dismissMotion } from './motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
@@ -1025,8 +1026,8 @@ export function Settings() {
 const NOTIFS: { key: string; label: string; hint: string }[] = [
     { key: 'open', label: 'Writing window opens', hint: 'A gentle nudge at 6:00 AM when today\u2019s page opens' },
     { key: 'lock', label: 'Diaries lock', hint: 'A reminder at 9:45 PM, before everything locks at 10:00 PM' },
-    { key: 'published', label: 'A new page is published', hint: 'When the other diary opens for reading at 10:00 PM' },
-    { key: 'reaction', label: 'Reactions', hint: 'When a heart (or a \uD83E\uDD7A) lands on your page' },
+    { key: 'published', label: 'Nightly reading time', hint: 'A 10:00 PM reminder that writing is closed and reading time has begun' },
+    
 ];
 
 export function Notifications() {
@@ -1037,13 +1038,15 @@ export function Notifications() {
             <div className="dd-anim" key="notifs">
                 <h1 className="dd-title">Notifications</h1>
                 <p className="dd-sub">Soft reminders, never noise</p>
+                <PushSettings />
                 <section className="dd-card">
                     {NOTIFS.map(n => (
                         <Toggle key={n.key} label={n.label} hint={n.hint}
-                            on={Boolean(store.notifPrefs[n.key])} onChange={v => store.setNotifPref(n.key, v)} />
+                            disabled={store.notifSaving} on={Boolean(store.notifPrefs[n.key])} onChange={v => store.setNotifPref(n.key, v)} />
                     ))}
                 </section>
-                <p className="dd-card-note"><Users size={14} /> Preferences save to your account. Reminders themselves switch on with the launch.</p>
+                {store.notifMessage && <p className="dd-card-note" role="status">{store.notifMessage}</p>}
+                <p className="dd-card-note"><Users size={14} /> Reminder choices save to your account. Enable each device separately above. Reaction alerts are not available yet.</p>
             </div>
         </main>
     );
