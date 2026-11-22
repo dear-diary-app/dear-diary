@@ -7,7 +7,7 @@ export const ImageIcon = () => <svg width="22" height="22" viewBox="0 0 24 24" f
 export function Thumb({ path, index, total, sending, onOpen }: { path: string; index: number; total: number; sending: boolean; onOpen: (i: number) => void }) {
     const { url, failed, retry } = useChatImage(path);
     return <div className={`dd-chat-thumb${url ? '' : ' is-loading'}`} onClick={() => { if (url) onOpen(index); else if (failed) retry(); }}>
-        {url && <img src={url} alt={`Photo ${index + 1} of ${total}`} draggable={false} onContextMenu={e => e.preventDefault()} />}
+        {url && <img src={url} alt={`Photo ${index + 1} of ${total}`} draggable={false} onLoad={e=>e.currentTarget.classList.add('dd-media-ready')} onContextMenu={e => e.preventDefault()} />}
         {!url && failed && <span className="dd-chat-thumb-note">Tap to retry</span>}
         {sending && <span className="dd-chat-thumb-spin" role="status" aria-label="Sending" />}
     </div>;
@@ -16,7 +16,7 @@ export function Thumb({ path, index, total, sending, onOpen }: { path: string; i
 function Slide({ path, n, total }: { path: string; n: number; total: number }) {
     const { url, failed, retry } = useChatImage(path);
     return <div className="dd-viewer-slide">{url
-        ? <img src={url} alt={`Photo ${n} of ${total}`} draggable={false} onContextMenu={e => e.preventDefault()} />
+        ? <img src={url} alt={`Photo ${n} of ${total}`} draggable={false} onLoad={e=>e.currentTarget.classList.add('dd-media-ready')} onContextMenu={e => e.preventDefault()} />
         : <span className="dd-viewer-note" onClick={failed ? retry : undefined}>{failed ? 'Could not load. Tap to retry' : 'Loading...'}</span>}</div>;
 }
 

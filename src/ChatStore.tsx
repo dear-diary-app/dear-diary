@@ -4,6 +4,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import { isGifId } from './ChatGifs';
 import { useAppPresence } from './useAppPresence';
+import { useChatTyping } from './useChatTyping';
 import { isEmojiReaction, rememberReaction } from './reactions';
 import { primeImage, removeImages, uploadImages } from './chatImages';
 
@@ -56,15 +57,13 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     const [loadError, setLoadError] = useState(false);
     const [hasMore, setHasMore] = useState(false);
     const [live, setLive] = useState(false);
-    const [partnerTyping, setPartnerTyping] = useState(false);
     const [viewing, setViewing] = useState(false);
     const [visible, setVisible] = useState(() => !document.hidden);
     const channel = useRef<RealtimeChannel | null>(null);
     const joined = useRef(false);
     const partner = useRef<string | null>(null);
     const list = useRef<ChatMsg[]>([]);
-    const typingOff = useRef<number>();
-    const lastTypingSent = useRef(0);
+    const { partnerTyping, typing, receive: receiveTyping, clear: clearTyping, stop: stopTyping } = useChatTyping(uid, channel, joined);
     list.current = messages;
 
     const merge = useCallback((rows: unknown[]) => {
@@ -108,7 +107,6 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     useEffect(() => {
         let dead = false;
         let ch: RealtimeChannel | null = null;
-        let clear: number | undefined;
         (async () => {
             await fetchLatest();
             const { data: f } = await supabase.from('friendship').select('user1_id, user2_id').maybeSingle();
@@ -120,23 +118,21 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
                     if (p.eventType === 'DELETE') { const id = p.old?.id; if (id) setMessages(prev => dropMessage(prev, id)); return; }
                     merge([p.new]);
                     const m = clean(p.new);
-                    if (m && m.sender_id !== uid) { setPartnerTyping(false); window.clearTimeout(clear); }
+                    if (m && m.sender_id !== uid) { clearTyping(); }
                 })
                 .on('broadcast', { event: 'typing' }, ({ payload }: { payload?: { uid?: string; on?: boolean } }) => {
                     if (payload?.uid !== other) return;
-                    window.clearTimeout(clear);
-                    setPartnerTyping(!!payload?.on);
-                    if (payload?.on) clear = window.setTimeout(() => setPartnerTyping(false), 5000);
+                    receiveTyping(payload?.on === true);
                 })
                 .subscribe((status: string) => {
                     const ok = status === 'SUBSCRIBED';
                     joined.current = ok; setLive(ok);
-                    if (ok) void fetchLatest();
+                    if (ok) void fetchLatest(); else { clearTyping(); stopTyping(); }
                 });
             channel.current = ch;
         })();
-        return () => { dead = true; joined.current = false; window.clearTimeout(clear); if (ch) void supabase.removeChannel(ch); channel.current = null; };
-    }, [uid, fetchLatest, merge]);
+        return () => { dead = true; stopTyping(); clearTyping(); joined.current = false; if (ch) void supabase.removeChannel(ch); channel.current = null; };
+    }, [uid, fetchLatest, merge, receiveTyping, clearTyping, stopTyping]);
 
     useEffect(() => {
         const wake = () => { setVisible(!document.hidden); if (!document.hidden) void fetchLatest(); };
@@ -230,17 +226,8 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             }));
             void Promise.resolve(supabase.rpc('chat_react', { p_id: id, p_emoji: emoji })).then(({ error }) => { if (error) void fetchLatest(); });
         },
-        typing: on => {
-            const ch = channel.current;
-            window.clearTimeout(typingOff.current);
-            if (!ch || !joined.current) return;
-            const now = Date.now();
-            if (on) {
-                if (now - lastTypingSent.current > 2500) { lastTypingSent.current = now; void ch.send({ type: 'broadcast', event: 'typing', payload: { uid, on: true } }); }
-                typingOff.current = window.setTimeout(() => { lastTypingSent.current = 0; void ch.send({ type: 'broadcast', event: 'typing', payload: { uid, on: false } }); }, 3000);
-            } else { lastTypingSent.current = 0; void ch.send({ type: 'broadcast', event: 'typing', payload: { uid, on: false } }); }
-        },
+        typing,
         setViewing, reload: () => { void fetchLatest(); },
-    }), [uid, messages, loaded, loadError, hasMore, live, partnerTyping, partnerOnline, unseenIncoming, loadOlder, insert, sendWithPhotos, merge, fetchLatest]);
+    }), [uid, messages, loaded, loadError, hasMore, live, partnerTyping, partnerOnline, unseenIncoming, typing, loadOlder, insert, sendWithPhotos, merge, fetchLatest]);
     return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
 }

@@ -1233,3 +1233,25 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-app[data-theme=midnight] :is(.dd-shared-tabs button[aria-selected=true],.dd-shared-link-icon,.dd-shared-photo) { background:#40303c; color:#f0e3e6; }
 
 .dd-shared-lazy { min-width:0; } .dd-shared-lazy > .dd-shared-photo { width:100%; }
+
+/* Short compositor-only chat motion. Swipe transforms stay on the message itself. */
+@keyframes dd-soft-in { from { opacity:0; transform:translate3d(0,5px,0); } to { opacity:1; transform:translate3d(0,0,0); } }
+@keyframes dd-media-in { from { opacity:.2; } to { opacity:1; } }
+@keyframes dd-react-in { from { opacity:.4; transform:scale(.82); } to { opacity:1; transform:scale(1); } }
+@keyframes dd-typing-dot { 0%,65%,100% { opacity:.4; transform:translateY(0); } 30% { opacity:1; transform:translateY(-3px); } }
+.dd-chat-actions,.dd-chat-head-actions,.dd-chat-menu,.dd-chat-staged-item,.dd-chat-note { animation:dd-soft-in 180ms cubic-bezier(.2,.75,.25,1); }
+.dd-chat-replybar,.dd-gif-picker,.dd-gif-preview,.dd-chat-new,.dd-typing-row { animation:dd-soft-in 200ms cubic-bezier(.2,.75,.25,1); }
+.dd-chat-reacts button { animation:dd-react-in 180ms cubic-bezier(.2,.75,.25,1); }
+.dd-chat-status { animation:dd-media-in 160ms ease-out; }
+.dd-chat :is(.dd-chat-thumb img,.dd-gif-media > img,.dd-viewer-slide img).dd-media-ready { animation:dd-media-in 220ms ease-out; }
+.dd-chat :is(.dd-chat-iconbtn,.dd-chat-send,.dd-chat-reacts button,.dd-chat-head-actions button,.dd-gif-search button,.dd-gif-more) { transition:background-color 160ms ease,color 160ms ease,opacity 160ms ease; }
+.dd-chat :is(.dd-chat-iconbtn,.dd-chat-send):active { opacity:.7; }
+.dd-chat-typing-bubble { gap:8px; min-height:38px; box-sizing:border-box; }
+.dd-typing-word { font:12px/1.5 var(--ds-font-text); opacity:.8; }
+.dd-typing-dots { display:flex; gap:4px; align-items:center; }
+.dd-chat-typing-bubble i { width:5px; height:5px; animation:dd-typing-dot 1100ms ease-in-out infinite; }
+.dd-chat-typing-bubble i:nth-child(2) { animation-delay:140ms; }.dd-chat-typing-bubble i:nth-child(3) { animation-delay:280ms; }
+.dd-chat-list.has-held .dd-typing-row { opacity:.4; }
+@media(prefers-reduced-motion:reduce) {
+ .dd-chat *, .dd-chat *::before, .dd-chat *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
+}

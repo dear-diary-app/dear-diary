@@ -52,7 +52,7 @@ export function useChatGifs(ids: string[]) {
 }
 export function GifMedia({gif}:{gif:Gif}) {
     const [playing,setPlaying] = useState(()=>!window.matchMedia('(prefers-reduced-motion: reduce)').matches),[failed,setFailed]=useState(false);
-    return <div className="dd-gif-media"><img src={playing?gif.url:gif.still} alt={gif.title} width={gif.width} height={gif.height} draggable={false} loading="lazy" referrerPolicy="no-referrer" onError={()=>setFailed(true)} />
+    return <div className="dd-gif-media"><img src={playing?gif.url:gif.still} alt={gif.title} width={gif.width} height={gif.height} draggable={false} loading="lazy" referrerPolicy="no-referrer" onLoad={e=>{setFailed(false);e.currentTarget.classList.add('dd-media-ready');}} onError={()=>setFailed(true)} />
         <button type="button" className="dd-gif-play" aria-label={playing?'Pause GIF':'Play GIF'} onPointerDown={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();setPlaying(v=>!v);}}>{playing?'Pause':'Play'} GIF</button>
         {failed&&<span className="dd-gif-failed">GIF could not load</span>}
     </div>;

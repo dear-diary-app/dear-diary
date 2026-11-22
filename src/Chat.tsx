@@ -32,8 +32,8 @@ const Send = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="current
 const photoWord = (n: number) => n > 1 ? `${n} photos` : 'Photo';
 function snippet(m: ChatMsg) { if (m.gif_id) return 'GIF'; if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
 
-function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, onPhoto, onReply, onJump, onMore, gif, gifError, retryGif, flash, lastMine }: {
-    gif?: Gif | null; gifError: string; retryGif: () => void;
+function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, onOpen, onPhoto, onReply, onJump, onMore, gif, gifError, retryGif, flash, lastMine }: {
+    arrive: boolean; gif?: Gif | null; gifError: string; retryGif: () => void;
     m: ChatMsg; mine: boolean; partner: Person; original?: ChatMsg; selected: boolean; onSelect: () => void; onTap: () => void; onPhoto: (paths: string[], i: number) => void; onOpen: () => void; onReply: () => void; onJump: (id: string) => void; onMore: () => void; flash: boolean; lastMine: boolean;
 }) {
     const chat = useChat();
@@ -49,7 +49,8 @@ function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, on
     // Friend's messages swipe right, your own swipe left, like Instagram.
     const dir = mine ? -1 : 1;
     const setX = (v: number) => { dxRef.current = v; setDx(v); };
-    const down = (e: React.PointerEvent) => { if (e.button > 0) return; drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false, long: false }; armed.current = false;
+    const arrival = useRef<Animation>();
+    const down = (e: React.PointerEvent) => { arrival.current?.cancel(); if (e.button > 0) return; drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false, long: false }; armed.current = false;
         clearHold();
         // Press and hold opens the reactions and actions, like Instagram.
         hold.current = window.setTimeout(() => { const d = drag.current; if (!d || d.on) return; d.long = true; noClick.current = Date.now(); try { navigator.vibrate?.(12); } catch { /* ignore */ } onOpen(); }, 450); };
@@ -83,6 +84,7 @@ function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, on
     };
     const cancel = () => { clearHold(); if (drag.current?.long) { drag.current = null; return; } drag.current = null; setRest(true); setX(0); };
     const rowEl = useRef<HTMLDivElement>(null);
+    useLayoutEffect(() => {if(!arrive||!rowEl.current||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;arrival.current=rowEl.current.animate([{opacity:.35,transform:`translate3d(${mine?8:-8}px,10px,0)`},{opacity:1,transform:'translate3d(0,0,0)'}],{duration:230,easing:'cubic-bezier(.2,.75,.25,1)'});return()=>arrival.current?.cancel();},[]);
     const [below, setBelow] = useState(false);
     // Keep the reaction bar right above the held message; if there is no room at the top of the list, scroll a little, else show it below.
     useLayoutEffect(() => {
@@ -111,7 +113,7 @@ function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, on
     return <div ref={rowEl} className={`dd-chat-row ${mine ? 'is-mine' : 'is-theirs'}${flash ? ' is-flash' : ''}${selected ? ' is-held' : ''}`} data-id={m.id}>
         <span className={`dd-chat-swipe-icon${mine ? ' is-right' : ''}${dx >= REPLY_AT ? ' is-armed' : ''}`} aria-hidden="true" style={{ opacity: Math.min(1, dx / 36), transform: `translateX(${Math.min(dx, REPLY_AT) * 0.35 * dir}px) scale(${0.5 + Math.min(1, dx / REPLY_AT) * 0.5})` }}><Reply /></span>
         <div className={`dd-chat-msg${sticker ? ' is-sticker' : ''}${m.images.length ? ' has-photos' : ''}${m.state === 'failed' ? ' is-failed' : ''}${m.state === 'sending' ? ' is-sending' : ''}`}
-            style={{ transform: dx ? `translateX(${dx * dir}px)` : undefined, transition: rest ? 'transform .32s cubic-bezier(.2,1.3,.4,1)' : 'none' }}
+            style={{ transform: dx ? `translateX(${dx * dir}px)` : undefined, transition: rest ? 'transform .26s cubic-bezier(.2,.8,.25,1)' : 'none' }}
             onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}
             role="button" tabIndex={0} aria-label={`${mine ? 'Your' : `${partner.name}'s`} message: ${snippet(m)}. Press Enter for actions.`}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } else if (e.key === 'r') { e.preventDefault(); onReply(); } }}>
@@ -125,7 +127,7 @@ function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, on
                 : m.sticker ? <span className="dd-chat-text">Sticker</span> : m.body ? <span className="dd-chat-text">{m.body}</span> : null}
             <span className="dd-chat-time">{m.edited_at && !sticker ? 'edited · ' : ''}{timeFmt.format(new Date(m.created_at))}</span>
         </div>
-        {groups.length > 0 && <div className="dd-chat-reacts">{groups.map(([e, n]) => <button key={e} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => chat.react(m.id, e)} aria-label={`${e} ${n}. Tap to ${mineReact === e ? 'remove' : 'add'} your reaction`}>{e}{n > 1 ? ` ${n}` : ''}</button>)}</div>}
+        {groups.length > 0 && <div className="dd-chat-reacts">{groups.map(([e, n]) => <button key={`${e}:${n}`} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => chat.react(m.id, e)} aria-label={`${e} ${n}. Tap to ${mineReact === e ? 'remove' : 'add'} your reaction`}>{e}{n > 1 ? ` ${n}` : ''}</button>)}</div>}
         {selected && <div className={`dd-chat-actions${below ? ' is-below' : ''}`} role="group" aria-label="Message actions">
             <div className="dd-chat-emojis">
                 <div className="dd-reaction-scroll" aria-label="Quick reactions">{quick.map(e => <button key={e} type="button" className={mineReact === e ? 'is-mine' : ''} aria-pressed={mineReact === e} onClick={() => { chat.react(m.id, e); onSelect(); }} aria-label={`React ${e}`}>{e}</button>)}</div>
@@ -191,6 +193,12 @@ export function ChatView({ partner }: { partner: Person }) {
         window.addEventListener('dd-chat-compose', focus);
         return () => window.removeEventListener('dd-chat-compose', focus);
     }, [route.key, route.search]);
+    const seenMessages = useRef(new Set<string>()), animationReady = useRef(false), newestSeen = useRef('');
+    const arrivals = new Set<string>();
+    if(animationReady.current&&!document.hidden&&!profileOpen)for(const m of chat.messages)if(!seenMessages.current.has(m.id)&&(m.state==='sending'||m.created_at>newestSeen.current))arrivals.add(m.id);
+    useLayoutEffect(()=>{if(!chat.loaded)return;for(const m of chat.messages){seenMessages.current.add(m.id);if(m.created_at>newestSeen.current)newestSeen.current=m.created_at;}animationReady.current=true;},[chat.loaded,chat.messages]);
+    useEffect(()=>()=>chat.typing(false),[chat.typing]);
+    useEffect(()=>{if(profileOpen)chat.typing(false);},[profileOpen,chat.typing]);
     const stick = useRef(true);
     const prevLen = useRef(0);
     const { setViewing } = chat;
@@ -219,7 +227,7 @@ export function ChatView({ partner }: { partner: Person }) {
         if (viewer && !chat.messages.some(m => m.images.length && m.images[0] === viewer.paths[0])) { if (window.history.state?.ddv) window.history.back(); else setViewer(null); }
     }, [byId, chat.loaded, chat.messages, selected, replyTo, editing, viewer, emojiFor]);
     const lastMineId = useMemo(() => { for (let i = chat.messages.length - 1; i >= 0; i--) if (chat.messages[i].sender_id === chat.uid) return chat.messages[i].id; return null; }, [chat.messages, chat.uid]);
-    const toBottom = (smooth = false) => { const el = scroller.current; if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' }); };
+    const toBottom = (smooth = false) => { const el = scroller.current; if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'auto' }); };
     useLayoutEffect(() => {
         const grew = chat.messages.length > prevLen.current;
         const last = chat.messages[chat.messages.length - 1];
@@ -250,7 +258,7 @@ export function ChatView({ partner }: { partner: Person }) {
     const jump = (id: string) => {
         const el = scroller.current?.querySelector<HTMLElement>(`[data-id="${CSS.escape(id)}"]`);
         if (!el) return;
-        el.scrollIntoView({ block: 'center', behavior: 'smooth' }); setFlash(id); window.setTimeout(() => setFlash(null), 1400);
+        el.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); setFlash(id); window.setTimeout(() => setFlash(null), 1400);
     };
     useLayoutEffect(() => { if (stick.current) toBottom(); }, [gifs.items]);
     const startReply = (id: string) => { setEditing(null); setReplyTo(id); setSelected(null); input.current?.focus(); };
@@ -267,7 +275,7 @@ export function ChatView({ partner }: { partner: Person }) {
     chat.messages.forEach(m => {
         const d = dayKey.format(new Date(m.created_at));
         if (d !== lastDay) { lastDay = d; items.push(<p key={`d${d}`} className="dd-chat-day"><span>{dayLabel(m.created_at)}</span></p>); }
-        items.push(<Row key={m.id} m={m} mine={m.sender_id === chat.uid} partner={partner} original={m.reply_to ? byId.get(m.reply_to) : undefined}
+        items.push(<Row key={m.id} arrive={arrivals.has(m.id)} m={m} mine={m.sender_id === chat.uid} partner={partner} original={m.reply_to ? byId.get(m.reply_to) : undefined}
             selected={selected === m.id} gif={m.gif_id ? gifs.items[m.gif_id] : undefined} gifError={gifs.error} retryGif={gifs.retry} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => setSelected(m.id)} onPhoto={(paths, i) => setViewer({ paths, i })} onReply={() => startReply(m.id)} onMore={() => { input.current?.blur(); setEmojiFor(m.id); }} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
     });
 
@@ -293,7 +301,7 @@ export function ChatView({ partner }: { partner: Person }) {
             {chat.loadError && <p className="dd-chat-empty" role="alert">Could not load the chat. <button type="button" className="dd-chat-link" onClick={chat.reload}>Try again</button></p>}
             {chat.loaded && chat.messages.length === 0 && <div className="dd-chat-empty"><img src={art('rose-heart')} alt="" width="84" height="84" /><p>Say hi to {partner.name}. Only the two of you can see this chat.</p></div>}
             {items}
-            {chat.partnerTyping && <div className="dd-chat-row is-theirs"><div className="dd-chat-msg dd-chat-typing-bubble" aria-hidden="true"><i /><i /><i /></div></div>}
+            {chat.partnerTyping && !profileOpen && <div className="dd-chat-row is-theirs dd-typing-row" role="status" aria-label={`${partner.name} is typing`}><div className="dd-chat-msg dd-chat-typing-bubble"><span className="dd-typing-word">typing</span><span className="dd-typing-dots" aria-hidden="true"><i /><i /><i /></span></div></div>}
         </div>
         {viewer && <Viewer paths={viewer.paths} start={viewer.i} onClose={() => setViewer(null)} />}
         {emojiFor && byId.has(emojiFor) && <EmojiPicker uid={chat.uid} selected={byId.get(emojiFor)?.reactions[chat.uid]} onPick={e => chat.react(emojiFor, e)} onClose={() => { setEmojiFor(null); setSelected(null); }} />}
