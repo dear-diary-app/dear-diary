@@ -757,14 +757,14 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 ::view-transition-old(diary-dock) { display:none; }
 ::view-transition-new(diary-dock) { animation:none; }
 
-/* Shared motion scale. No continuous colour, shadow or layout-property tweens. */
+/* Shared motion scale. Drag controls keep their own touch and transform behavior. */
 .dd-app { --dd-motion:220ms; --dd-spring:cubic-bezier(.2,.8,.25,1.18); }
-.dd-app :is(button,a,summary,[role="button"]) {
+.dd-app :is(button,a,summary,[role="button"]):not(:where(.dd-placed-sticker,.dd-sticker-handle)) {
     -webkit-tap-highlight-color:transparent;
     transition:transform var(--dd-motion) var(--dd-spring),opacity 180ms ease;
     touch-action:manipulation;
 }
-.dd-app :is(button,a,summary,[role="button"]):not(:disabled):active { transform:scale(.97); }
+.dd-app :is(button,a,summary,[role="button"]):not(:where(.dd-placed-sticker,.dd-sticker-handle)):not(:disabled):active { transform:scale(.97); }
 .dd-app .dd-iconbtn:not(:disabled):active,.dd-app .dd-key:not(:disabled):active { transform:scale(.94); }
 .dd-app .dd-bottom-tab { transform-origin:50% 80%; }
 .dd-app .dd-bottom-tab svg { transition:transform 220ms var(--dd-spring); }
@@ -792,15 +792,15 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 @keyframes dd-theme-in { from { opacity:0; } to { opacity:1; } }
 @media (prefers-reduced-motion:reduce) {
     .dd-app *, .dd-app *::before, .dd-app *::after { animation:none!important; transition:none!important; }
-    .dd-app :is(button,a,summary,[role="button"]):active { transform:none!important; }
+    .dd-app :is(button,a,summary,[role="button"]):not(:where(.dd-placed-sticker,.dd-sticker-handle)):active { transform:none!important; }
     .dd-app .dd-pin-dot.is-filled { transform:none; }
     ::view-transition-old(diary-theme),::view-transition-new(diary-theme) { animation:none; }
 }
 /* Override older glass paint tweens as well as the base control rules. */
-.dd-app.dd-app.dd-app :is(button,a,summary,[role="button"]) { transition:transform 220ms var(--dd-spring),opacity 180ms ease; }
+.dd-app.dd-app.dd-app :is(button,a,summary,[role="button"]):not(:where(.dd-placed-sticker,.dd-sticker-handle)) { transition:transform 220ms var(--dd-spring),opacity 180ms ease; }
 .dd-app.dd-app.dd-app .dd-key:not(:disabled):active { transition:transform 160ms var(--dd-spring); }
 .dd-app :is(.dd-result,.dd-dayentry,.dd-theme-option,.dd-sticker-tray,.dd-sticker-controls,.dd-save,.dd-pin-msg,.dd-install-notice,.dd-theme-message,.dd-avatar-options[open] > :not(summary)) { animation-fill-mode:backwards; }
-@media (prefers-reduced-motion:reduce) { .dd-app.dd-app.dd-app :is(button,a,summary,[role="button"]) { transition:none; } }
+@media (prefers-reduced-motion:reduce) { .dd-app.dd-app.dd-app :is(button,a,summary,[role="button"]):not(:where(.dd-placed-sticker,.dd-sticker-handle)) { transition:none; } }
 
 /* Settings actions use real button boxes, roomy targets and separate help text. */
 .dd-settings .dd-profile-upload { margin-top:18px; display:flex; flex-direction:column; align-items:stretch; gap:10px; }
