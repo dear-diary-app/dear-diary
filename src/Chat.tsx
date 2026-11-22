@@ -197,14 +197,15 @@ export function ChatView({ partner }: { partner: Person }) {
     });
     const groups = ['All', ...Array.from(new Set(pack.map(p => p.group)))];
 
-    return <main className="dd-chat" style={vh ? { height: vh } : undefined} aria-label={`Chat with ${partner.name}`}>
+    return <main className="dd-chat" style={vh ? { height: vh } : undefined} aria-label={`Chat with ${partner.name}`}
+        onPointerDownCapture={e => { if (selected && !(e.target as Element).closest('.dd-chat-actions, .dd-chat-head-actions')) setSelected(null); }}>
         <header className="dd-chat-head">
             <button type="button" className="dd-chat-back" onClick={leave} aria-label="Back"><ArrowLeft size={22} /></button>
             <Avatar person={partner} size="sm" />
             <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerTyping ? <span className="dd-chat-typing-label">typing<i>.</i><i>.</i><i>.</i></span> : chat.live ? 'Private chat' : 'Connecting...'}</p></div>
             {selMsg && (isText || canUnsend) && <div className="dd-chat-head-actions">
                 <button type="button" className="dd-chat-more" aria-label="Message options" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(o => !o)}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg></button>
-                {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => setMenuOpen(false)} />
+                {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => { setMenuOpen(false); setSelected(null); }} />
                     <div className="dd-chat-menu" role="menu">
                         {isText && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); copySel(); }}>Copy</button>}
                         {canEdit && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); startEdit(); }}>Edit</button>}
