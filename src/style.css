@@ -863,3 +863,18 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 /* Keep this secondary action painted beside the focused PIN form. */
 .dd-app .dd-export .dd-export-json { -webkit-backdrop-filter:none; backdrop-filter:none; background:#f5eef0; color:#624c53; }
 .dd-app[data-theme="midnight"] .dd-export .dd-export-json { background:#39313b; color:#f0e3e6; }
+
+/* Compact settings sections; native details keeps tap and keyboard behavior. */
+.dd-settings-fold > summary { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:52px; list-style:none; cursor:pointer; border-radius:12px; -webkit-tap-highlight-color:transparent; }
+.dd-settings-fold > summary::-webkit-details-marker { display:none; }
+.dd-settings-fold > summary::marker { content:''; }
+.dd-settings-fold > summary:focus-visible { outline:2px solid currentColor; outline-offset:6px; }
+.dd-settings-fold-label { display:block; min-width:0; }
+.dd-settings-fold-note { display:block; margin-top:5px; color:#a1858d; font-size:14px; line-height:1.45; }
+.dd-settings-fold > summary > svg { flex:0 0 auto; transition:transform .18s ease; }
+.dd-settings-fold[open] > summary > svg { transform:rotate(90deg); }
+.dd-settings-fold-content { padding-top:4px; }
+@media (prefers-reduced-motion:reduce) { .dd-settings-fold > summary > svg { transition:none; } }
+
+.dd-app[data-theme="midnight"] .dd-settings-fold-note { color:var(--dd-dark-muted); }
+.dd-theme-picker .dd-settings-fold-content > .dd-card-sub { line-height:1.6; }

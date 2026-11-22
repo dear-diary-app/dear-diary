@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './store';
 import { supabase } from './lib/supabase';
-import { Check } from './icons';
+import { Check, ChevronRight } from './icons';
 import { fadeTheme } from './motion';
 
 const PALETTES = [
@@ -75,7 +75,9 @@ export function ThemeFrame({ className, children }: { className: string; childre
 export function ThemePicker() {
     const state = useContext(ThemeContext)!;
     return <section className="dd-card dd-theme-picker" aria-labelledby="dd-theme-heading">
-        <h2 id="dd-theme-heading" className="dd-card-title">Background theme</h2>
+        <details className="dd-settings-fold">
+        <summary><span className="dd-settings-fold-label"><h2 id="dd-theme-heading" className="dd-card-title">Background theme</h2><span className="dd-settings-fold-note">{PALETTES.find(p => p.id === state.theme)!.name}</span></span><ChevronRight size={20} /></summary>
+        <div className="dd-settings-fold-content">
         <p className="dd-card-sub">A little colour for your space. Warm paper is the default. Your choice is only for your account.</p>
         <div className="dd-theme-options" role="group" aria-label="Background theme colour">
             {PALETTES.map(p => <button type="button" key={p.id} disabled={state.busy}
@@ -88,5 +90,6 @@ export function ThemePicker() {
             </button>)}
         </div>
         {state.message && <p className="dd-theme-message" role="status">{state.message}</p>}
+        </div></details>
     </section>;
 }
