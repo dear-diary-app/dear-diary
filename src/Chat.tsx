@@ -27,8 +27,8 @@ const Smile = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" 
 
 function snippet(m: ChatMsg) { return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
 
-function Row({ m, mine, partner, original, selected, onSelect, onOpen, onReply, onJump, flash, lastMine }: {
-    m: ChatMsg; mine: boolean; partner: Person; original?: ChatMsg; selected: boolean; onSelect: () => void; onOpen: () => void; onReply: () => void; onJump: (id: string) => void; flash: boolean; lastMine: boolean;
+function Row({ m, mine, partner, original, selected, onSelect, onTap, onOpen, onReply, onJump, flash, lastMine }: {
+    m: ChatMsg; mine: boolean; partner: Person; original?: ChatMsg; selected: boolean; onSelect: () => void; onTap: () => void; onOpen: () => void; onReply: () => void; onJump: (id: string) => void; flash: boolean; lastMine: boolean;
 }) {
     const chat = useChat();
     const [dx, setDx] = useState(0);
@@ -45,7 +45,7 @@ function Row({ m, mine, partner, original, selected, onSelect, onOpen, onReply, 
     const down = (e: React.PointerEvent) => { if (e.button > 0) return; drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false, long: false }; armed.current = false;
         clearHold();
         // Press and hold opens the reactions and actions, like Instagram.
-        hold.current = window.setTimeout(() => { const d = drag.current; if (!d || d.on) return; d.long = true; try { navigator.vibrate?.(12); } catch { /* ignore */ } onOpen(); }, 380); };
+        hold.current = window.setTimeout(() => { const d = drag.current; if (!d || d.on) return; d.long = true; try { navigator.vibrate?.(12); } catch { /* ignore */ } onOpen(); }, 1500); };
     const move = (e: React.PointerEvent) => {
         const d = drag.current; if (!d || d.id !== e.pointerId) return;
         const ax = (e.clientX - d.x) * dir, ay = e.clientY - d.y;
@@ -71,7 +71,7 @@ function Row({ m, mine, partner, original, selected, onSelect, onOpen, onReply, 
         const go = d.on && dxRef.current >= REPLY_AT;
         setRest(true); setX(0);
         if (go) onReply();
-        else if (!d.moved) onSelect();
+        else if (!d.moved) onTap();
     };
     const cancel = () => { clearHold(); if (drag.current?.long) { drag.current = null; return; } drag.current = null; setRest(true); setX(0); };
     const rowEl = useRef<HTMLDivElement>(null);
@@ -193,7 +193,7 @@ export function ChatView({ partner }: { partner: Person }) {
         const d = dayKey.format(new Date(m.created_at));
         if (d !== lastDay) { lastDay = d; items.push(<p key={`d${d}`} className="dd-chat-day"><span>{dayLabel(m.created_at)}</span></p>); }
         items.push(<Row key={m.id} m={m} mine={m.sender_id === chat.uid} partner={partner} original={m.reply_to ? byId.get(m.reply_to) : undefined}
-            selected={selected === m.id} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onOpen={() => setSelected(m.id)} onReply={() => startReply(m.id)} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
+            selected={selected === m.id} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => setSelected(m.id)} onReply={() => startReply(m.id)} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
     });
     const groups = ['All', ...Array.from(new Set(pack.map(p => p.group)))];
 
