@@ -1,9 +1,10 @@
+import { useNavigate } from 'react-router-dom';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import pack from './sticker-pack.json';
 import { useChat, type ChatMsg } from './ChatStore';
 import { Avatar } from './ui';
 import type { Person } from './model';
-import { XIcon } from './icons';
+import { ArrowLeft, XIcon } from './icons';
 
 const REACTS = ['❤️', '😂', '😭', '🥺', '✨', '🫶'];
 const art = (id: string) => `${import.meta.env.BASE_URL}stickers/${id}.webp`;
@@ -104,6 +105,9 @@ function Row({ m, mine, partner, original, selected, onSelect, onReply, onJump, 
 
 export function ChatView({ partner }: { partner: Person }) {
     const chat = useChat();
+    const navigate = useNavigate();
+    // Go back to wherever the chat was opened from; if it was opened directly, go home.
+    const leave = () => { if ((window.history.state?.idx ?? 0) > 0) navigate(-1); else navigate('/', { replace: true }); };
     const [text, setText] = useState('');
     const [replyTo, setReplyTo] = useState<string | null>(null);
     const [selected, setSelected] = useState<string | null>(null);
@@ -168,6 +172,7 @@ export function ChatView({ partner }: { partner: Person }) {
 
     return <main className="dd-chat" style={vh ? { height: vh } : undefined} aria-label={`Chat with ${partner.name}`}>
         <header className="dd-chat-head">
+            <button type="button" className="dd-chat-back" onClick={leave} aria-label="Back"><ArrowLeft size={22} /></button>
             <Avatar person={partner} size="sm" />
             <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerTyping ? <span className="dd-chat-typing-label">typing<i>.</i><i>.</i><i>.</i></span> : chat.live ? 'Private chat' : 'Connecting...'}</p></div>
         </header>

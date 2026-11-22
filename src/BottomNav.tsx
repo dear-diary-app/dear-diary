@@ -13,6 +13,8 @@ export function BottomNav() {
         : pathname === '/chat' ? 'chat'
         : pathname.startsWith('/settings') || pathname === '/notifications' ? 'settings'
         : 'entries';
+    // The conversation is full screen, like Instagram: it has its own back arrow.
+    if (pathname === '/chat') return null;
     const tabs = [
         { id: 'home', label: 'Home', to: '/', Icon: HomeIcon },
         { id: 'entries', label: 'My diary', to: `/hub/${me}`, Icon: BookOpen },
