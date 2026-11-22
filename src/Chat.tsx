@@ -161,7 +161,9 @@ export function ChatView({ partner }: { partner: Person }) {
     const [trayOpen, setTrayOpen] = useState(false);
     const [group, setGroup] = useState('All');
     const [flash, setFlash] = useState<string | null>(null);
-    const [newBelow, setNewBelow] = useState(false);
+    const [belowIds, setBelowIds] = useState<string[]>([]);
+    const lastTs = useRef('');
+    const setNewBelow = (v: boolean) => { if (!v) setBelowIds([]); };
     const scroller = useRef<HTMLDivElement>(null);
     const input = useRef<HTMLTextAreaElement>(null);
     const stick = useRef(true);
@@ -181,14 +183,25 @@ export function ChatView({ partner }: { partner: Person }) {
     useEffect(() => () => document.documentElement.classList.remove('dd-chat-typing'), []);
 
     const byId = useMemo(() => new Map(chat.messages.map(m => [m.id, m])), [chat.messages]);
+    // An unsent message leaves nothing behind: close anything that was pointing at it, without a word.
+    const newBelow = belowIds.some(id => byId.has(id));
+    useEffect(() => {
+        if (!chat.loaded) return;
+        if (selected && !byId.has(selected)) setSelected(null);
+        if (replyTo && !byId.has(replyTo)) setReplyTo(null);
+        if (editing && !byId.has(editing)) { setEditing(null); setText(''); }
+        if (viewer && !chat.messages.some(m => m.images.length && m.images[0] === viewer.paths[0])) { if (window.history.state?.ddv) window.history.back(); else setViewer(null); }
+    }, [byId, chat.loaded, chat.messages, selected, replyTo, editing, viewer]);
     const lastMineId = useMemo(() => { for (let i = chat.messages.length - 1; i >= 0; i--) if (chat.messages[i].sender_id === chat.uid) return chat.messages[i].id; return null; }, [chat.messages, chat.uid]);
     const toBottom = (smooth = false) => { const el = scroller.current; if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' }); };
     useLayoutEffect(() => {
         const grew = chat.messages.length > prevLen.current;
         const last = chat.messages[chat.messages.length - 1];
+        const fresh = chat.messages.filter(m => m.created_at > lastTs.current && m.sender_id !== chat.uid).map(m => m.id);
         if (stick.current || (grew && last?.sender_id === chat.uid)) { toBottom(prevLen.current > 0); setNewBelow(false); }
-        else if (grew) setNewBelow(true);
+        else if (fresh.length) setBelowIds(prev => [...prev, ...fresh]);
         prevLen.current = chat.messages.length;
+        if (last && last.created_at > lastTs.current) lastTs.current = last.created_at;
     }, [chat.messages, chat.partnerTyping, chat.uid]);
     useLayoutEffect(() => { if (chat.loaded) toBottom(); }, [chat.loaded]);
     useLayoutEffect(() => { if (stick.current) toBottom(); }, [vh, replyTo, trayOpen]);

@@ -20,6 +20,9 @@ function clean(r: unknown): ChatMsg | null {
         images: Array.isArray(m.images) ? (m.images as unknown[]).filter((x): x is string => typeof x === 'string').slice(0, 3) : [] };
 }
 
+// Removing a message also clears any reply quote that pointed at it, so no placeholder or stale text shows.
+const dropMessage = (list: ChatMsg[], id: string) => list.filter(m => m.id !== id).map(m => m.reply_to === id ? { ...m, reply_to: null } : m);
+
 export interface ChatApi {
     uid: string; messages: ChatMsg[]; loaded: boolean; loadError: boolean; hasMore: boolean; live: boolean; partnerTyping: boolean; unread: number;
     send: (body: string, sticker?: string | null, replyTo?: string | null) => void;
@@ -107,7 +110,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             partner.current = other;
             ch = supabase.channel(`dd-chat-${[uid, other].sort().join('-')}`, { config: { broadcast: { self: false } } })
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, (p: { eventType: string; new: unknown; old: { id?: string } }) => {
-                    if (p.eventType === 'DELETE') { const id = p.old?.id; if (id) setMessages(prev => prev.filter(m => m.id !== id)); return; }
+                    if (p.eventType === 'DELETE') { const id = p.old?.id; if (id) setMessages(prev => dropMessage(prev, id)); return; }
                     merge([p.new]);
                     const m = clean(p.new);
                     if (m && m.sender_id !== uid) { setPartnerTyping(false); window.clearTimeout(clear); }
@@ -194,7 +197,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
         discard: id => { pending.current.delete(id); setMessages(prev => prev.filter(m => m.id !== id)); },
         unsend: id => {
             const old = list.current.find(m => m.id === id);
-            setMessages(prev => prev.filter(m => m.id !== id));
+            setMessages(prev => dropMessage(prev, id));
             void Promise.resolve(supabase.from('chat_messages').delete().eq('id', id)).then(({ error }) => { if (error && old) merge([old]); else if (old?.images.length) removeImages(old.images); });
         },
         edit: (id, body) => {
