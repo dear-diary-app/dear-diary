@@ -5,9 +5,9 @@ import { supabase } from './lib/supabase';
 
 export interface ChatMsg {
     id: string; sender_id: string; recipient_id: string; body: string; sticker: string | null; reply_to: string | null;
-    reactions: Record<string, string>; created_at: string; seen_at: string | null; state?: 'sending' | 'failed';
+    reactions: Record<string, string>; created_at: string; seen_at: string | null; edited_at: string | null; state?: 'sending' | 'failed';
 }
-const COLS = 'id, sender_id, recipient_id, body, sticker, reply_to, reactions, created_at, seen_at';
+const COLS = 'id, sender_id, recipient_id, body, sticker, reply_to, reactions, created_at, seen_at, edited_at';
 const PAGE = 60;
 const byTime = (a: ChatMsg, b: ChatMsg) => a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : a.id < b.id ? -1 : 1;
 function clean(r: unknown): ChatMsg | null {
@@ -15,13 +15,13 @@ function clean(r: unknown): ChatMsg | null {
     if (!m || typeof m.id !== 'string' || typeof m.sender_id !== 'string' || typeof m.created_at !== 'string') return null;
     return { id: m.id, sender_id: m.sender_id, recipient_id: String(m.recipient_id ?? ''), body: typeof m.body === 'string' ? m.body : '', sticker: typeof m.sticker === 'string' ? m.sticker : null,
         reply_to: typeof m.reply_to === 'string' ? m.reply_to : null, reactions: m.reactions && typeof m.reactions === 'object' ? m.reactions as Record<string, string> : {},
-        created_at: m.created_at, seen_at: typeof m.seen_at === 'string' ? m.seen_at : null };
+        created_at: m.created_at, seen_at: typeof m.seen_at === 'string' ? m.seen_at : null, edited_at: typeof m.edited_at === 'string' ? m.edited_at : null };
 }
 
 export interface ChatApi {
     uid: string; messages: ChatMsg[]; loaded: boolean; loadError: boolean; hasMore: boolean; live: boolean; partnerTyping: boolean; unread: number;
     send: (body: string, sticker?: string | null, replyTo?: string | null) => void;
-    retry: (id: string) => void; discard: (id: string) => void; unsend: (id: string) => void; react: (id: string, emoji: string) => void;
+    retry: (id: string) => void; discard: (id: string) => void; unsend: (id: string) => void; edit: (id: string, body: string) => void; react: (id: string, emoji: string) => void;
     loadOlder: () => Promise<void>; typing: (on: boolean) => void; setViewing: (on: boolean) => void; reload: () => void;
 }
 const Ctx = createContext<ChatApi | null>(null);
@@ -159,7 +159,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
         send: (body, sticker = null, replyTo = null) => {
             const text = body.trim().slice(0, 2000);
             if (!text && !sticker) return;
-            const m: ChatMsg = { id: crypto.randomUUID(), sender_id: uid, recipient_id: partner.current ?? '', body: sticker ? '' : text, sticker, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, state: 'sending' };
+            const m: ChatMsg = { id: crypto.randomUUID(), sender_id: uid, recipient_id: partner.current ?? '', body: sticker ? '' : text, sticker, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, state: 'sending' };
             setMessages(prev => [...prev, m].sort(byTime));
             insert(m);
         },
@@ -169,6 +169,13 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             const old = list.current.find(m => m.id === id);
             setMessages(prev => prev.filter(m => m.id !== id));
             void Promise.resolve(supabase.from('chat_messages').delete().eq('id', id)).then(({ error }) => { if (error && old) merge([old]); });
+        },
+        edit: (id, body) => {
+            const text = body.trim().slice(0, 2000);
+            const old = list.current.find(m => m.id === id);
+            if (!old || old.sticker || !text || text === old.body) return;
+            setMessages(prev => prev.map(m => m.id === id ? { ...m, body: text, edited_at: new Date().toISOString() } : m));
+            void Promise.resolve(supabase.rpc('chat_edit', { p_id: id, p_body: text })).then(({ error }) => { if (error) merge([old]); });
         },
         react: (id, emoji) => {
             setMessages(prev => prev.map(m => {

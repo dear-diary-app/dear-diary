@@ -21,28 +21,36 @@ function dayLabel(iso: string) {
     return dayFmt.format(new Date(iso));
 }
 const Reply = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 6 6v3" /></svg>;
+const Pencil = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>;
 const Send = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.3 10l12 2-12 2Z" /></svg>;
 const Smile = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5" /><path d="M8 14.2a4.5 4.5 0 0 0 8 0" /><path d="M9 9.5h.01M15 9.5h.01" strokeWidth="2.6" /></svg>;
 
 function snippet(m: ChatMsg) { return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
 
-function Row({ m, mine, partner, original, selected, onSelect, onReply, onJump, flash, lastMine }: {
-    m: ChatMsg; mine: boolean; partner: Person; original?: ChatMsg; selected: boolean; onSelect: () => void; onReply: () => void; onJump: (id: string) => void; flash: boolean; lastMine: boolean;
+function Row({ m, mine, partner, original, selected, onSelect, onOpen, onReply, onJump, flash, lastMine }: {
+    m: ChatMsg; mine: boolean; partner: Person; original?: ChatMsg; selected: boolean; onSelect: () => void; onOpen: () => void; onReply: () => void; onJump: (id: string) => void; flash: boolean; lastMine: boolean;
 }) {
     const chat = useChat();
     const [dx, setDx] = useState(0);
     const [rest, setRest] = useState(true);
     const dxRef = useRef(0);
     const armed = useRef(false);
-    const drag = useRef<{ x: number; y: number; id: number; on: boolean; moved: boolean } | null>(null);
+    const drag = useRef<{ x: number; y: number; id: number; on: boolean; moved: boolean; long: boolean } | null>(null);
+    const hold = useRef<number>();
+    const clearHold = () => { window.clearTimeout(hold.current); };
     const REPLY_AT = 56, MAX = 84;
     // Friend's messages swipe right, your own swipe left, like Instagram.
     const dir = mine ? -1 : 1;
     const setX = (v: number) => { dxRef.current = v; setDx(v); };
-    const down = (e: React.PointerEvent) => { if (e.button > 0) return; drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false }; armed.current = false; };
+    const down = (e: React.PointerEvent) => { if (e.button > 0) return; drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false, long: false }; armed.current = false;
+        clearHold();
+        // Press and hold opens the reactions and actions, like Instagram.
+        hold.current = window.setTimeout(() => { const d = drag.current; if (!d || d.on) return; d.long = true; try { navigator.vibrate?.(12); } catch { /* ignore */ } onOpen(); }, 380); };
     const move = (e: React.PointerEvent) => {
         const d = drag.current; if (!d || d.id !== e.pointerId) return;
         const ax = (e.clientX - d.x) * dir, ay = e.clientY - d.y;
+        if (Math.abs(e.clientX - d.x) > 9 || Math.abs(ay) > 9) clearHold();
+        if (d.long) return;
         if (!d.on) {
             if (Math.abs(ay) > 10 && Math.abs(ay) > Math.abs(ax)) { drag.current = null; return; }
             if (ax > 8 && ax > Math.abs(ay)) { d.on = true; d.moved = true; setRest(false); try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch { /* ignore */ } }
@@ -58,13 +66,14 @@ function Row({ m, mine, partner, original, selected, onSelect, onReply, onJump, 
     };
     const up = (e: React.PointerEvent) => {
         const d = drag.current; if (!d || d.id !== e.pointerId) return;
-        drag.current = null;
+        drag.current = null; clearHold();
+        if (d.long) return;
         const go = d.on && dxRef.current >= REPLY_AT;
         setRest(true); setX(0);
         if (go) onReply();
         else if (!d.moved) onSelect();
     };
-    const cancel = () => { drag.current = null; setRest(true); setX(0); };
+    const cancel = () => { clearHold(); if (drag.current?.long) { drag.current = null; return; } drag.current = null; setRest(true); setX(0); };
     const groups = useMemo(() => {
         const c = new Map<string, number>();
         Object.values(m.reactions).forEach(e => c.set(e, (c.get(e) ?? 0) + 1));
@@ -76,7 +85,7 @@ function Row({ m, mine, partner, original, selected, onSelect, onReply, onJump, 
         <span className={`dd-chat-swipe-icon${mine ? ' is-right' : ''}${dx >= REPLY_AT ? ' is-armed' : ''}`} aria-hidden="true" style={{ opacity: Math.min(1, dx / 36), transform: `translateX(${Math.min(dx, REPLY_AT) * 0.35 * dir}px) scale(${0.5 + Math.min(1, dx / REPLY_AT) * 0.5})` }}><Reply /></span>
         <div className={`dd-chat-msg${sticker ? ' is-sticker' : ''}${m.state === 'failed' ? ' is-failed' : ''}${m.state === 'sending' ? ' is-sending' : ''}`}
             style={{ transform: dx ? `translateX(${dx * dir}px)` : undefined, transition: rest ? 'transform .32s cubic-bezier(.2,1.3,.4,1)' : 'none' }}
-            onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}
+            onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}
             role="button" tabIndex={0} aria-label={`${mine ? 'Your' : `${partner.name}'s`} message: ${snippet(m)}. Press Enter for actions.`}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } else if (e.key === 'r') onReply(); }}>
             {m.reply_to && <button type="button" className="dd-chat-quote" disabled={!original} onPointerDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); original && onJump(original.id); }}>
@@ -85,14 +94,14 @@ function Row({ m, mine, partner, original, selected, onSelect, onReply, onJump, 
             </button>}
             {sticker ? <img className="dd-chat-sticker" src={art(m.sticker!)} alt={stickerName(m.sticker!)} width="128" height="128" draggable={false} />
                 : m.sticker ? <span className="dd-chat-text">Sticker</span> : <span className="dd-chat-text">{m.body}</span>}
-            <span className="dd-chat-time">{timeFmt.format(new Date(m.created_at))}</span>
+            <span className="dd-chat-time">{m.edited_at && !sticker ? 'edited · ' : ''}{timeFmt.format(new Date(m.created_at))}</span>
         </div>
         {groups.length > 0 && <div className="dd-chat-reacts">{groups.map(([e, n]) => <button key={e} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => chat.react(m.id, e)} aria-label={`${e} ${n}. Tap to ${mineReact === e ? 'remove' : 'add'} your reaction`}>{e}{n > 1 ? ` ${n}` : ''}</button>)}</div>}
         {selected && <div className="dd-chat-actions" role="group" aria-label="Message actions">
-            <div className="dd-chat-emojis">{REACTS.map(e => <button key={e} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => { chat.react(m.id, e); onSelect(); }} aria-label={`React ${e}`}>{e}</button>)}</div>
+            <div className="dd-chat-emojis">{REACTS.map((e, i) => <button key={e} type="button" style={{ '--i': i } as React.CSSProperties} className={mineReact === e ? 'is-mine' : ''} onClick={() => { chat.react(m.id, e); onSelect(); }} aria-label={`React ${e}`}>{e}</button>)}</div>
             <div className="dd-chat-cmds">
                 <button type="button" onClick={onReply}><Reply /> Reply</button>
-                {!sticker && m.body && <button type="button" onClick={() => { void navigator.clipboard?.writeText(m.body).catch(() => {}); onSelect(); }}>Copy</button>}
+                {!mine && !sticker && m.body && <button type="button" onClick={() => { void navigator.clipboard?.writeText(m.body).catch(() => {}); onSelect(); }}>Copy</button>}
                 {mine && <button type="button" className="is-danger" onClick={() => { chat.unsend(m.id); }}>Unsend</button>}
             </div>
         </div>}
@@ -111,6 +120,7 @@ export function ChatView({ partner }: { partner: Person }) {
     const [text, setText] = useState('');
     const [replyTo, setReplyTo] = useState<string | null>(null);
     const [selected, setSelected] = useState<string | null>(null);
+    const [editing, setEditing] = useState<string | null>(null);
     const [trayOpen, setTrayOpen] = useState(false);
     const [group, setGroup] = useState('All');
     const [flash, setFlash] = useState<string | null>(null);
@@ -149,6 +159,7 @@ export function ChatView({ partner }: { partner: Person }) {
     const grow = () => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; el.style.overflowY = el.scrollHeight > 120 ? 'auto' : 'hidden'; };
     const submit = () => {
         if (!text.trim()) return;
+        if (editing) { chat.edit(editing, text); setEditing(null); setText(''); chat.typing(false); requestAnimationFrame(grow); return; }
         chat.send(text, null, replyTo); chat.typing(false);
         setText(''); setReplyTo(null); stick.current = true;
         requestAnimationFrame(() => { grow(); input.current?.focus(); });
@@ -158,7 +169,12 @@ export function ChatView({ partner }: { partner: Person }) {
         if (!el) return;
         el.scrollIntoView({ block: 'center', behavior: 'smooth' }); setFlash(id); window.setTimeout(() => setFlash(null), 1400);
     };
-    const startReply = (id: string) => { setReplyTo(id); setSelected(null); input.current?.focus(); };
+    const startReply = (id: string) => { setEditing(null); setReplyTo(id); setSelected(null); input.current?.focus(); };
+    const selMsg = selected ? byId.get(selected) : undefined;
+    const canEdit = !!selMsg && selMsg.sender_id === chat.uid && !selMsg.sticker && !!selMsg.body && !selMsg.state;
+    const startEdit = () => { if (!selMsg) return; setReplyTo(null); setEditing(selMsg.id); setText(selMsg.body); setSelected(null); requestAnimationFrame(() => { grow(); const el = input.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }); };
+    const stopEdit = () => { setEditing(null); setText(''); requestAnimationFrame(grow); };
+    const copySel = () => { if (selMsg) void navigator.clipboard?.writeText(selMsg.body).catch(() => {}); setSelected(null); };
     const original = replyTo ? byId.get(replyTo) : undefined;
     const items: React.ReactNode[] = [];
     let lastDay = '';
@@ -166,7 +182,7 @@ export function ChatView({ partner }: { partner: Person }) {
         const d = dayKey.format(new Date(m.created_at));
         if (d !== lastDay) { lastDay = d; items.push(<p key={`d${d}`} className="dd-chat-day"><span>{dayLabel(m.created_at)}</span></p>); }
         items.push(<Row key={m.id} m={m} mine={m.sender_id === chat.uid} partner={partner} original={m.reply_to ? byId.get(m.reply_to) : undefined}
-            selected={selected === m.id} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onReply={() => startReply(m.id)} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
+            selected={selected === m.id} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onOpen={() => setSelected(m.id)} onReply={() => startReply(m.id)} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
     });
     const groups = ['All', ...Array.from(new Set(pack.map(p => p.group)))];
 
@@ -175,6 +191,7 @@ export function ChatView({ partner }: { partner: Person }) {
             <button type="button" className="dd-chat-back" onClick={leave} aria-label="Back"><ArrowLeft size={22} /></button>
             <Avatar person={partner} size="sm" />
             <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerTyping ? <span className="dd-chat-typing-label">typing<i>.</i><i>.</i><i>.</i></span> : chat.live ? 'Private chat' : 'Connecting...'}</p></div>
+            {canEdit && <div className="dd-chat-head-actions" role="group" aria-label="Message actions"><button type="button" onClick={copySel}>Copy</button><button type="button" onClick={startEdit}>Edit</button></div>}
         </header>
         <div className="dd-chat-list" ref={scroller} onScroll={e => { const el = e.currentTarget; const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80; stick.current = near; if (near) setNewBelow(false); }} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
@@ -186,6 +203,8 @@ export function ChatView({ partner }: { partner: Person }) {
         </div>
         {newBelow && <button type="button" className="dd-chat-new" onClick={() => { toBottom(true); setNewBelow(false); stick.current = true; }}>New messages ↓</button>}
         <div className="dd-chat-compose">
+            {editing && <div className="dd-chat-replybar"><Pencil /><div><strong>Editing message</strong><span>Change the text, then tap send</span></div>
+                <button type="button" onPointerDown={e => e.preventDefault()} onClick={stopEdit} aria-label="Cancel edit"><XIcon size={16} /></button></div>}
             {replyTo && <div className="dd-chat-replybar"><Reply /><div><strong>Replying to {original ? (original.sender_id === chat.uid ? 'yourself' : partner.name) : 'message'}</strong><span>{original ? snippet(original) : 'Original message is not available'}</span></div>
                 <button type="button" onPointerDown={e => e.preventDefault()} onClick={() => setReplyTo(null)} aria-label="Cancel reply"><XIcon size={16} /></button></div>}
             {trayOpen && <div className="dd-chat-tray">

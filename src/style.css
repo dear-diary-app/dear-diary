@@ -1014,3 +1014,12 @@ html.dd-chat-typing .dd-chat { padding-bottom:6px; }
 /* No scrollbar thumb inside the message box; it scrolls by touch once the text is taller than the box. */
 .dd-chat-bar textarea { overflow-y:hidden; scrollbar-width:none; -ms-overflow-style:none; }
 .dd-chat-bar textarea::-webkit-scrollbar { display:none; width:0; height:0; }
+
+/* Hold a message: reactions pop in one by one (done in about 1.4s). Own messages get Copy and Edit in the header. */
+.dd-chat-emojis button { animation:dd-emo-pop .3s cubic-bezier(.2,1.5,.4,1) both; animation-delay:calc(var(--i, 0) * 190ms); }
+@keyframes dd-emo-pop { from { opacity:0; transform:scale(.2) translateY(10px); } to { opacity:1; transform:none; } }
+.dd-chat-head-actions { margin-left:auto; display:flex; gap:6px; animation:dd-chat-pop .16s ease; }
+.dd-chat-head-actions button { border:1px solid #e2d5c5; background:#fffdf8; color:#6e5d4b; border-radius:16px; min-height:36px; padding:0 14px; font:inherit; font-size:13px; cursor:pointer; }
+.dd-app[data-theme="midnight"] .dd-chat-head-actions button { background:var(--dd-dark-card); border-color:var(--dd-dark-line); color:#f0e3e6; }
+@media (prefers-reduced-motion:reduce) { .dd-chat-emojis button, .dd-chat-head-actions { animation:none; } }
+.dd-app .dd-chat-text { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; }
