@@ -74,6 +74,18 @@ function Row({ m, mine, partner, original, selected, onSelect, onOpen, onReply, 
         else if (!d.moved) onSelect();
     };
     const cancel = () => { clearHold(); if (drag.current?.long) { drag.current = null; return; } drag.current = null; setRest(true); setX(0); };
+    const rowEl = useRef<HTMLDivElement>(null);
+    const [below, setBelow] = useState(false);
+    // Keep the reaction bar right above the held message; if there is no room at the top of the list, scroll a little, else show it below.
+    useLayoutEffect(() => {
+        if (!selected) { setBelow(false); return; }
+        const row = rowEl.current, sc = row?.closest('.dd-chat-list') as HTMLElement | null;
+        if (!row || !sc) return;
+        const NEED = 64;
+        let space = row.getBoundingClientRect().top - sc.getBoundingClientRect().top;
+        if (space < NEED) { sc.scrollTop -= NEED - space; space = row.getBoundingClientRect().top - sc.getBoundingClientRect().top; }
+        setBelow(space < NEED - 4);
+    }, [selected]);
     const groups = useMemo(() => {
         const c = new Map<string, number>();
         Object.values(m.reactions).forEach(e => c.set(e, (c.get(e) ?? 0) + 1));
@@ -81,7 +93,7 @@ function Row({ m, mine, partner, original, selected, onSelect, onOpen, onReply, 
     }, [m.reactions]);
     const mineReact = m.reactions[chat.uid];
     const sticker = m.sticker && known(m.sticker);
-    return <div className={`dd-chat-row ${mine ? 'is-mine' : 'is-theirs'}${flash ? ' is-flash' : ''}`} data-id={m.id}>
+    return <div ref={rowEl} className={`dd-chat-row ${mine ? 'is-mine' : 'is-theirs'}${flash ? ' is-flash' : ''}${selected ? ' is-held' : ''}`} data-id={m.id}>
         <span className={`dd-chat-swipe-icon${mine ? ' is-right' : ''}${dx >= REPLY_AT ? ' is-armed' : ''}`} aria-hidden="true" style={{ opacity: Math.min(1, dx / 36), transform: `translateX(${Math.min(dx, REPLY_AT) * 0.35 * dir}px) scale(${0.5 + Math.min(1, dx / REPLY_AT) * 0.5})` }}><Reply /></span>
         <div className={`dd-chat-msg${sticker ? ' is-sticker' : ''}${m.state === 'failed' ? ' is-failed' : ''}${m.state === 'sending' ? ' is-sending' : ''}`}
             style={{ transform: dx ? `translateX(${dx * dir}px)` : undefined, transition: rest ? 'transform .32s cubic-bezier(.2,1.3,.4,1)' : 'none' }}
@@ -97,13 +109,8 @@ function Row({ m, mine, partner, original, selected, onSelect, onOpen, onReply, 
             <span className="dd-chat-time">{m.edited_at && !sticker ? 'edited · ' : ''}{timeFmt.format(new Date(m.created_at))}</span>
         </div>
         {groups.length > 0 && <div className="dd-chat-reacts">{groups.map(([e, n]) => <button key={e} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => chat.react(m.id, e)} aria-label={`${e} ${n}. Tap to ${mineReact === e ? 'remove' : 'add'} your reaction`}>{e}{n > 1 ? ` ${n}` : ''}</button>)}</div>}
-        {selected && <div className="dd-chat-actions" role="group" aria-label="Message actions">
+        {selected && <div className={`dd-chat-actions${below ? ' is-below' : ''}`} role="group" aria-label="Message actions">
             <div className="dd-chat-emojis">{REACTS.map((e, i) => <button key={e} type="button" style={{ '--i': i } as React.CSSProperties} className={mineReact === e ? 'is-mine' : ''} onClick={() => { chat.react(m.id, e); onSelect(); }} aria-label={`React ${e}`}>{e}</button>)}</div>
-            <div className="dd-chat-cmds">
-                <button type="button" onClick={onReply}><Reply /> Reply</button>
-                {!mine && !sticker && m.body && <button type="button" onClick={() => { void navigator.clipboard?.writeText(m.body).catch(() => {}); onSelect(); }}>Copy</button>}
-                {mine && <button type="button" className="is-danger" onClick={() => { chat.unsend(m.id); }}>Unsend</button>}
-            </div>
         </div>}
         {lastMine && mine && <p className="dd-chat-status" role="status">
             {m.state === 'failed' ? <>Not sent. <button type="button" onClick={() => chat.retry(m.id)}>Retry</button> <button type="button" onClick={() => chat.discard(m.id)}>Delete</button></>
@@ -171,7 +178,9 @@ export function ChatView({ partner }: { partner: Person }) {
     };
     const startReply = (id: string) => { setEditing(null); setReplyTo(id); setSelected(null); input.current?.focus(); };
     const selMsg = selected ? byId.get(selected) : undefined;
-    const canEdit = !!selMsg && selMsg.sender_id === chat.uid && !selMsg.sticker && !!selMsg.body && !selMsg.state;
+    const isText = !!selMsg && !selMsg.sticker && !!selMsg.body;
+    const canEdit = isText && selMsg!.sender_id === chat.uid && !selMsg!.state;
+    const canUnsend = !!selMsg && selMsg.sender_id === chat.uid;
     const startEdit = () => { if (!selMsg) return; setReplyTo(null); setEditing(selMsg.id); setText(selMsg.body); setSelected(null); requestAnimationFrame(() => { grow(); const el = input.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }); };
     const stopEdit = () => { setEditing(null); setText(''); requestAnimationFrame(grow); };
     const copySel = () => { if (selMsg) void navigator.clipboard?.writeText(selMsg.body).catch(() => {}); setSelected(null); };
@@ -191,9 +200,9 @@ export function ChatView({ partner }: { partner: Person }) {
             <button type="button" className="dd-chat-back" onClick={leave} aria-label="Back"><ArrowLeft size={22} /></button>
             <Avatar person={partner} size="sm" />
             <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerTyping ? <span className="dd-chat-typing-label">typing<i>.</i><i>.</i><i>.</i></span> : chat.live ? 'Private chat' : 'Connecting...'}</p></div>
-            {canEdit && <div className="dd-chat-head-actions" role="group" aria-label="Message actions"><button type="button" onClick={copySel}>Copy</button><button type="button" onClick={startEdit}>Edit</button></div>}
+            {selMsg && (isText || canUnsend) && <div className="dd-chat-head-actions" role="group" aria-label="Message actions">{isText && <button type="button" onClick={copySel}>Copy</button>}{canEdit && <button type="button" onClick={startEdit}>Edit</button>}{canUnsend && <button type="button" className="is-danger" onClick={() => { chat.unsend(selMsg.id); setSelected(null); }}>Unsend</button>}</div>}
         </header>
-        <div className="dd-chat-list" ref={scroller} onScroll={e => { const el = e.currentTarget; const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80; stick.current = near; if (near) setNewBelow(false); }} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
+        <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onScroll={e => { const el = e.currentTarget; const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80; stick.current = near; if (near) setNewBelow(false); }} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
             {!chat.loaded && !chat.loadError && <p className="dd-chat-empty" role="status">Opening your chat...</p>}
             {chat.loadError && <p className="dd-chat-empty" role="alert">Could not load the chat. <button type="button" className="dd-chat-link" onClick={chat.reload}>Try again</button></p>}

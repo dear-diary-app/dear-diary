@@ -1030,3 +1030,13 @@ input, textarea, [contenteditable="true"], [contenteditable=""] { -webkit-user-s
 img, svg, a { -webkit-user-drag:none; user-drag:none; }
 ::selection { background:transparent; }
 input::selection, textarea::selection { background:rgba(123,134,111,.35); }
+
+/* Reaction bar sits right above the held message; the held message is lit and the rest fade back. */
+.dd-chat-actions { position:absolute; bottom:100%; margin:0 0 6px; z-index:5; flex-direction:row; }
+.dd-chat-row.is-mine .dd-chat-actions { right:0; } .dd-chat-row.is-theirs .dd-chat-actions { left:0; }
+.dd-chat-actions.is-below { bottom:auto; top:100%; margin:6px 0 0; }
+.dd-chat-list.has-held .dd-chat-row { transition:opacity .2s; } .dd-chat-list.has-held .dd-chat-row:not(.is-held) { opacity:.4; }
+.dd-chat-row.is-held { z-index:4; } .dd-chat-row.is-held .dd-chat-msg { box-shadow:0 0 0 2px rgba(201,120,143,.75), 0 6px 18px rgba(132,99,107,.25); transition:box-shadow .2s; }
+.dd-chat-head-actions button { padding:0 11px; } .dd-chat-head-actions .is-danger { color:#b04a5e; }
+.dd-app[data-theme="midnight"] .dd-chat-head-actions .is-danger { color:#f0a3b3; }
+.dd-chat-head > div:nth-of-type(1) { min-width:0; } .dd-chat-head p, .dd-chat-head h1 { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .dd-chat-head-actions { flex-shrink:0; }
