@@ -1,11 +1,13 @@
 import pack from '../sticker-pack.json';
+import { encryptDiaryPdf } from './pdf-encrypt';
 
 interface ExportEntry { entry_date:string; content:string; status:string; stickers?:unknown; photos?:unknown[] }
 export interface DiarySnapshot { app:string; exported_at:string; export_date:string; account:{username:string}; entries:ExportEntry[] }
 
 // Raster pages let the browser shape Bengali, mixed scripts and emoji correctly.
 // Only text and whitelisted, bundled sticker art are drawn, never entry HTML/URLs.
-export async function readableDiaryPdf(data:DiarySnapshot):Promise<Blob>{
+export async function readableDiaryPdf(data:DiarySnapshot,pin:string):Promise<Blob>{
+ if(!/^\d{4}$/.test(pin))throw new Error('Enter your 4-digit diary PIN.');
  const [{jsPDF}]=await Promise.all([import('jspdf'),(async()=>{
   for(const [family,file] of [['ExportSerif','NotoSerif.woff'],['ExportBengali','NotoSerifBengali.woff'],['ExportEmoji','NotoEmoji.ttf']]){
    if([...document.fonts].some(face=>face.family===family&&face.status==='loaded'))continue;
@@ -66,5 +68,5 @@ export async function readableDiaryPdf(data:DiarySnapshot):Promise<Blob>{
  const notes=['A fresh copy of your own saved diary pages.','Your partner\'s entries are not included.','Photo files and photo captions are not included in this PDF.','Stickers are collected after each entry, not over your words.','This PDF is for reading. Keep the JSON for structured backup.','The pages are images: zoom to read, rather than select text.','No copy is stored on our server. Keep this file private.'];
  notes.forEach((line,i)=>text(line,110,470+i*65,24));
  text('Exported '+new Intl.DateTimeFormat('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}).format(new Date(data.exported_at))+' IST',110,1070,22);finish();
- return pdf.output('blob');
+ return encryptDiaryPdf(pdf.output('blob'),pin);
 }
