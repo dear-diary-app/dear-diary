@@ -1013,7 +1013,6 @@ export function Settings() {
                     <ChevronRight size={18} />
                 </Link>
 
-                <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>
                 <section className="dd-settings-dropdowns" aria-label="More settings">
                     <PrivacySettings />
                     <ThemePicker />
@@ -1034,6 +1033,7 @@ export function Settings() {
                     <DiaryExport />
                 </section>
                 <span style={{ display: 'none' }}>{now.toISOString()}</span>
+                <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>
             </div>
             {cropFile && auth.me && <ProfileCrop file={cropFile} person={auth.me}
                 onClose={() => setCropFile(null)}
