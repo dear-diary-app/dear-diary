@@ -118,5 +118,105 @@
     "id": "heart-lock",
     "name": "Heart keepsake",
     "group": "Love"
+  },
+  {
+    "id": "tulip",
+    "name": "Spring tulip",
+    "group": "Botanical"
+  },
+  {
+    "id": "sunflower",
+    "name": "Sunflower",
+    "group": "Botanical"
+  },
+  {
+    "id": "leaf-sprig",
+    "name": "Leafy sprig",
+    "group": "Botanical"
+  },
+  {
+    "id": "blossom",
+    "name": "Cherry blossom",
+    "group": "Botanical"
+  },
+  {
+    "id": "cloud",
+    "name": "Fluffy cloud",
+    "group": "Celestial"
+  },
+  {
+    "id": "rainbow",
+    "name": "Soft rainbow",
+    "group": "Celestial"
+  },
+  {
+    "id": "umbrella",
+    "name": "Rainy umbrella",
+    "group": "Celestial"
+  },
+  {
+    "id": "coffee",
+    "name": "Morning coffee",
+    "group": "Cozy"
+  },
+  {
+    "id": "pencil",
+    "name": "Sharp pencil",
+    "group": "Cozy"
+  },
+  {
+    "id": "notebook",
+    "name": "Spiral notebook",
+    "group": "Cozy"
+  },
+  {
+    "id": "washi",
+    "name": "Washi tape",
+    "group": "Cozy"
+  },
+  {
+    "id": "paperclip",
+    "name": "Paper clip",
+    "group": "Cozy"
+  },
+  {
+    "id": "pushpin",
+    "name": "Rosy pushpin",
+    "group": "Cozy"
+  },
+  {
+    "id": "polaroid",
+    "name": "Snapshot photo",
+    "group": "Cozy"
+  },
+  {
+    "id": "headphones",
+    "name": "Music headphones",
+    "group": "Cozy"
+  },
+  {
+    "id": "smiley",
+    "name": "Happy face",
+    "group": "Everyday"
+  },
+  {
+    "id": "gift",
+    "name": "Little gift",
+    "group": "Everyday"
+  },
+  {
+    "id": "balloon",
+    "name": "Party balloon",
+    "group": "Everyday"
+  },
+  {
+    "id": "speech",
+    "name": "Speech bubble",
+    "group": "Everyday"
+  },
+  {
+    "id": "paper-plane",
+    "name": "Paper plane",
+    "group": "Everyday"
   }
 ]
