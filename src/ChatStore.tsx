@@ -6,19 +6,20 @@ import { isGifId } from './ChatGifs';
 import { useAppPresence } from './useAppPresence';
 import { useChatTyping } from './useChatTyping';
 import { isEmojiReaction, rememberReaction } from './reactions';
+import { cleanVoice, uploadVoice, voiceExt, type Voice } from './chatAudio';
 import { primeImage, removeImages, uploadImages } from './chatImages';
 
 export interface ChatMsg {
     id: string; sender_id: string; recipient_id: string; body: string; sticker: string | null; gif_id: string | null; reply_to: string | null;
-    reactions: Record<string, string>; created_at: string; seen_at: string | null; edited_at: string | null; images: string[]; state?: 'sending' | 'failed'; scheduled?: boolean;
+    reactions: Record<string, string>; created_at: string; seen_at: string | null; edited_at: string | null; images: string[]; state?: 'sending' | 'failed'; scheduled?: boolean; audio?: Voice | null;
 }
-const COLS = 'id, sender_id, recipient_id, body, sticker, gif_id, reply_to, reactions, created_at, seen_at, edited_at, images, scheduled';
+const COLS = 'id, sender_id, recipient_id, body, sticker, gif_id, reply_to, reactions, created_at, seen_at, edited_at, images, scheduled, audio';
 const PAGE = 60;
 const byTime = (a: ChatMsg, b: ChatMsg) => a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : a.id < b.id ? -1 : 1;
 function clean(r: unknown): ChatMsg | null {
     const m = r as Partial<ChatMsg> | null;
     if (!m || typeof m.id !== 'string' || typeof m.sender_id !== 'string' || typeof m.created_at !== 'string') return null;
-    return { scheduled:m.scheduled===true, id: m.id, sender_id: m.sender_id, recipient_id: String(m.recipient_id ?? ''), body: typeof m.body === 'string' ? m.body : '', sticker: typeof m.sticker === 'string' ? m.sticker : null, gif_id: isGifId(m.gif_id) ? m.gif_id : null,
+    return { audio:cleanVoice(m.audio), scheduled:m.scheduled===true, id: m.id, sender_id: m.sender_id, recipient_id: String(m.recipient_id ?? ''), body: typeof m.body === 'string' ? m.body : '', sticker: typeof m.sticker === 'string' ? m.sticker : null, gif_id: isGifId(m.gif_id) ? m.gif_id : null,
         reply_to: typeof m.reply_to === 'string' ? m.reply_to : null, reactions: m.reactions && typeof m.reactions === 'object' ? m.reactions as Record<string, string> : {},
         created_at: m.created_at, seen_at: typeof m.seen_at === 'string' ? m.seen_at : null, edited_at: typeof m.edited_at === 'string' ? m.edited_at : null,
         images: Array.isArray(m.images) ? (m.images as unknown[]).filter((x): x is string => typeof x === 'string').slice(0, 3) : [] };
@@ -31,6 +32,7 @@ export interface ChatApi {
     uid: string; messages: ChatMsg[]; loaded: boolean; loadError: boolean; hasMore: boolean; live: boolean; partnerTyping: boolean; partnerOnline: boolean; unread: number;
     send: (body: string, sticker?: string | null, replyTo?: string | null) => void;
     sendGif: (id: string, replyTo?: string | null, messageId?: string) => Promise<boolean>;
+    sendVoice: (blob: Blob, duration: number, mime: string, peaks: number[], replyTo?: string | null) => void;
     sendImages: (files: Blob[], body: string, replyTo?: string | null) => void;
     retry: (id: string) => void; discard: (id: string) => void; unsend: (id: string) => Promise<boolean>; edit: (id: string, body: string) => void; react: (id: string, emoji: string) => void;
     loadOlder: () => Promise<void>; typing: (on: boolean) => void; setViewing: (on: boolean) => void; reload: () => void;
@@ -155,6 +157,8 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
         });
     }, [viewing, visible, unseenIncoming, uid]);
 
+    const pendingAudio = useRef(new Map<string, Blob>());
+    const sendWithVoice = async (m: ChatMsg, blob: Blob) => { try { if (!m.audio || !await uploadVoice(m.audio, blob)) throw Error(); await insert(m); } catch { setMessages(prev=>prev.map(x=>x.id===m.id?{...x,state:'failed'}:x)); } };
     const pending = useRef(new Map<string, Blob[]>());
     // Photos upload first (private bucket), then the message row points at them.
     const sendWithPhotos = useCallback(async (m: ChatMsg, blobs: Blob[]) => {
@@ -165,14 +169,15 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     }, []);
     const insert = useCallback(async (m: ChatMsg): Promise<boolean> => {
         try {
-            let { data, error } = await supabase.from('chat_messages').insert({ id: m.id, body: m.body, sticker: m.sticker, gif_id: m.gif_id, reply_to: m.reply_to, images: m.images }).select(COLS).single();
+            let { data, error } = await supabase.from('chat_messages').insert({ id: m.id, body: m.body, sticker: m.sticker, gif_id: m.gif_id, reply_to: m.reply_to, images: m.images, audio: m.audio || null }).select(COLS).single();
             // A retry after a lost response reuses the same id, never a second message.
             if (error?.code === '23505') {
                 const existing = await supabase.from('chat_messages').select(COLS).eq('id', m.id).single();
-                if (existing.data?.sender_id === m.sender_id && existing.data?.gif_id === m.gif_id) { data = existing.data; error = existing.error; }
+                if (existing.data?.sender_id === m.sender_id && existing.data?.gif_id === m.gif_id && (existing.data?.audio?.path||null)===(m.audio?.path||null)) { data = existing.data; error = existing.error; }
             }
             const row = !error && data ? clean(data) : null;
             if (!row) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return false; }
+            pendingAudio.current.delete(m.id);
             setMessages(prev => prev.map(x => x.id === m.id ? row : x).sort(byTime));
             return true;
         } catch { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return false; }
@@ -193,6 +198,12 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             setMessages(prev => [...prev.filter(x => x.id !== m.id), m].sort(byTime));
             return await insert(m);
         },
+        sendVoice: (blob,duration,mime,peaks,replyTo=null) => {
+            const id=crypto.randomUUID(),audio=cleanVoice({path:`${uid}/${id}.${voiceExt(mime)}`,duration,mime,peaks});
+            if(!audio||!blob.size||blob.size>5*1024*1024)return;
+            const m:ChatMsg={id,sender_id:uid,recipient_id:partner.current??'',body:'',sticker:null,gif_id:null,audio,reply_to:replyTo,reactions:{},created_at:new Date().toISOString(),seen_at:null,edited_at:null,images:[],state:'sending'};
+            pendingAudio.current.set(id,blob);setMessages(prev=>[...prev,m].sort(byTime));void sendWithVoice(m,blob);
+        },
         sendImages: (files, body, replyTo = null) => {
             const blobs = files.slice(0, 3);
             if (!blobs.length) return;
@@ -207,13 +218,15 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
         retry: id => {
             const m = list.current.find(x => x.id === id); if (!m) return;
             setMessages(prev => prev.map(x => x.id === id ? { ...x, state: 'sending' } : x));
+            const voiceBlob=pendingAudio.current.get(id);if(voiceBlob){void sendWithVoice(m,voiceBlob);return;}
             const blobs = pending.current.get(id);
             if (blobs) void sendWithPhotos(m, blobs); else insert(m);
         },
-        discard: id => { pending.current.delete(id); setMessages(prev => prev.filter(m => m.id !== id)); },
+        discard: id => { const m=list.current.find(x=>x.id===id);if(m?.audio)void supabase.rpc('chat_remove_voice',{p_id:id,p_path:m.audio.path});pendingAudio.current.delete(id);pending.current.delete(id); setMessages(prev => prev.filter(m => m.id !== id)); },
         unsend: async id => {
             const old = list.current.find(m => m.id === id);
             if (!old || old.sender_id !== uid || old.state === 'sending') return false;
+            if (old.audio) { try { const r=await supabase.rpc('chat_remove_voice',{p_id:id,p_path:old.audio.path});if(r.error)return false;pendingAudio.current.delete(id);setMessages(prev=>dropMessage(prev,id));return true; } catch{return false;} }
             if (old.state === 'failed') { pending.current.delete(id); setMessages(prev => dropMessage(prev, id)); return true; }
             try {
                 const { error } = await supabase.from('chat_messages').delete().eq('id', id);
@@ -226,7 +239,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
         edit: (id, body) => {
             const text = body.trim().slice(0, 2000);
             const old = list.current.find(m => m.id === id);
-            if (!old || old.sticker || old.gif_id || !text || text === old.body) return;
+            if (!old || old.audio || old.sticker || old.gif_id || !text || text === old.body) return;
             setMessages(prev => prev.map(m => m.id === id ? { ...m, body: text, edited_at: new Date().toISOString() } : m));
             void Promise.resolve(supabase.rpc('chat_edit', { p_id: id, p_body: text })).then(({ error }) => { if (error) merge([old]); });
         },

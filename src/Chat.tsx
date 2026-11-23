@@ -15,6 +15,7 @@ import { ChatAttachments } from './ChatAttachments';
 import { ChatPins } from './ChatPins';
 import { ScheduledChat } from './ScheduledChat';
 import { ChatStatus } from './ChatStatus';
+import { VoicePlayer, VoiceRecorder, Mic } from './VoiceNote';
 import { WeatherScene } from './Weather';
 
 const art = (id: string) => `${import.meta.env.BASE_URL}stickers/${id}.webp`;
@@ -36,7 +37,7 @@ const Heart = () => <svg width="46" height="46" viewBox="0 0 24 24" fill="curren
 const Send = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.3 10l12 2-12 2Z" /></svg>;
 
 const photoWord = (n: number) => n > 1 ? `${n} photos` : 'Photo';
-function snippet(m: ChatMsg) { if (m.gif_id) return 'GIF'; if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
+function snippet(m: ChatMsg) { if(m.audio)return 'Voice note'; if (m.gif_id) return 'GIF'; if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
 
 function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, onOpen, onPhoto, onReply, onJump, onMore, gif, gifError, retryGif, flash, lastMine }: {
     arrive: boolean; gif?: Gif | null; gifError: string; retryGif: () => void;
@@ -136,12 +137,13 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
             style={{ transform: dx ? `translateX(${dx * dir}px)` : undefined, transition: rest ? 'transform .26s cubic-bezier(.2,.8,.25,1)' : 'none' }}
             onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}
             role="button" tabIndex={0} aria-label={`${mine ? 'Your' : `${partner.name}'s`} message: ${snippet(m)}. Press Enter for actions.`}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } else if (e.key === 'r') { e.preventDefault(); onReply(); } }}>
+            onKeyDown={e => { if(e.target!==e.currentTarget)return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } else if (e.key === 'r') { e.preventDefault(); onReply(); } }}>
             {heartPop>0&&<span key={heartPop} className="dd-heart-pop" aria-hidden="true"><Heart/></span>}
             {m.reply_to && <button type="button" className="dd-chat-quote" disabled={!original} onPointerDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); original && onJump(original.id); }}>
                 <strong>{original ? (original.sender_id === chat.uid ? 'You' : partner.name) : 'Message'}</strong>
                 <span>{original ? snippet(original) : 'Original message is not available'}</span>
             </button>}
+            {m.audio && (m.state?<span className="dd-chat-text">🎙 Voice note · {Math.round(m.audio.duration)}s</span>:<VoicePlayer voice={m.audio}/>)}
             {m.images.length > 0 && <div className={`dd-chat-photos n${m.images.length}`}>{m.images.map((p, i) => <Thumb key={p} path={p} index={i} total={m.images.length} sending={m.state === 'sending'} onOpen={k => { if (Date.now() - noClick.current > 600) onPhoto(m.images, k); }} />)}</div>}
             {m.gif_id && <div className="dd-chat-gif">{gif ? <><GifMedia gif={gif}/><GifCredit gif={gif}/></> : <div className="dd-gif-placeholder">{gif === null ? 'GIF is unavailable.' : gifError || 'Loading GIF...'}{gifError && <button type="button" onPointerDown={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();retryGif();}}>Retry GIF</button>}</div>}</div>}
             {sticker ? <img className="dd-chat-sticker" src={art(m.sticker!)} alt={stickerName(m.sticker!)} width="128" height="128" draggable={false} />
@@ -168,6 +170,8 @@ export function ChatView({ partner }: { partner: Person }) {
     // Go back to wherever the chat was opened from; if it was opened directly, go home.
     const leave = () => { if ((window.history.state?.idx ?? 0) > 0) navigate(-1); else navigate('/', { replace: true }); };
     const [text, setText] = useState('');
+    const [recording,setRecording]=useState(false);
+    useEffect(()=>{setRecording(false);},[useLocation().pathname]);
     const [replyTo, setReplyTo] = useState<string | null>(null);
     const [selected, setSelected] = useState<string | null>(null);
     const [pinnedIds,setPinnedIds]=useState<Set<string>>(new Set());
@@ -338,7 +342,7 @@ export function ChatView({ partner }: { partner: Person }) {
     useLayoutEffect(() => { if (stick.current) toBottom(); }, [gifs.items]);
     const startReply = (id: string) => { setEditing(null); setReplyTo(id); setSelected(null); input.current?.focus(); };
     const selMsg = selected ? byId.get(selected) : undefined;
-    const isText = !!selMsg && !selMsg.sticker && !selMsg.gif_id && !!selMsg.body;
+    const isText = !!selMsg && !selMsg.sticker && !selMsg.gif_id && !selMsg.audio && !!selMsg.body;
     const canEdit = isText && selMsg!.sender_id === chat.uid && !selMsg!.state;
     const canUnsend = !!selMsg && selMsg.sender_id === chat.uid && selMsg.state !== 'sending';
     const startEdit = () => { if (!selMsg) return; setTrayOpen(false); clearStaged(); setReplyTo(null); setEditing(selMsg.id); setText(selMsg.body); setSelected(null); requestAnimationFrame(() => { grow(); const el = input.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }); };
@@ -393,7 +397,7 @@ export function ChatView({ partner }: { partner: Person }) {
             {staged.length > 0 && <div className="dd-chat-staged" aria-label="Photos to send">{staged.map((x, i) => <div key={x.id} className="dd-chat-staged-item"><img src={x.url} alt={`Photo ${i + 1} to send`} draggable={false} /><button type="button" onPointerDown={e => e.preventDefault()} onClick={() => setStaged(prev => { URL.revokeObjectURL(x.url); return prev.filter(y => y.id !== x.id); })} aria-label={`Remove photo ${i + 1}`}><XIcon size={14} /></button></div>)}<span>{staged.length}/{MAX_PHOTOS}</span></div>}
             {note && <p className="dd-chat-note" role="status">{note}</p>}
             {trayOpen && <GifPicker onBusyChange={setGifSending} height={Math.max(160, Math.min(330, (vh ?? window.innerHeight) * .45))} onClose={() => setTrayOpen(false)} onSend={async (id,messageId) => { const ok=await chat.sendGif(id, replyTo,messageId); if(ok){chat.typing(false); setReplyTo(null); setTrayOpen(false); stick.current = true;} return ok; }} />}
-            <div className="dd-chat-bar">
+            {recording&&!profileOpen?<VoiceRecorder onClose={()=>setRecording(false)} onSend={(blob,duration,mime,peaks)=>{chat.sendVoice(blob,duration,mime,peaks,replyTo);setReplyTo(null);stick.current=true;}}/>:<div className="dd-chat-bar">
                 <ChatAttachments compact={text.length>0} gifDisabled={gifSending||!!editing||staged.length>0} disabled={gifSending||!!editing} trayOpen={trayOpen} onGif={()=>{input.current?.blur();setTrayOpen(o=>!o);}} onPhoto={()=>fileInput.current?.click()}/>
                 <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={e => { void pick(e.target.files); }} />
                 <textarea ref={input} rows={1} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="enter"
@@ -401,8 +405,9 @@ export function ChatView({ partner }: { partner: Person }) {
                     onFocus={() => { document.documentElement.classList.add('dd-chat-typing'); if(!gifSending)setTrayOpen(false); }}
                     onBlur={() => { document.documentElement.classList.remove('dd-chat-typing'); chat.typing(false); }}
                     />
+                {!text.trim()&&!staged.length&&!editing&&<button type="button" className="dd-chat-iconbtn" aria-label="Record voice note" onClick={()=>{input.current?.blur();chat.typing(false);setTrayOpen(false);setRecording(true);}}><Mic/></button>}
                 <button type="button" className="dd-chat-send" aria-label="Send message" disabled={!text.trim() && !staged.length} onPointerDown={e=>{e.preventDefault();sendHeld.current=false;sendOrigin.current={x:e.clientX,y:e.clientY};try{e.currentTarget.setPointerCapture(e.pointerId);}catch{}window.clearTimeout(sendHold.current);sendHold.current=window.setTimeout(()=>{sendHeld.current=true;chat.typing(false);input.current?.blur();setScheduleRequest(n=>n+1);},500);}} onPointerMove={e=>{if(Math.hypot(e.clientX-sendOrigin.current.x,e.clientY-sendOrigin.current.y)>12)window.clearTimeout(sendHold.current);}} onPointerUp={()=>window.clearTimeout(sendHold.current)} onPointerCancel={()=>window.clearTimeout(sendHold.current)} onContextMenu={e=>e.preventDefault()} onKeyDown={e=>{if(e.key==='ArrowUp'&&e.altKey){e.preventDefault();chat.typing(false);setScheduleRequest(n=>n+1);}}} onClick={()=>{window.clearTimeout(sendHold.current);if(sendHeld.current){sendHeld.current=false;return;}submit();}}><Send /></button>
-            </div>
+            </div>}
         </div>
     </main>{profileOpen&&<ChatProfile partner={partner}/>}</>;
 }

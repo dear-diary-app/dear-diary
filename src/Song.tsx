@@ -89,6 +89,7 @@ if (typeof document !== "undefined")
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) active?.stop();
   });
+if(typeof window!=='undefined'){window.addEventListener('dd-voice-play',()=>active?.stop());window.addEventListener('dd-voice-record',()=>active?.stop());}
 function usePreview(url: string) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -154,6 +155,7 @@ function usePreview(url: string) {
       audio.current = a;
     }
     const a = audio.current;
+    window.dispatchEvent(new Event('dd-song-play'));
     if (!a.paused) {
       stop();
       return;
