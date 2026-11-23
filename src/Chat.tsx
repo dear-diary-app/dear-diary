@@ -12,6 +12,7 @@ import { EmojiPicker } from './EmojiPicker';
 import { quickReactions } from './reactions';
 import { ChatProfile } from './ChatProfile';
 import { ChatAttachments } from './ChatAttachments';
+import { ChatStatus } from './ChatStatus';
 import { WeatherScene } from './Weather';
 
 const art = (id: string) => `${import.meta.env.BASE_URL}stickers/${id}.webp`;
@@ -328,6 +329,7 @@ export function ChatView({ partner }: { partner: Person }) {
             <button type="button" className="dd-chat-back" onClick={() => selected ? setSelected(null) : leave()} aria-label={selected ? "Cancel selection" : "Back"}><ArrowLeft size={22} /></button>
             {selected ? <div className="dd-chat-selection"><h1>1 selected</h1><p>Choose a reaction</p></div> : <Link to="/chat/profile" state={{ ddChatProfile: true }} className="dd-chat-contact" aria-label={`View ${partner.name}'s profile`} onClick={()=>input.current?.blur()}><Avatar person={partner} size="sm" />
             <div className={`dd-contact-label${chat.partnerOnline?' is-online':''}`}><h1>{partner.name}</h1><p aria-live="polite" aria-hidden={!chat.partnerOnline||undefined}>Online</p></div></Link>}
+            {!selMsg && <ChatStatus partner={partner} online={chat.partnerOnline}/>}
             {selMsg && (isText || canUnsend) && <div className="dd-chat-head-actions">
                 <button type="button" className="dd-chat-more" aria-label="Message options" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(o => !o)}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg></button>
                 {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => { setMenuOpen(false); setSelected(null); }} />

@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'chatstatus', emoji: '💬', title: 'Share your chat status', text: 'Set Free, Studying, Busy or your own short status from the top right of Chat. Your friend can see it there. Clear it whenever you like; Online stays automatic and separate.' },
         { id: 'profileclean', emoji: '🌿', title: 'A simpler profile', text: 'Your profile stays clean, with photo, bio and mood controls tucked behind Edit profile. The song card is simpler too.' },
         { id: 'rainallpages', emoji: '🌧️', title: 'The same sky on every page', text: 'Weather animation is now visible on Home, History, diary and Profile pages as well as Chat. Busy devices lower the sky detail and frame rate before switching to a still background.' },
         { id: 'profiletab', emoji: '💛', title: 'A little space for you', text: 'Profile now has its own bottom tab. Update your picture, write a short bio, choose a mood and see your writing streak. You can view your friend’s profile too. Share a fixed song preview for 24 hours. Account settings still live at the top.' },
