@@ -196,6 +196,7 @@ export function ChatView({ partner }: { partner: Person }) {
     const [trayOpen, setTrayOpen] = useState(false);
     const [flash, setFlash] = useState<string | null>(null);
     const [belowIds, setBelowIds] = useState<string[]>([]);
+    const [awayFromBottom,setAwayFromBottom] = useState(false);
     const lastTs = useRef('');
     const setNewBelow = (v: boolean) => { if (!v) setBelowIds([]); };
     const scroller = useRef<HTMLDivElement>(null);
@@ -234,7 +235,7 @@ export function ChatView({ partner }: { partner: Person }) {
 
     const byId = useMemo(() => new Map(chat.messages.map(m => [m.id, m])), [chat.messages]);
     // An unsent message leaves nothing behind: close anything that was pointing at it, without a word.
-    const newBelow = belowIds.some(id => byId.has(id));
+    const newBelowCount = new Set(belowIds.filter(id=>byId.has(id))).size;
     useEffect(() => {
         if (!chat.loaded) return;
         if (selected && !byId.has(selected)) setSelected(null);
@@ -255,6 +256,7 @@ export function ChatView({ partner }: { partner: Person }) {
         if (last && last.created_at > lastTs.current) lastTs.current = last.created_at;
     }, [chat.messages, chat.partnerTyping, chat.uid]);
     useLayoutEffect(() => { if (chat.loaded) toBottom(); }, [chat.loaded]);
+    useEffect(()=>{const el=scroller.current;if(!el)return;const measure=()=>setAwayFromBottom(el.scrollHeight-el.scrollTop-el.clientHeight>120);const observer=new ResizeObserver(measure);observer.observe(el);measure();return()=>observer.disconnect();},[]);
     useLayoutEffect(() => { if (stick.current) toBottom(); }, [vh, replyTo, trayOpen]);
 
     const grow = () => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; el.style.overflowY = el.scrollHeight > 120 ? 'auto' : 'hidden'; if (stick.current) toBottom(); };
@@ -312,7 +314,7 @@ export function ChatView({ partner }: { partner: Person }) {
                     </div></>}
             </div>}
         </header>
-        <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onScroll={e => { const el = e.currentTarget; const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80; stick.current = near; if (near) setNewBelow(false); }} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
+        <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onScroll={e => { const el = e.currentTarget; const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80; stick.current = near;setAwayFromBottom(el.scrollHeight-el.scrollTop-el.clientHeight>120); if (near) setNewBelow(false); }} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
             {!chat.loaded && !chat.loadError && <p className="dd-chat-empty" role="status">Opening your chat...</p>}
             {chat.loadError && <p className="dd-chat-empty" role="alert">Could not load the chat. <button type="button" className="dd-chat-link" onClick={chat.reload}>Try again</button></p>}
@@ -322,8 +324,8 @@ export function ChatView({ partner }: { partner: Person }) {
         </div>
         {viewer && <Viewer paths={viewer.paths} start={viewer.i} onClose={() => setViewer(null)} />}
         {emojiFor && byId.has(emojiFor) && <EmojiPicker uid={chat.uid} selected={byId.get(emojiFor)?.reactions[chat.uid]} onPick={e => chat.react(emojiFor, e)} onClose={() => { setEmojiFor(null); setSelected(null); }} />}
-        {newBelow && <button type="button" className="dd-chat-new" onClick={() => { toBottom(true); setNewBelow(false); stick.current = true; }}>New messages ↓</button>}
         <div className="dd-chat-compose">
+            <button type="button" className={`dd-chat-bottom${awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?' is-visible':''}`} aria-label={newBelowCount?`Scroll to latest message, ${newBelowCount} new ${newBelowCount===1?'message':'messages'}`:'Scroll to latest message'} tabIndex={awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?0:-1} aria-hidden={!(awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen)||undefined} onPointerDown={e=>e.preventDefault()} onClick={()=>{setNewBelow(false);stick.current=true;toBottom(true);}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>{newBelowCount>0&&<span className="dd-chat-bottom-count" aria-hidden="true">{newBelowCount>99?'99+':newBelowCount}</span>}</button>
             {editing && <div className="dd-chat-replybar"><Pencil /><div><strong>Editing message</strong><span>Change the text, then tap send</span></div>
                 <button type="button" onPointerDown={e => e.preventDefault()} onClick={stopEdit} aria-label="Cancel edit"><XIcon size={16} /></button></div>}
             {replyTo && <div className="dd-chat-replybar"><Reply /><div><strong>Replying to {original ? (original.sender_id === chat.uid ? 'yourself' : partner.name) : 'message'}</strong><span>{original ? snippet(original) : 'Original message is not available'}</span></div>
