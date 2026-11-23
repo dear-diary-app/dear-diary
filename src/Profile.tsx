@@ -210,7 +210,7 @@ function ProfileBody({ who }: { who: PersonId }) {
       className="dd-shell dd-shell-narrow dd-profile-page"
       data-profile-dirty={dirty || busy || songBusy ? "true" : undefined}
     >
-      <TopBar back="/" />
+      <TopBar />
       <header className="dd-profile-title">
         <div>
           <h1 className="dd-title">

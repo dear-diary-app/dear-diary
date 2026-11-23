@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'tabheaders', emoji: '↟', title: 'Simpler tab headers', text: 'My diary, History and Profile no longer have a back arrow in the top left. Use the bottom tabs to move around. Chat, Contact info and other detail pages keep their back controls.' },
         { id: 'contactglass', emoji: '🫧', title: 'A softer shared space', text: 'Contact info has a clearer glass header, a smaller profile card and rounded Photos and Links tabs. Your shared photos and links work as before, visible only to the two of you.' },
         { id: 'chatpins', emoji: '📌', title: 'Keep a message close', text: 'Hold any sent message and choose Pin. Shared pins sit above your chat; tap to jump back. Choose 24 hours, 7 days or Always. Expand the bar to see or unpin up to 10 messages. Unsending a message removes its pin too.' },
         { id: 'resumeplace', emoji: '📍', title: 'Return to your place', text: 'Reopening the app restores your last page for this account, after the usual PIN check. Chat remembers your reading position on this device. Your phone can still reload the app when memory is low.' },

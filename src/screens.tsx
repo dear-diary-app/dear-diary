@@ -320,7 +320,7 @@ export function Hub({ person }: { person: PersonId }) {
 
     return (
         <main className="dd-shell dd-shell-narrow">
-            <TopBar back="/" backLabel="Back to the books" alert={Boolean(store.unreadLatest(p.id, now))} />
+            <TopBar alert={Boolean(store.unreadLatest(p.id, now))} />
             <div className="dd-anim" key={`hub-${person}`}>
                 <div className="dd-hub-head">
                     <Avatar person={p} size="lg" />
@@ -586,7 +586,7 @@ export function Calendar({ viewer }: { viewer: PersonId }) {
 
     return (
         <main className="dd-shell">
-            <TopBar back={`/hub/${viewer}`} backLabel="Back to your diary" alert={Boolean(store.unreadLatest(viewer, now))} />
+            <TopBar alert={Boolean(store.unreadLatest(viewer, now))} />
             <div className="dd-anim" key={`cal-${viewer}`}>
                 <h1 className="dd-title">Diary history</h1>
                 <p className="dd-sub">Every page, month by month</p>
