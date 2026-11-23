@@ -3,6 +3,7 @@ import { useAuth } from './store';
 import { supabase } from './lib/supabase';
 import { Check, ChevronRight } from './icons';
 import { fadeTheme } from './motion';
+import { WeatherContext,WeatherScene,useWeather } from './Weather';
 
 const PALETTES = [
     { id: 'paper', name: 'Warm paper', note: 'The original', top: '#fdf9f4', mid: '#faf3ee', bottom: '#f7efe9', glass: '255, 250, 247' },
@@ -14,7 +15,10 @@ const PALETTES = [
 ] as const;
 type ThemeId = typeof PALETTES[number]['id'];
 const valid = (id: unknown): ThemeId => PALETTES.some(p => p.id === id) ? id as ThemeId : 'paper';
-const ThemeContext = createContext<{ theme: ThemeId; busy: boolean; message: string; choose: (id: ThemeId) => void } | null>(null);
+type ThemeMode='fixed'|'auto';
+export const DAY_START_HOUR=6,NIGHT_START_HOUR=18;
+export const autoTheme=(date=new Date()):ThemeId=>date.getHours()>=DAY_START_HOUR&&date.getHours()<NIGHT_START_HOUR?'lavender':'midnight';
+const ThemeContext = createContext<{ mode:ThemeMode;setMode:(mode:ThemeMode)=>void;weatherOn:boolean;setWeatherOn:(on:boolean)=>void; theme: ThemeId; busy: boolean; message: string; choose: (id: ThemeId) => void } | null>(null);
 const cacheKey = (uid: string) => `dd_background_${uid}`;
 function cached(uid: string): ThemeId {
     try { return valid(localStorage.getItem(cacheKey(uid))); } catch { return 'paper'; }
@@ -25,7 +29,15 @@ function cache(uid: string, theme: ThemeId) {
 
 // Account-scoped server setting, with an account-scoped local first-paint cache.
 export function ThemeFrame({ className, children }: { className: string; children: React.ReactNode }) {
-    const uid = useAuth().session!.user.id;
+    const auth=useAuth();const uid = auth.session!.user.id;
+    const [mode,setModeState]=useState<ThemeMode>(()=>{try{return (localStorage.getItem(`dd_theme_mode_${uid}`) as ThemeMode)|| (auth.me==='joydeep'?'auto':'fixed');}catch{return auth.me==='joydeep'?'auto':'fixed';}});
+    useEffect(()=>{try{if(!localStorage.getItem(`dd_theme_mode_${uid}`)&&auth.me==='joydeep')localStorage.setItem(`dd_theme_mode_${uid}`,'auto');}catch{}},[uid,auth.me]);
+    const [weatherOn,setWeatherState]=useState(()=>{try{return localStorage.getItem(`dd_weather_${uid}`)==='on';}catch{return false;}});
+    const [clock,setClock]=useState(()=>new Date());
+    const weather=useWeather(uid,weatherOn);
+    const setMode=(next:ThemeMode)=>{setModeState(next);try{localStorage.setItem(`dd_theme_mode_${uid}`,next);}catch{};};
+    const setWeatherOn=(on:boolean)=>{setWeatherState(on);try{localStorage.setItem(`dd_weather_${uid}`,on?'on':'off');}catch{};if(on)weather.refresh();};
+    useEffect(()=>{const update=()=>setClock(new Date());const timer=window.setInterval(update,30000);document.addEventListener('visibilitychange',update);return()=>{clearInterval(timer);document.removeEventListener('visibilitychange',update);};},[]);
     const [theme, setTheme] = useState<ThemeId>(() => cached(uid));
     const [busy, setBusy] = useState(true);
     const [message, setMessage] = useState('');
@@ -39,24 +51,28 @@ export function ThemeFrame({ className, children }: { className: string; childre
         });
         return () => { active = false; };
     }, [uid]);
-    const palette = PALETTES.find(p => p.id === theme)!;
+    const activeTheme=mode==='auto'?autoTheme(clock):theme;
+    const palette = PALETTES.find(p => p.id === activeTheme)!;
     useEffect(() => {
         const meta = document.querySelector('meta[name="theme-color"]');
         // Android may use this for its bottom system bar as well as browser chrome.
-        meta?.setAttribute('content', palette.bottom);
+        meta?.setAttribute('content', palette.top);
         const html = document.documentElement;
-        html.style.setProperty('--dd-canvas', palette.bottom);
-        html.style.setProperty('--dd-colour-scheme', theme === 'midnight' ? 'dark' : 'light');
-        html.dataset.diaryTheme = theme;
+        html.style.setProperty('--dd-canvas', palette.top);
+        document.body.style.backgroundColor=palette.top;
+        document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.setAttribute('content',activeTheme==='midnight'?'black-translucent':'default');
+        html.style.setProperty('--dd-colour-scheme', activeTheme === 'midnight' ? 'dark' : 'light');
+        html.dataset.diaryTheme = activeTheme;
         return () => {
             meta?.setAttribute('content', '#fdf9f4');
             html.style.removeProperty('--dd-canvas');
             html.style.removeProperty('--dd-colour-scheme');
-            delete html.dataset.diaryTheme;
+            delete html.dataset.diaryTheme;document.body.style.removeProperty('background-color');
         };
     }, [palette]);
     const choose = async (id: ThemeId) => {
         if (busy) return;
+        setMode('fixed');
         const previous = theme;
         fadeTheme(() => setTheme(id)); setBusy(true); setMessage('Saving your theme...');
         const { error } = await supabase.from('app_settings').upsert({ user_id: uid, theme: id }, { onConflict: 'user_id' });
@@ -64,31 +80,34 @@ export function ThemeFrame({ className, children }: { className: string; childre
         else { cache(uid, id); setMessage('Theme saved for your account.'); }
         setBusy(false);
     };
-    return <ThemeContext.Provider value={{ theme, busy, message, choose }}>
-        <div className={className} data-theme={theme} style={{
+    return <ThemeContext.Provider value={{mode,setMode,weatherOn,setWeatherOn,theme,busy,message,choose}}>
+        <WeatherContext.Provider value={weather}><div className={className} data-theme={activeTheme} style={{
             '--dd-bg-top': palette.top, '--dd-bg-mid': palette.mid, '--dd-bg-bottom': palette.bottom,
             '--dd-glass': palette.glass,
-        } as React.CSSProperties}>{children}</div>
+        } as React.CSSProperties}><WeatherScene/>{children}</div></WeatherContext.Provider>
     </ThemeContext.Provider>;
 }
 
 export function ThemePicker() {
-    const state = useContext(ThemeContext)!;
+    const state = useContext(ThemeContext)!;const weather=useContext(WeatherContext);
     return <section className="dd-card dd-theme-picker" aria-labelledby="dd-theme-heading">
         <details className="dd-settings-fold">
-        <summary><span className="dd-settings-fold-label"><h2 id="dd-theme-heading" className="dd-card-title">Background theme</h2><span className="dd-settings-fold-note">{PALETTES.find(p => p.id === state.theme)!.name}</span></span><ChevronRight size={20} /></summary>
+        <summary><span className="dd-settings-fold-label"><h2 id="dd-theme-heading" className="dd-card-title">Background theme</h2><span className="dd-settings-fold-note">{state.mode==='auto'?'Auto day / night':PALETTES.find(p => p.id === state.theme)!.name}</span></span><ChevronRight size={20} /></summary>
         <div className="dd-settings-fold-content">
-        <p className="dd-card-sub">A little colour for your space. Warm paper is the default. Your choice is only for your account.</p>
+        <p className="dd-card-sub">A little colour for your space. Choose an automatic day/night look or keep one fixed colour. Your choice is only for your account.</p>
+        <div className="dd-theme-modes" role="group" aria-label="Theme mode"><button type="button" aria-pressed={state.mode==='auto'} onClick={()=>state.setMode('auto')}>Auto day / night</button><button type="button" aria-pressed={state.mode==='fixed'} onClick={()=>state.setMode('fixed')}>Fixed colour</button></div>
+        <p className="dd-card-sub">Auto: Lavender from 6 am to 6 pm, Midnight from 6 pm to 6 am, using this device's local time. Mode and weather options stay on this device, separately for each account.</p>
         <div className="dd-theme-options" role="group" aria-label="Background theme colour">
             {PALETTES.map(p => <button type="button" key={p.id} disabled={state.busy}
-                className={`dd-theme-option${state.theme === p.id ? ' is-selected' : ''}`}
-                aria-pressed={state.theme === p.id} onClick={() => void state.choose(p.id)}>
+                className={`dd-theme-option${state.mode==='fixed' && state.theme === p.id ? ' is-selected' : ''}`}
+                aria-pressed={state.mode==='fixed' && state.theme === p.id} onClick={() => void state.choose(p.id)}>
                 <span className="dd-theme-swatch" style={{ background: `linear-gradient(135deg, ${p.top}, ${p.bottom})`, color: p.id === 'midnight' ? '#f0c5ce' : '#754856' }}>
-                    {state.theme === p.id && <Check size={18} />}
+                    {state.mode==='fixed' && state.theme === p.id && <Check size={18} />}
                 </span>
                 <span><strong>{p.name}</strong><small>{p.note}</small></span>
             </button>)}
         </div>
+        <div className="dd-weather-settings"><label><input type="checkbox" checked={state.weatherOn} onChange={e=>state.setWeatherOn(e.target.checked)}/> Local weather background</label><p>Optional. Uses your browser location, rounded to about 5 km, to get weather from Open-Meteo about every 30 minutes while open. Coordinates stay out of your diary and are not saved by this app. The weather provider receives them and your IP address. Each person sees their own local weather.</p>{state.weatherOn&&<><button type="button" className="dd-btn dd-btn-ghost" onClick={weather.refresh}>Enable / refresh weather</button><p role="status">{weather.status}</p></>}<p>Rain, snow, wind (25 km/h or more), sun or moon, cloud and storm scenes are estimates, not a live camera. Reduced motion, data saver or low-power devices use still scenes. Weather unavailable? Your selected colour stays on.</p><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Weather data by Open-Meteo</a></div>
         {state.message && <p className="dd-theme-message" role="status">{state.message}</p>}
         </div></details>
     </section>;

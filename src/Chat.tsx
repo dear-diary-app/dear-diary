@@ -12,6 +12,7 @@ import { EmojiPicker } from './EmojiPicker';
 import { quickReactions } from './reactions';
 import { ChatProfile } from './ChatProfile';
 import { ChatAttachments } from './ChatAttachments';
+import { WeatherScene } from './Weather';
 
 const art = (id: string) => `${import.meta.env.BASE_URL}stickers/${id}.webp`;
 const stickerName = (id: string) => pack.find(p => p.id === id)?.name ?? 'Sticker';
@@ -323,7 +324,7 @@ export function ChatView({ partner }: { partner: Person }) {
 
     return <><main {...(profileOpen ? { inert: '' } : {})} aria-hidden={profileOpen || undefined} className="dd-chat" style={vh ? { height: vh } : undefined} aria-label={`Chat with ${partner.name}`}
         onPointerDownCapture={e => { if (selected && !(e.target as Element).closest('.dd-chat-actions, .dd-chat-head-actions, .dd-chat-back, .dd-emoji-picker')) setSelected(null); }}>
-        <header className="dd-chat-head">
+        <WeatherScene chat/><header className="dd-chat-head">
             <button type="button" className="dd-chat-back" onClick={() => selected ? setSelected(null) : leave()} aria-label={selected ? "Cancel selection" : "Back"}><ArrowLeft size={22} /></button>
             {selected ? <div className="dd-chat-selection"><h1>1 selected</h1><p>Choose a reaction</p></div> : <Link to="/chat/profile" state={{ ddChatProfile: true }} className="dd-chat-contact" aria-label={`View ${partner.name}'s profile`} onClick={()=>input.current?.blur()}><Avatar person={partner} size="sm" />
             <div className={`dd-contact-label${chat.partnerOnline?' is-online':''}`}><h1>{partner.name}</h1><p aria-live="polite" aria-hidden={!chat.partnerOnline||undefined}>Online</p></div></Link>}

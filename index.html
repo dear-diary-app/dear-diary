@@ -10,7 +10,9 @@
         var saved = JSON.parse(localStorage.getItem('sb-etkjcywiaiiphsrthxqe-auth-token') || 'null');
         var uid = saved && saved.user && saved.user.id;
         var theme = uid && localStorage.getItem('dd_background_' + uid);
-        var colours = {paper:'#f7efe9',rose:'#f5dfe7',lavender:'#e6def2',sage:'#dfe9d9',sky:'#dbe7f3',midnight:'#1c171d'};
+        var mode = uid && localStorage.getItem('dd_theme_mode_' + uid);
+        if (mode === 'auto') { var hour = new Date().getHours(); theme = hour >= 6 && hour < 18 ? 'lavender' : 'midnight'; }
+        var colours = {paper:'#fdf9f4',rose:'#fff3f5',lavender:'#f7f3ff',sage:'#f2f7ef',sky:'#f1f7fc',midnight:'#101013'};
         if (uid && Object.prototype.hasOwnProperty.call(colours, theme)) {
           document.documentElement.style.setProperty('--dd-canvas', colours[theme]);
           document.documentElement.style.setProperty('--dd-colour-scheme', theme === 'midnight' ? 'dark' : 'light');
@@ -41,6 +43,7 @@
       @media(prefers-reduced-motion:reduce) { #dd-launch { display:none; } #dd-launch,#dd-launch *,.dd-launch-reveal { animation:none!important; } }
     </style>
     <meta name="theme-color" content="#fdf9f4" />
+    <script>try { var canvas=document.documentElement.style.getPropertyValue('--dd-canvas');if(canvas)document.querySelector('meta[name="theme-color"]').setAttribute('content',canvas); } catch (_) {}</script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
