@@ -16,6 +16,8 @@ import { ChatPins } from './ChatPins';
 import { ScheduledChat } from './ScheduledChat';
 import { ChatStatus } from './ChatStatus';
 import { VoicePlayer, VoiceRecorder, Mic } from './VoiceNote';
+import {QuestionCard,askQuery} from './ChatQuestion';
+import {supabase} from './lib/supabase';
 import {OneYearCard,isOneYear} from './ChatOneYear';
 import {ImageSuggestions,ImageCreditInfo,imageQuery,IMAGE_CREDIT,imageNeedsCredit} from './ChatImageSearch';
 import {SongCard,SongSuggestions,musicQuery} from './ChatMusic';
@@ -41,7 +43,7 @@ const Heart = () => <svg width="46" height="46" viewBox="0 0 24 24" fill="curren
 const Send = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.3 10l12 2-12 2Z" /></svg>;
 
 const photoWord = (n: number) => n > 1 ? `${n} photos` : 'Photo';
-function snippet(m: ChatMsg) { if(isOneYear(m.body)&&!m.images.length)return 'Our first year · Live timer'; if(m.images.length&&m.body.startsWith(IMAGE_CREDIT))return photoWord(m.images.length); if(m.weather)return `Weather: ${m.weather.place} · ${Math.round(m.weather.temperature)}°C`; if(m.song)return `Song: ${m.song.title} · ${m.song.artist}`; if(m.audio)return 'Voice note'; if (m.gif_id) return 'GIF'; if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
+function snippet(m: ChatMsg) { if(askQuery(m.body)!==null&&!m.images.length)return 'Question: '+askQuery(m.body); if(isOneYear(m.body)&&!m.images.length)return 'Our first year · Live timer'; if(m.images.length&&m.body.startsWith(IMAGE_CREDIT))return photoWord(m.images.length); if(m.weather)return `Weather: ${m.weather.place} · ${Math.round(m.weather.temperature)}°C`; if(m.song)return `Song: ${m.song.title} · ${m.song.artist}`; if(m.audio)return 'Voice note'; if (m.gif_id) return 'GIF'; if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
 
 function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, onOpen, onPhoto, onReply, onJump, onMore, gif, gifError, retryGif, flash, lastMine }: {
     arrive: boolean; gif?: Gif | null; gifError: string; retryGif: () => void;
@@ -147,6 +149,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
                 <strong>{original ? (original.sender_id === chat.uid ? 'You' : partner.name) : 'Message'}</strong>
                 <span>{original ? snippet(original) : 'Original message is not available'}</span>
             </button>}
+            {askQuery(m.body)!==null&&!m.images.length&&<QuestionCard id={m.id} question={askQuery(m.body)!} mine={mine}/>}
             {isOneYear(m.body)&&!m.images.length&&!m.song&&!m.weather&&!m.audio&&!m.sticker&&!m.gif_id&&<OneYearCard/>}
             {m.weather && <ChatWeatherCard weather={m.weather}/>}
             {m.song && <SongCard song={m.song}/>}
@@ -154,7 +157,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
             {m.images.length > 0 && <div className={`dd-chat-photos n${m.images.length}`}>{m.images.map((p, i) => <Thumb key={p} path={p} index={i} total={m.images.length} sending={m.state === 'sending'} onOpen={k => { if (Date.now() - noClick.current > 600) onPhoto(m.images, k); }} />)}{m.body.startsWith(IMAGE_CREDIT)&&imageNeedsCredit(m.body)&&<ImageCreditInfo body={m.body}/>}</div>}
             {m.gif_id && <div className="dd-chat-gif">{gif ? <><GifMedia gif={gif}/><GifCredit gif={gif}/></> : <div className="dd-gif-placeholder">{gif === null ? 'GIF is unavailable.' : gifError || 'Loading GIF...'}{gifError && <button type="button" onPointerDown={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();retryGif();}}>Retry GIF</button>}</div>}</div>}
             {sticker ? <img className="dd-chat-sticker" src={art(m.sticker!)} alt={stickerName(m.sticker!)} width="128" height="128" draggable={false} />
-                : m.sticker ? <span className="dd-chat-text">Sticker</span> : m.body ? (isOneYear(m.body)&&!m.images.length?null:m.images.length>0&&m.body.startsWith(IMAGE_CREDIT)?null:<span className="dd-chat-text">{m.body}</span>) : null}
+                : m.sticker ? <span className="dd-chat-text">Sticker</span> : m.body ? ((isOneYear(m.body)||askQuery(m.body)!==null)&&!m.images.length?null:m.images.length>0&&m.body.startsWith(IMAGE_CREDIT)?null:<span className="dd-chat-text">{m.body}</span>) : null}
             <span className="dd-chat-time">{m.scheduled?'Scheduled · ':''}{m.edited_at && !sticker ? 'edited · ' : ''}{timeFmt.format(new Date(m.created_at))}</span>
         </div>
         {groups.length > 0 && <div className="dd-chat-reacts">{groups.map(([e, n]) => <button key={`${e}:${n}`} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => chat.react(m.id, e)} aria-label={`${e} ${n}. Tap to ${mineReact === e ? 'remove' : 'add'} your reaction`}>{e}{n > 1 ? ` ${n}` : ''}</button>)}</div>}
@@ -330,8 +333,10 @@ export function ChatView({ partner }: { partner: Person }) {
     useLayoutEffect(() => { if (stick.current) toBottom(); }, [vh, replyTo, trayOpen]);
 
     const grow = () => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; el.style.overflowY = el.scrollHeight > 120 ? 'auto' : 'hidden'; if (stick.current) toBottom(); };
+    const [askBusy,setAskBusy]=useState(false);const askLock=useRef(false);
     const submit = () => {
         if (!text.trim() && !staged.length) return;
+        if(!editing&&!staged.length&&askQuery(text)!==null){const question=askQuery(text)!;if(!question||question.length>300){say('Write /ask followed by a question, up to 300 characters.');return;}if(askLock.current)return;askLock.current=true;setAskBusy(true);const reply=replyTo;void Promise.resolve(supabase.rpc('ask_chat_question',{p_id:crypto.randomUUID(),p_question:question,p_reply:reply})).then(({error})=>{if(error){say(error.message.includes('daily question')?'You already asked today. Your next question opens at midnight IST.':'Could not send the question. Try again.');return;}chat.reload();chat.typing(false);setText('');setReplyTo(null);setNote('');stick.current=true;requestAnimationFrame(grow);}).catch(()=>say('Could not send the question. Check your connection.')).finally(()=>{askLock.current=false;setAskBusy(false);});return;}
         if(!editing&&!staged.length&&imageQuery(text)!==null){say('Tap an image in the suggestions to send it.');return;}
         if(!editing&&!staged.length&&musicQuery(text)!==null){say('Tap a song in the suggestions to send it.');return;}
         if(!editing&&!staged.length&&text.trim().toLowerCase()==='/weather'){
@@ -360,7 +365,7 @@ export function ChatView({ partner }: { partner: Person }) {
     useLayoutEffect(() => { if (stick.current) toBottom(); }, [gifs.items]);
     const startReply = (id: string) => { setEditing(null); setReplyTo(id); setSelected(null); input.current?.focus(); };
     const selMsg = selected ? byId.get(selected) : undefined;
-    const isText = !!selMsg && !selMsg.sticker && !selMsg.gif_id && !selMsg.audio && !selMsg.song && !selMsg.weather && !!selMsg.body && !isOneYear(selMsg.body) && !(selMsg.images.length>0&&selMsg.body.startsWith(IMAGE_CREDIT));
+    const isText = !!selMsg && !selMsg.sticker && !selMsg.gif_id && !selMsg.audio && !selMsg.song && !selMsg.weather && !!selMsg.body && !isOneYear(selMsg.body) && askQuery(selMsg.body)===null && !(selMsg.images.length>0&&selMsg.body.startsWith(IMAGE_CREDIT));
     const canEdit = isText && selMsg!.sender_id === chat.uid && !selMsg!.state;
     const canUnsend = !!selMsg && selMsg.sender_id === chat.uid && selMsg.state !== 'sending';
     const startEdit = () => { if (!selMsg) return; setTrayOpen(false); clearStaged(); setReplyTo(null); setEditing(selMsg.id); setText(selMsg.body); setSelected(null); requestAnimationFrame(() => { grow(); const el = input.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }); };
@@ -407,12 +412,13 @@ export function ChatView({ partner }: { partner: Person }) {
         {emojiFor && byId.has(emojiFor) && <EmojiPicker uid={chat.uid} selected={byId.get(emojiFor)?.reactions[chat.uid]} onPick={e => chat.react(emojiFor, e)} onClose={() => { setEmojiFor(null); setSelected(null); }} />}
         <div className="dd-chat-compose">
             <button type="button" className={`dd-chat-bottom${awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?' is-visible':''}`} aria-label={newBelowCount?`Scroll to latest message, ${newBelowCount} new ${newBelowCount===1?'message':'messages'}`:'Scroll to latest message'} tabIndex={awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?0:-1} aria-hidden={!(awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen)||undefined} onPointerDown={e=>e.preventDefault()} onClick={()=>{jumpingToBottom.current=true;setNewBelow(false);stick.current=true;toBottom(true);}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>{newBelowCount>0&&<span className="dd-chat-bottom-count" aria-hidden="true">{newBelowCount>99?'99+':newBelowCount}</span>}</button>
-            <ScheduledChat draft={text} blocked={!!replyTo||!!editing||staged.length>0||(isOneYear(text)||imageQuery(text)!==null||musicQuery(text)!==null||text.trim().toLowerCase()==='/weather')} request={scheduleRequest} onSaved={()=>{setText('');chat.typing(false);requestAnimationFrame(grow);}}/>
+            <ScheduledChat draft={text} blocked={!!replyTo||!!editing||staged.length>0||(askQuery(text)!==null||isOneYear(text)||imageQuery(text)!==null||musicQuery(text)!==null||text.trim().toLowerCase()==='/weather')} request={scheduleRequest} onSaved={()=>{setText('');chat.typing(false);requestAnimationFrame(grow);}}/>
             {editing && <div className="dd-chat-replybar"><Pencil /><div><strong>Editing message</strong><span>Change the text, then tap send</span></div>
                 <button type="button" onPointerDown={e => e.preventDefault()} onClick={stopEdit} aria-label="Cancel edit"><XIcon size={16} /></button></div>}
             {replyTo && <div className="dd-chat-replybar"><Reply /><div><strong>Replying to {original ? (original.sender_id === chat.uid ? 'yourself' : partner.name) : 'message'}</strong><span>{original ? snippet(original) : 'Original message is not available'}</span></div>
                 <button type="button" onPointerDown={e => e.preventDefault()} onClick={() => setReplyTo(null)} aria-label="Cancel reply"><XIcon size={16} /></button></div>}
             {staged.length > 0 && <div className="dd-chat-staged" aria-label="Photos to send">{staged.map((x, i) => <div key={x.id} className="dd-chat-staged-item"><img src={x.url} alt={`Photo ${i + 1} to send`} draggable={false} /><button type="button" onPointerDown={e => e.preventDefault()} onClick={() => setStaged(prev => { URL.revokeObjectURL(x.url); return prev.filter(y => y.id !== x.id); })} aria-label={`Remove photo ${i + 1}`}><XIcon size={14} /></button></div>)}<span>{staged.length}/{MAX_PHOTOS}</span></div>}
+            {!editing&&!staged.length&&askQuery(text)!==null&&<p className="dd-chat-note">Daily question · Type /ask your question (max 300 characters). One per person per IST day. Answers are final.</p>}
             {note && <p className="dd-chat-note" role="status">{note}</p>}
             {!editing&&!staged.length&&!recording&&!profileOpen&&imageQuery(text)!==null&&<ImageSuggestions query={imageQuery(text)!} onSend={(blob,caption)=>{chat.sendImages([blob],caption,replyTo);chat.typing(false);setText('');setReplyTo(null);setNote('');stick.current=true;requestAnimationFrame(()=>{grow();input.current?.focus();});}}/>}
             {!editing&&!staged.length&&!recording&&!profileOpen&&musicQuery(text)!==null&&<SongSuggestions query={musicQuery(text)!} onSend={song=>{chat.sendSong(song,replyTo);chat.typing(false);setText('');setReplyTo(null);setNote('');stick.current=true;requestAnimationFrame(()=>{grow();input.current?.focus();});}}/>}
@@ -420,13 +426,13 @@ export function ChatView({ partner }: { partner: Person }) {
             {recording&&!profileOpen?<VoiceRecorder onClose={()=>setRecording(false)} onSend={(blob,duration,mime,peaks)=>{chat.sendVoice(blob,duration,mime,peaks,replyTo);setReplyTo(null);stick.current=true;}}/>:<div className="dd-chat-bar">
                 <ChatAttachments compact={text.length>0} gifDisabled={gifSending||!!editing||staged.length>0} disabled={gifSending||!!editing} trayOpen={trayOpen} onGif={()=>{input.current?.blur();setTrayOpen(o=>!o);}} onPhoto={()=>fileInput.current?.click()}/>
                 <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={e => { void pick(e.target.files); }} />
-                <textarea ref={input} rows={1} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="enter"
+                <textarea ref={input} rows={1} disabled={askBusy} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="enter"
                     onChange={e => { setText(e.target.value); grow(); chat.typing(!!e.target.value.trim()); }}
                     onFocus={() => { document.documentElement.classList.add('dd-chat-typing'); if(!gifSending)setTrayOpen(false); }}
                     onBlur={() => { document.documentElement.classList.remove('dd-chat-typing'); chat.typing(false); }}
                     />
                 {!text.trim()&&!staged.length&&!editing&&<button type="button" className="dd-chat-send" aria-label="Record voice note" onClick={()=>{input.current?.blur();chat.typing(false);setTrayOpen(false);setRecording(true);}}><span className="dd-compose-icon-fade" key="mic"><Mic/></span></button>}
-                {(!!text.trim()||staged.length>0||!!editing)&&<button type="button" className="dd-chat-send" aria-label="Send message" disabled={weatherBusy||(!text.trim() && !staged.length)} onPointerDown={e=>{e.preventDefault();sendHeld.current=false;sendOrigin.current={x:e.clientX,y:e.clientY};try{e.currentTarget.setPointerCapture(e.pointerId);}catch{}window.clearTimeout(sendHold.current);sendHold.current=window.setTimeout(()=>{sendHeld.current=true;chat.typing(false);input.current?.blur();setScheduleRequest(n=>n+1);},500);}} onPointerMove={e=>{if(Math.hypot(e.clientX-sendOrigin.current.x,e.clientY-sendOrigin.current.y)>12)window.clearTimeout(sendHold.current);}} onPointerUp={()=>window.clearTimeout(sendHold.current)} onPointerCancel={()=>window.clearTimeout(sendHold.current)} onContextMenu={e=>e.preventDefault()} onKeyDown={e=>{if(e.key==='ArrowUp'&&e.altKey){e.preventDefault();chat.typing(false);setScheduleRequest(n=>n+1);}}} onClick={()=>{window.clearTimeout(sendHold.current);if(sendHeld.current){sendHeld.current=false;return;}submit();}}><span className="dd-compose-icon-fade" key="send"><Send /></span></button>}
+                {(!!text.trim()||staged.length>0||!!editing)&&<button type="button" className="dd-chat-send" aria-label="Send message" disabled={askBusy||weatherBusy||(!text.trim() && !staged.length)} onPointerDown={e=>{e.preventDefault();sendHeld.current=false;sendOrigin.current={x:e.clientX,y:e.clientY};try{e.currentTarget.setPointerCapture(e.pointerId);}catch{}window.clearTimeout(sendHold.current);sendHold.current=window.setTimeout(()=>{sendHeld.current=true;chat.typing(false);input.current?.blur();setScheduleRequest(n=>n+1);},500);}} onPointerMove={e=>{if(Math.hypot(e.clientX-sendOrigin.current.x,e.clientY-sendOrigin.current.y)>12)window.clearTimeout(sendHold.current);}} onPointerUp={()=>window.clearTimeout(sendHold.current)} onPointerCancel={()=>window.clearTimeout(sendHold.current)} onContextMenu={e=>e.preventDefault()} onKeyDown={e=>{if(e.key==='ArrowUp'&&e.altKey){e.preventDefault();chat.typing(false);setScheduleRequest(n=>n+1);}}} onClick={()=>{window.clearTimeout(sendHold.current);if(sendHeld.current){sendHeld.current=false;return;}submit();}}><span className="dd-compose-icon-fade" key="send"><Send /></span></button>}
             </div>}
         </div>
     </main>{profileOpen&&<ChatProfile partner={partner}/>}</>;
