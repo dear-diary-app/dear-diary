@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth, useStore } from "./store";
 import { personById, otherId, todayKey, PersonId } from "./model";
 import { Avatar, TopBar, useNow } from "./ui";
+import { ProfileSongReactions } from "./ProfileSongReactions";
 import { ProfileCrop } from "./ProfileCrop";
 import { ProfileStreak, useProfileStreaks } from "./ProfileStreak";
 import { supabase } from "./lib/supabase";
@@ -440,6 +441,7 @@ function ProfileBody({ who }: { who: PersonId }) {
             IST
           </p>
         )}
+        {song&&!expired&&expires&&profileUID&&!songLoading&&!songError&&!songDirty&&<ProfileSongReactions key={profileUID+expires} owner={profileUID} expires={expires} own={own} friend={partner.name}/> }
         {songNote && <p role="status">{songNote}</p>}
       </section>
       {note && (
