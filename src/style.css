@@ -1278,3 +1278,8 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-app[data-theme=midnight] .dd-attach-menu button { color:#f0e3e6; }
 .dd-app[data-theme=midnight] .dd-attach-menu button:hover { background:#40303c; }
 @media(prefers-reduced-motion:reduce) { .dd-chat-contact .dd-contact-label :is(h1,p),.dd-attach-controls,.dd-attach-pair,.dd-attach-controls .dd-attach-clip,.dd-attach-menu { transition:none!important; } }
+
+/* A brief acknowledgement without intercepting message gestures. */
+.dd-heart-pop { position:absolute; inset:0; z-index:3; display:grid; place-items:center; color:#e96888; pointer-events:none; filter:drop-shadow(0 2px 3px #54314244); animation:dd-heart-pop 580ms cubic-bezier(.2,.75,.25,1) both; }
+@keyframes dd-heart-pop { 0% { opacity:0;transform:scale(.4) rotate(-12deg); } 25% { opacity:1;transform:scale(1.12) rotate(0); } 50% { opacity:1;transform:scale(1); } 100% { opacity:0;transform:scale(1.08) translateY(-9px); } }
+@media(prefers-reduced-motion:reduce) { .dd-heart-pop { animation:none!important; } }

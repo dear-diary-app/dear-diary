@@ -28,6 +28,7 @@ function dayLabel(iso: string) {
 }
 const Reply = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5" /><path d="M4 9h10a6 6 0 0 1 6 6v3" /></svg>;
 const Pencil = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>;
+const Heart = () => <svg width="46" height="46" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-9-5.6-9-12a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6.4-9 12-9 12Z"/></svg>;
 const Send = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.3 10l12 2-12 2Z" /></svg>;
 
 const photoWord = (n: number) => n > 1 ? `${n} photos` : 'Photo';
@@ -44,6 +45,20 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
     const armed = useRef(false);
     const drag = useRef<{ x: number; y: number; id: number; on: boolean; moved: boolean; long: boolean } | null>(null);
     const hold = useRef<number>();
+    const lastTap = useRef<{time:number;x:number;y:number;scroll:number}|null>(null);
+    const [heartPop,setHeartPop] = useState(0);
+    const heartTimer = useRef<number>();
+    useEffect(()=>()=>{window.clearTimeout(hold.current);window.clearTimeout(heartTimer.current);},[]);
+    const interactive = (target:EventTarget) => target instanceof Element && !!target.closest('button,a,input,textarea,video,audio,.dd-chat-thumb,.dd-chat-gif');
+    const tapHeart = (e:React.PointerEvent) => {
+        const now=performance.now(),scroll=(e.currentTarget.closest('.dd-chat-list') as HTMLElement)?.scrollTop??0,previous=lastTap.current;
+        if(previous&&now-previous.time<=300&&Math.hypot(e.clientX-previous.x,e.clientY-previous.y)<=24&&Math.abs(scroll-previous.scroll)<3){
+            lastTap.current=null;
+            const adding=m.reactions[chat.uid]!=='❤️';chat.react(m.id,'❤️');
+            if(adding){setHeartPop(n=>n+1);window.clearTimeout(heartTimer.current);heartTimer.current=window.setTimeout(()=>setHeartPop(0),600);}
+            else setHeartPop(0);
+        } else lastTap.current={time:now,x:e.clientX,y:e.clientY,scroll};
+    };
     const noClick = useRef(0);
     const clearHold = () => { window.clearTimeout(hold.current); };
     const REPLY_AT = 56, MAX = 84;
@@ -51,14 +66,14 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
     const dir = mine ? -1 : 1;
     const setX = (v: number) => { dxRef.current = v; setDx(v); };
     const arrival = useRef<Animation>();
-    const down = (e: React.PointerEvent) => { arrival.current?.cancel(); if (e.button > 0) return; drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false, long: false }; armed.current = false;
+    const down = (e: React.PointerEvent) => { arrival.current?.cancel(); if(interactive(e.target))lastTap.current=null; if (e.button > 0 || !e.isPrimary || (e.target instanceof Element&&!!e.target.closest('button,a,input,textarea'))) { lastTap.current=null;clearHold();drag.current=null;return; } drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false, long: false }; armed.current = false;
         clearHold();
         // Press and hold opens the reactions and actions, like Instagram.
-        hold.current = window.setTimeout(() => { const d = drag.current; if (!d || d.on) return; d.long = true; noClick.current = Date.now(); try { navigator.vibrate?.(12); } catch { /* ignore */ } onOpen(); }, 450); };
+        hold.current = window.setTimeout(() => { const d = drag.current; if (!d || d.on) return; d.long = true;lastTap.current=null; noClick.current = Date.now(); try { navigator.vibrate?.(12); } catch { /* ignore */ } onOpen(); }, 450); };
     const move = (e: React.PointerEvent) => {
         const d = drag.current; if (!d || d.id !== e.pointerId) return;
         const ax = (e.clientX - d.x) * dir, ay = e.clientY - d.y;
-        if (Math.abs(e.clientX - d.x) > 9 || Math.abs(ay) > 9) clearHold();
+        if (Math.abs(e.clientX - d.x) > 9 || Math.abs(ay) > 9) { clearHold();lastTap.current=null;d.moved=true; }
         if (d.long) return;
         if (!d.on) {
             if (Math.abs(ay) > 10 && Math.abs(ay) > Math.abs(ax)) { drag.current = null; return; }
@@ -81,9 +96,9 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
         if (d.on) noClick.current = Date.now();
         setRest(true); setX(0);
         if (go) onReply();
-        else if (!d.moved) onTap();
+        else if (!d.moved&&!interactive(e.target)) { onTap();tapHeart(e); }
     };
-    const cancel = () => { clearHold(); if (drag.current?.long) { drag.current = null; return; } drag.current = null; setRest(true); setX(0); };
+    const cancel = () => { lastTap.current=null;clearHold(); if (drag.current?.long) { drag.current = null; return; } drag.current = null; setRest(true); setX(0); };
     const rowEl = useRef<HTMLDivElement>(null);
     useLayoutEffect(() => {if(!arrive||!rowEl.current||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;arrival.current=rowEl.current.animate([{opacity:.35,transform:`translate3d(${mine?8:-8}px,10px,0)`},{opacity:1,transform:'translate3d(0,0,0)'}],{duration:230,easing:'cubic-bezier(.2,.75,.25,1)'});return()=>arrival.current?.cancel();},[]);
     const [below, setBelow] = useState(false);
@@ -118,6 +133,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
             onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}
             role="button" tabIndex={0} aria-label={`${mine ? 'Your' : `${partner.name}'s`} message: ${snippet(m)}. Press Enter for actions.`}
             onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } else if (e.key === 'r') { e.preventDefault(); onReply(); } }}>
+            {heartPop>0&&<span key={heartPop} className="dd-heart-pop" aria-hidden="true"><Heart/></span>}
             {m.reply_to && <button type="button" className="dd-chat-quote" disabled={!original} onPointerDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); original && onJump(original.id); }}>
                 <strong>{original ? (original.sender_id === chat.uid ? 'You' : partner.name) : 'Message'}</strong>
                 <span>{original ? snippet(original) : 'Original message is not available'}</span>
