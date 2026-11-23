@@ -1627,3 +1627,12 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-app[data-theme=midnight] .dd-translate-privacy,.dd-app[data-theme=midnight] .dd-translate header button { background:#413044; }
 .dd-translate a { color:inherit; }
 @media(max-width:360px) { .dd-translate { padding:16px; } }
+
+.dd-translate-quick { max-width:430px; }
+.dd-translate-languages { display:flex;gap:8px;margin:20px 0; }
+.dd-translate-languages button { flex:1;min-width:0;min-height:66px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px; }
+.dd-translate-languages small { font-size:11px;letter-spacing:0; }
+.dd-translate-confirm { border-top:1px solid #ba9ca8;padding-top:18px; }
+.dd-translate-confirm .dd-btn { margin:4px 6px 4px 0; }
+.dd-translate-undo { display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;font:12px/1.4 var(--ds-font-text); }
+.dd-translate-undo button { flex-shrink:0;min-height:40px;padding:6px 10px;border:1px solid #b58b9d;border-radius:12px;color:inherit;background:transparent;font:inherit; }
