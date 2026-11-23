@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from './store';
-import { BookOpen, CalendarDays, Gear, HomeIcon, MessageCircle } from './icons';
+import { BookOpen, CalendarDays, UserRound, HomeIcon, MessageCircle } from './icons';
 import { useChat } from './ChatStore';
 
 export function BottomNav() {
@@ -11,7 +11,8 @@ export function BottomNav() {
     const active = (pathname === '/' || pathname === '/inbox') ? 'home'
         : pathname.startsWith('/calendar/') ? 'calendar'
         : pathname.startsWith('/chat') ? 'chat'
-        : pathname.startsWith('/settings') || pathname === '/notifications' ? 'settings'
+        : pathname.startsWith('/profile') ? 'profile'
+        : pathname.startsWith('/settings') || pathname === '/notifications' ? ''
         : 'entries';
     // The conversation is full screen, like Instagram: it has its own back arrow.
     if (pathname.startsWith('/chat')) return null;
@@ -20,7 +21,7 @@ export function BottomNav() {
         { id: 'entries', label: 'My diary', to: `/hub/${me}`, Icon: BookOpen },
         { id: 'chat', label: 'Chat', to: '/chat', Icon: MessageCircle },
         { id: 'calendar', label: 'History', to: `/calendar/${me}`, Icon: CalendarDays },
-        { id: 'settings', label: 'Settings', to: '/settings', Icon: Gear },
+        { id: 'profile', label: 'Profile', to: '/profile', Icon: UserRound },
     ];
     return <nav className="dd-bottom-nav" aria-label="Main navigation">
         {tabs.map(({ id, label, to, Icon }) => <Link key={id} to={to}

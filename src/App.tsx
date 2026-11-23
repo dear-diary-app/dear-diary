@@ -9,6 +9,7 @@ import { AppEntryGate, Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub,
 import grain from './photos/grain.png';
 import { OfflineNotice } from './pwa';
 import { WhatsNew } from './WhatsNew';
+import { ProfilePage } from './Profile';
 import { BottomNav } from './BottomNav';
 import { ThemeFrame } from './Themes';
 import { PageSlide } from './PageSlide';
@@ -113,6 +114,8 @@ function Shell() {
                     <Route path="/read/:viewer" element={<ReadRoute />} />
                     <Route path="/calendar/:viewer" element={<CalendarRoute />} />
                     <Route path="/chat/*" element={<ChatRoute />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/profile/:person" element={<ProfilePage />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/settings/how-to-use" element={<HowToUse />} />
                     <Route path="/settings/whats-new" element={<WhatsNew />} />

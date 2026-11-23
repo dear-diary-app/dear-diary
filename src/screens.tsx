@@ -12,8 +12,6 @@ import {
 import { Avatar, Book, Chip, EmptyNote, PhotoGallery, Toggle, TopBar, useGo, useNow } from './ui';
 import { isUnlocked, setUnlocked, useAuth, useStore, pinStatus, verifyPin } from './store';
 import { supabase } from './lib/supabase';
-import { ProfileCrop } from './ProfileCrop';
-import { ProfileStreak, useProfileStreaks } from './ProfileStreak';
 import { Stickers } from './Stickers';
 import { SongPicker, SongPill } from './Song';
 import { DiaryInstall } from './DiaryInstall';
@@ -368,7 +366,7 @@ export function Hub({ person }: { person: PersonId }) {
                     <Link className="dd-menu-card" to="/settings">
                         <span className="dd-menu-icon"><Gear /></span>
                         <span className="dd-menu-text">
-                            <strong>Profile &amp; settings</strong>
+                            <strong>Settings</strong>
                             <small>Avatars, passwords, PINs and how to use</small>
                         </span>
                         <ChevronRight size={18} />
@@ -919,52 +917,16 @@ export function HowToUse() {
 
 export function Settings() {
     const store = useStore();
-    const photoInput = useRef<HTMLInputElement>(null);
-    const [cropFile, setCropFile] = useState<File | null>(null);
-    const [photoMessage, setPhotoMessage] = useState('');
     const auth = useAuth();
     const now = useNow(30000);
-    const streakInfo = useProfileStreaks(todayKey(now), JSON.stringify(store.saveState));
     return (
         <main className="dd-shell dd-shell-narrow dd-settings">
             <TopBar back="/" backLabel="Back to the books" />
             <div className="dd-anim" key="settings">
-                <h1 className="dd-title">Profile &amp; settings</h1>
-                <p className="dd-sub">Your profile and account</p>
+                <h1 className="dd-title">Settings</h1>
+                <p className="dd-sub">Your account and preferences</p>
 
-                {peopleOwnFirst(auth.me).map(p => (
-                    <section key={p.id} className="dd-card">
-                        <div className="dd-dayentry-head">
-                            <Avatar person={p} size="lg" />
-                            <div>
-                                <strong className="dd-card-title">{p.name}</strong>
-                                <p className="dd-card-sub">{auth.me === p.id ? 'Your diary' : `${p.name}'s diary`}</p>
-                            </div>
-                        </div>
-                        <ProfileStreak streak={streakInfo.streaks[p.id]} failed={streakInfo.failed} retry={streakInfo.retry} own={auth.me === p.id} />
-                        {auth.me === p.id && (
-                            <>
-                                <div className="dd-profile-upload">
-                                    <button type="button" className="dd-btn dd-btn-primary" onClick={() => photoInput.current?.click()}>
-                                        {store.avatarPhotos[p.id] ? 'Change profile picture' : 'Upload profile picture'}
-                                    </button>
-                                        <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp" hidden
-                                            onChange={async e => {
-                                                const file = e.target.files?.[0]; e.target.value = '';
-                                                if (!file) return;
-                                                setPhotoMessage('');
-                                                if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setPhotoMessage('Choose a JPG, PNG or WebP photo.'); return; }
-                                                if (file.size > 10 * 1024 * 1024) { setPhotoMessage('Choose a photo smaller than 10 MB.'); return; }
-                                                setCropFile(file);
-                                            }} />
-                                    <p className="dd-card-sub">JPG, PNG or WebP · Up to 10 MB</p>
-                                    {photoMessage && <p className="dd-card-body" role="status">{photoMessage}</p>}
-                                </div>
-
-                            </>
-                        )}
-                    </section>
-                ))}
+                <Link className="dd-menu-card" to="/profile"><span className="dd-menu-icon"><Heart /></span><span className="dd-menu-text"><strong>Your profile</strong><small>Photo, bio, mood and streak</small></span><ChevronRight size={18}/></Link>
 
                 <DiaryInstall />
 
@@ -1035,9 +997,7 @@ export function Settings() {
                 <span style={{ display: 'none' }}>{now.toISOString()}</span>
                 <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>
             </div>
-            {cropFile && auth.me && <ProfileCrop file={cropFile} person={auth.me}
-                onClose={() => setCropFile(null)}
-                onSaved={() => { setCropFile(null); setPhotoMessage('Profile picture saved.'); }} />}
+
         </main>
     );
 }
