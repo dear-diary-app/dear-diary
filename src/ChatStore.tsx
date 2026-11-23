@@ -32,7 +32,7 @@ export interface ChatApi {
     send: (body: string, sticker?: string | null, replyTo?: string | null) => void;
     sendGif: (id: string, replyTo?: string | null) => void;
     sendImages: (files: Blob[], body: string, replyTo?: string | null) => void;
-    retry: (id: string) => void; discard: (id: string) => void; unsend: (id: string) => void; edit: (id: string, body: string) => void; react: (id: string, emoji: string) => void;
+    retry: (id: string) => void; discard: (id: string) => void; unsend: (id: string) => Promise<boolean>; edit: (id: string, body: string) => void; react: (id: string, emoji: string) => void;
     loadOlder: () => Promise<void>; typing: (on: boolean) => void; setViewing: (on: boolean) => void; reload: () => void;
 }
 const Ctx = createContext<ChatApi | null>(null);
@@ -203,10 +203,17 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             if (blobs) void sendWithPhotos(m, blobs); else insert(m);
         },
         discard: id => { pending.current.delete(id); setMessages(prev => prev.filter(m => m.id !== id)); },
-        unsend: id => {
+        unsend: async id => {
             const old = list.current.find(m => m.id === id);
-            setMessages(prev => dropMessage(prev, id));
-            void Promise.resolve(supabase.from('chat_messages').delete().eq('id', id)).then(({ error }) => { if (error && old) merge([old]); else if (old?.images.length) removeImages(old.images); });
+            if (!old || old.sender_id !== uid || old.state === 'sending') return false;
+            if (old.state === 'failed') { pending.current.delete(id); setMessages(prev => dropMessage(prev, id)); return true; }
+            try {
+                const { error } = await supabase.from('chat_messages').delete().eq('id', id);
+                if (error) return false;
+                setMessages(prev => dropMessage(prev, id));
+                if (old.images.length) removeImages(old.images);
+                return true;
+            } catch { return false; }
         },
         edit: (id, body) => {
             const text = body.trim().slice(0, 2000);

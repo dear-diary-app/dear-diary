@@ -1505,3 +1505,5 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-chat-list.is-scrolling .dd-chat-msg{box-shadow:inset 0 1px 0 var(--lg-glint);}
 
 .dd-scheduled-list{margin:0 4px 8px;padding:9px 12px;border:1px solid var(--lg-edge);border-radius:16px;background:var(--lg-sheen),var(--lg-control);font-size:12px;max-height:190px;overflow:auto}.dd-scheduled-list summary{cursor:pointer;font-weight:600;min-height:24px}.dd-scheduled-list article{padding:10px 0;border-top:1px solid var(--lg-edge)}.dd-scheduled-list p,.dd-schedule-text{white-space:pre-wrap;overflow-wrap:anywhere}.dd-scheduled-list article p{max-height:80px;overflow:auto}.dd-scheduled-list button{font:inherit;color:inherit;border:1px solid var(--lg-edge);border-radius:12px;padding:8px;background:var(--lg-control);margin-right:8px}.dd-schedule-dialog .dd-schedule-text{max-height:140px;overflow:auto;padding:12px;background:var(--lg-control);border-radius:12px}.dd-chat-send{touch-action:none;-webkit-touch-callout:none}
+/* Header menus must sit above the masked message list, not behind its touch targets. */
+.dd-chat > .dd-chat-head { z-index:5; }

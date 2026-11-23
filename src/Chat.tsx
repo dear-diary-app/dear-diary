@@ -319,7 +319,7 @@ export function ChatView({ partner }: { partner: Person }) {
     const selMsg = selected ? byId.get(selected) : undefined;
     const isText = !!selMsg && !selMsg.sticker && !selMsg.gif_id && !!selMsg.body;
     const canEdit = isText && selMsg!.sender_id === chat.uid && !selMsg!.state;
-    const canUnsend = !!selMsg && selMsg.sender_id === chat.uid;
+    const canUnsend = !!selMsg && selMsg.sender_id === chat.uid && selMsg.state !== 'sending';
     const startEdit = () => { if (!selMsg) return; setTrayOpen(false); clearStaged(); setReplyTo(null); setEditing(selMsg.id); setText(selMsg.body); setSelected(null); requestAnimationFrame(() => { grow(); const el = input.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }); };
     const stopEdit = () => { setEditing(null); setText(''); requestAnimationFrame(grow); };
     const copySel = () => { if (selMsg) void navigator.clipboard?.writeText(selMsg.body).catch(() => {}); setSelected(null); };
@@ -346,7 +346,7 @@ export function ChatView({ partner }: { partner: Person }) {
                     <div className="dd-chat-menu" role="menu">
                         {isText && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); copySel(); }}>Copy</button>}
                         {canEdit && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); startEdit(); }}>Edit</button>}
-                        {canUnsend && <button type="button" role="menuitem" className="is-danger" onClick={() => { setMenuOpen(false); chat.unsend(selMsg.id); setSelected(null); }}>Unsend</button>}
+                        {canUnsend && <button type="button" role="menuitem" className="is-danger" onClick={() => { setMenuOpen(false); const id=selMsg.id; setSelected(null); say('Unsending...'); void chat.unsend(id).then(ok=>say(ok?'':'Could not unsend. Check your connection and try again.')); }}>Unsend</button>}
                     </div></>}
             </div>}
         </header>
