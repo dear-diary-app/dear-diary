@@ -12,6 +12,7 @@ import { WhatsNew } from './WhatsNew';
 import { BottomNav } from './BottomNav';
 import { ThemeFrame } from './Themes';
 import { PageSlide } from './PageSlide';
+import { TabSwipe } from './TabSwipe';
 import { NotificationInbox } from './NotificationInbox';
 import { finishLaunch } from './launch';
 
@@ -102,7 +103,7 @@ function Shell() {
                 <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
                 <AppEntryGate>
                 <ChatProvider uid={auth.session.user.id}>
-                <div className="dd-with-nav">
+                <TabSwipe><div className="dd-with-nav">
                 <PageSlide>{location => <Routes location={location}>
                     <Route path="/" element={<Home />} />
                     <Route path="/pin/:person" element={<PinRoute />} />
@@ -122,7 +123,7 @@ function Shell() {
                     <Route path="*" element={<Home />} />
                 </Routes>}</PageSlide>
                 <BottomNav />
-                </div>
+                </div></TabSwipe>
                 </ChatProvider>
                 </AppEntryGate>
             </ThemeFrame>
