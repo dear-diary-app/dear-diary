@@ -195,10 +195,11 @@ export function ChatView({ partner }: { partner: Person }) {
     const gifs = useChatGifs(chat.messages.flatMap(m => m.gif_id ? [m.gif_id] : []));
     const [trayOpen, setTrayOpen] = useState(false);
     const [flash, setFlash] = useState<string | null>(null);
-    const [newBelowCount,setNewBelowCount] = useState(0);
+    const [belowIds,setBelowIds] = useState<string[]>([]);
+    const arrivalBaseline=useRef<{ready:boolean;ids:Set<string>;latest:string}>({ready:false,ids:new Set(),latest:''});
     const jumpingToBottom=useRef(false);
     const [awayFromBottom,setAwayFromBottom] = useState(false);
-    const setNewBelow = (v:boolean) => {if(!v)setNewBelowCount(0);};
+    const setNewBelow = (v:boolean) => {if(!v)setBelowIds([]);};
     const scroller = useRef<HTMLDivElement>(null);
     const input = useRef<HTMLTextAreaElement>(null);
     const route = useLocation();
@@ -219,6 +220,7 @@ export function ChatView({ partner }: { partner: Person }) {
     useEffect(()=>{if(profileOpen)chat.typing(false);},[profileOpen,chat.typing]);
     const stick = useRef(true);
     const prevLen = useRef(0);
+    const prevLastId=useRef<string>();
     const { setViewing } = chat;
     useEffect(() => { setViewing(!profileOpen); return () => setViewing(false); }, [setViewing, profileOpen]);
 
@@ -234,6 +236,7 @@ export function ChatView({ partner }: { partner: Person }) {
     useEffect(() => () => document.documentElement.classList.remove('dd-chat-typing'), []);
 
     const byId = useMemo(() => new Map(chat.messages.map(m => [m.id, m])), [chat.messages]);
+    const newBelowCount=belowIds.filter(id=>byId.has(id)).length;
     // An unsent message leaves nothing behind: close anything that was pointing at it, without a word.
 
     useEffect(() => {
@@ -249,24 +252,27 @@ export function ChatView({ partner }: { partner: Person }) {
     useLayoutEffect(() => {
         const grew = chat.messages.length > prevLen.current;
         const last = chat.messages[chat.messages.length - 1];
-        if (stick.current || (grew && last?.sender_id === chat.uid)) { toBottom(prevLen.current > 0); setNewBelow(false); }
-        prevLen.current = chat.messages.length;
+        if (stick.current || (grew && last?.id!==prevLastId.current && last?.sender_id === chat.uid)) { toBottom(prevLen.current > 0); setNewBelow(false); }
+        prevLen.current = chat.messages.length;prevLastId.current=last?.id;
     }, [chat.messages, chat.partnerTyping, chat.uid]);
     useLayoutEffect(() => { if (chat.loaded) toBottom(); }, [chat.loaded]);
-    // Count incoming bubbles below the readable viewport, not only arrivals in this visit.
-    // Receipts mark chat viewing, so seen_at is not a viewport-level source of truth.
+    // Baseline existing/history messages once. Only newly added incoming IDs count.
+    // Equal timestamps are allowed, and receipts/edits/duplicate deliveries do not recount IDs.
+    useLayoutEffect(()=>{
+        if(!chat.loaded)return;
+        const base=arrivalBaseline.current;
+        const fresh=chat.messages.filter(m=>!base.ids.has(m.id)&&m.sender_id!==chat.uid&&m.created_at>=base.latest);
+        if(base.ready&&!stick.current&&!jumpingToBottom.current&&!document.hidden&&!profileOpen&&fresh.length){
+            setBelowIds(ids=>[...new Set([...ids,...fresh.map(m=>m.id)])]);
+        }
+        for(const m of chat.messages){base.ids.add(m.id);if(m.created_at>base.latest)base.latest=m.created_at;}
+        base.ready=true;
+    },[chat.messages,chat.loaded,chat.uid,profileOpen]);
     const measureBelow=useCallback(()=>{
         const el=scroller.current;if(!el)return;
         const distance=el.scrollHeight-el.scrollTop-el.clientHeight;
         const near=distance<80;stick.current=near;setAwayFromBottom(distance>120);
-        if(near){jumpingToBottom.current=false;setNewBelowCount(0);return;}
-        if(jumpingToBottom.current){setNewBelowCount(0);return;}
-        const edge=el.getBoundingClientRect().bottom-16;
-        let count=0;
-        for(const row of el.querySelectorAll<HTMLElement>('.dd-chat-row.is-theirs[data-id]')){
-            if(row.getBoundingClientRect().bottom>edge+1)count++;
-        }
-        setNewBelowCount(count);
+        if(near){jumpingToBottom.current=false;setBelowIds(ids=>ids.length?[]:ids);}
     },[]);
     useLayoutEffect(()=>{
         const el=scroller.current;if(!el)return;
@@ -342,7 +348,7 @@ export function ChatView({ partner }: { partner: Person }) {
         {viewer && <Viewer paths={viewer.paths} start={viewer.i} onClose={() => setViewer(null)} />}
         {emojiFor && byId.has(emojiFor) && <EmojiPicker uid={chat.uid} selected={byId.get(emojiFor)?.reactions[chat.uid]} onPick={e => chat.react(emojiFor, e)} onClose={() => { setEmojiFor(null); setSelected(null); }} />}
         <div className="dd-chat-compose">
-            <button type="button" className={`dd-chat-bottom${awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?' is-visible':''}`} aria-label={newBelowCount?`Scroll to latest message, ${newBelowCount} partner ${newBelowCount===1?'message':'messages'} below`:'Scroll to latest message'} tabIndex={awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?0:-1} aria-hidden={!(awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen)||undefined} onPointerDown={e=>e.preventDefault()} onClick={()=>{jumpingToBottom.current=true;setNewBelow(false);stick.current=true;toBottom(true);}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>{newBelowCount>0&&<span className="dd-chat-bottom-count" aria-hidden="true">{newBelowCount>99?'99+':newBelowCount}</span>}</button>
+            <button type="button" className={`dd-chat-bottom${awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?' is-visible':''}`} aria-label={newBelowCount?`Scroll to latest message, ${newBelowCount} new ${newBelowCount===1?'message':'messages'}`:'Scroll to latest message'} tabIndex={awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?0:-1} aria-hidden={!(awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen)||undefined} onPointerDown={e=>e.preventDefault()} onClick={()=>{jumpingToBottom.current=true;setNewBelow(false);stick.current=true;toBottom(true);}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>{newBelowCount>0&&<span className="dd-chat-bottom-count" aria-hidden="true">{newBelowCount>99?'99+':newBelowCount}</span>}</button>
             {editing && <div className="dd-chat-replybar"><Pencil /><div><strong>Editing message</strong><span>Change the text, then tap send</span></div>
                 <button type="button" onPointerDown={e => e.preventDefault()} onClick={stopEdit} aria-label="Cancel edit"><XIcon size={16} /></button></div>}
             {replyTo && <div className="dd-chat-replybar"><Reply /><div><strong>Replying to {original ? (original.sender_id === chat.uid ? 'yourself' : partner.name) : 'message'}</strong><span>{original ? snippet(original) : 'Original message is not available'}</span></div>
