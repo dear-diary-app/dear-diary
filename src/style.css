@@ -1602,3 +1602,28 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 /* Only profile DP openers and their full-screen viewer. */
 .dd-profile-photo-open{display:inline-flex;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;cursor:zoom-in;line-height:0;touch-action:manipulation}.dd-profile-photo-open:focus-visible{outline:3px solid currentColor;outline-offset:5px}
 .dd-profile-photo-dialog{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;background:#101013;color:#fff;overflow:hidden}.dd-profile-photo-dialog::backdrop{background:#101013}.dd-profile-photo-dialog>header{position:absolute;z-index:3;top:0;left:0;right:0;padding:calc(14px + env(safe-area-inset-top)) 16px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(#101013e6,transparent);font-size:13px}.dd-profile-photo-dialog>header button{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:1px solid #ffffff45;background:#ffffff15;color:#fff;cursor:pointer}.dd-profile-photo-stage{position:absolute;inset:calc(76px + env(safe-area-inset-top)) 0 calc(20px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center}.dd-profile-photo-stage>.dd-photo-zoom{width:100%;height:100%}.dd-profile-photo-stage img{object-fit:contain}.dd-profile-photo-fallback{text-align:center}.dd-profile-photo-fallback .dd-avatar{width:min(65vw,320px);height:min(65vw,320px);font-size:100px;border-radius:50%}.dd-profile-photo-fallback p{font-size:12px;opacity:.7;margin:22px 20px}
+
+/* Composer translation stays scoped to its own controls and modal. */
+.dd-attach-controls:not(.is-compact),.dd-attach-pair { width:144px; }
+.dd-attach-menu { width:238px; }
+.dd-translate { width:min(520px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); overflow:auto; box-sizing:border-box; border:1px solid #d6c4c6; border-radius:24px; padding:22px; background:#fffaf5; color:#382f35; box-shadow:0 20px 80px #0005; font:15px var(--ds-font-text); }
+.dd-translate::backdrop { background:#1c121b88; backdrop-filter:blur(5px); }
+.dd-translate header { display:flex;align-items:center;justify-content:space-between;gap:12px; }
+.dd-translate h2 { margin:6px 0 12px;font-size:25px; }
+.dd-translate small { font-size:10px;letter-spacing:.12em; }
+.dd-translate header button { border:0;border-radius:50%;background:#e9dfe4;color:inherit;font-size:28px;min-width:44px;height:44px; }
+.dd-translate label { display:block;font-weight:600;margin:16px 0 10px; }
+.dd-translate label span { font-size:12px;font-weight:400;display:block;margin-top:4px; }
+.dd-translate textarea,.dd-translate select { box-sizing:border-box;display:block;width:100%;margin-top:8px;border:1px solid #ba9ca8;border-radius:12px;padding:12px;background:#fff;color:#382f35;font:16px/1.5 var(--ds-font-text); }
+.dd-translate textarea { min-height:115px;resize:vertical; }
+.dd-translate p { line-height:1.55; }
+.dd-translate-privacy,.dd-translate-hint,.dd-translate details,.dd-translate-result p { font-size:13px; }
+.dd-translate-privacy { padding:12px;background:#eee3e8;border-radius:12px; }
+.dd-translate-result { border-top:1px solid #ba9ca8;margin-top:20px; }
+.dd-translate details { margin-top:20px; }
+.dd-translate summary { cursor:pointer;min-height:30px; }
+.dd-app[data-theme=midnight] .dd-translate { background:#261e2b;color:#f5e6ed;border-color:#785b70; }
+.dd-app[data-theme=midnight] .dd-translate :is(textarea,select) { background:#17131c;color:#f5e6ed;border-color:#785b70; }
+.dd-app[data-theme=midnight] .dd-translate-privacy,.dd-app[data-theme=midnight] .dd-translate header button { background:#413044; }
+.dd-translate a { color:inherit; }
+@media(max-width:360px) { .dd-translate { padding:16px; } }

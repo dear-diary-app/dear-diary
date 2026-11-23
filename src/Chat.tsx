@@ -1,3 +1,4 @@
+import {ChatTranslate,type TranslationDraft} from './ChatTranslate';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import pack from './sticker-pack.json';
@@ -183,6 +184,7 @@ export function ChatView({ partner }: { partner: Person }) {
     // Go back to wherever the chat was opened from; if it was opened directly, go home.
     const leave = () => { if ((window.history.state?.idx ?? 0) > 0) navigate(-1); else navigate('/', { replace: true }); };
     const [text, setText] = useState('');
+    const [translation,setTranslation]=useState<TranslationDraft|null>(null);
     const [recording,setRecording]=useState(false);
     useEffect(()=>{setRecording(false);},[useLocation().pathname]);
     const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -412,6 +414,7 @@ export function ChatView({ partner }: { partner: Person }) {
         {emojiFor && byId.has(emojiFor) && <EmojiPicker uid={chat.uid} selected={byId.get(emojiFor)?.reactions[chat.uid]} onPick={e => chat.react(emojiFor, e)} onClose={() => { setEmojiFor(null); setSelected(null); }} />}
         <div className="dd-chat-compose">
             <button type="button" className={`dd-chat-bottom${awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?' is-visible':''}`} aria-label={newBelowCount?`Scroll to latest message, ${newBelowCount} new ${newBelowCount===1?'message':'messages'}`:'Scroll to latest message'} tabIndex={awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?0:-1} aria-hidden={!(awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen)||undefined} onPointerDown={e=>e.preventDefault()} onClick={()=>{jumpingToBottom.current=true;setNewBelow(false);stick.current=true;toBottom(true);}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>{newBelowCount>0&&<span className="dd-chat-bottom-count" aria-hidden="true">{newBelowCount>99?'99+':newBelowCount}</span>}</button>
+            {translation&&<ChatTranslate draft={translation} onClose={()=>setTranslation(null)} onUse={result=>{if(text!==translation.full)return false;const next=translation.full.slice(0,translation.start)+result+translation.full.slice(translation.end);if(next.length>2000){say('The translated draft is over 2,000 characters. Shorten the preview first.');return false;}setText(next);requestAnimationFrame(()=>{grow();input.current?.focus();});return true;}}/>}
             <ScheduledChat draft={text} blocked={!!replyTo||!!editing||staged.length>0||(askQuery(text)!==null||isOneYear(text)||imageQuery(text)!==null||musicQuery(text)!==null||text.trim().toLowerCase()==='/weather')} request={scheduleRequest} onSaved={()=>{setText('');chat.typing(false);requestAnimationFrame(grow);}}/>
             {editing && <div className="dd-chat-replybar"><Pencil /><div><strong>Editing message</strong><span>Change the text, then tap send</span></div>
                 <button type="button" onPointerDown={e => e.preventDefault()} onClick={stopEdit} aria-label="Cancel edit"><XIcon size={16} /></button></div>}
@@ -424,7 +427,7 @@ export function ChatView({ partner }: { partner: Person }) {
             {!editing&&!staged.length&&!recording&&!profileOpen&&musicQuery(text)!==null&&<SongSuggestions query={musicQuery(text)!} onSend={song=>{chat.sendSong(song,replyTo);chat.typing(false);setText('');setReplyTo(null);setNote('');stick.current=true;requestAnimationFrame(()=>{grow();input.current?.focus();});}}/>}
             {trayOpen && <GifPicker onBusyChange={setGifSending} height={Math.max(160, Math.min(330, (vh ?? window.innerHeight) * .45))} onClose={() => setTrayOpen(false)} onSend={async (id,messageId) => { const ok=await chat.sendGif(id, replyTo,messageId); if(ok){chat.typing(false); setReplyTo(null); setTrayOpen(false); stick.current = true;} return ok; }} />}
             {recording&&!profileOpen?<VoiceRecorder onClose={()=>setRecording(false)} onSend={(blob,duration,mime,peaks)=>{chat.sendVoice(blob,duration,mime,peaks,replyTo);setReplyTo(null);stick.current=true;}}/>:<div className="dd-chat-bar">
-                <ChatAttachments compact={text.length>0} gifDisabled={gifSending||!!editing||staged.length>0} disabled={gifSending||!!editing} trayOpen={trayOpen} onGif={()=>{input.current?.blur();setTrayOpen(o=>!o);}} onPhoto={()=>fileInput.current?.click()}/>
+                <ChatAttachments compact={text.length>0} gifDisabled={gifSending||!!editing||staged.length>0} disabled={gifSending||!!editing} trayOpen={trayOpen} onGif={()=>{input.current?.blur();setTrayOpen(o=>!o);}} onPhoto={()=>fileInput.current?.click()} onTranslate={()=>{const el=input.current;const start=el?.selectionStart??0,end=el?.selectionEnd??0;const selected=start!==end;setTrayOpen(false);chat.typing(false);setTranslation({full:text,selected,start:selected?start:0,end:selected?end:text.length,text:selected?text.slice(start,end):text});}}/>
                 <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={e => { void pick(e.target.files); }} />
                 <textarea ref={input} rows={1} disabled={askBusy} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="enter"
                     onChange={e => { setText(e.target.value); grow(); chat.typing(!!e.target.value.trim()); }}
