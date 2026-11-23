@@ -1508,3 +1508,28 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 /* Header menus must sit above the masked message list, not behind its touch targets. */
 .dd-chat > .dd-chat-head { z-index:5; }
 .dd-gif-send-state{margin:4px 0;font-size:12px;flex-shrink:0}.dd-gif-grid button:disabled{opacity:.6;cursor:wait}
+/* Contrast contract: the sky is decorative; readable content owns its scrim.
+   Text and its surfaces switch in one style update, never separate colour fades. */
+.dd-app.dd-app.dd-app{--read-ink:#302630;--read-muted:#493d49;--read-surface:#fffafd;--read-wash:rgba(255,250,253,.88);--lg-ink:var(--read-ink);--lg-muted:var(--read-muted);--lg-surface:rgba(255,250,253,.96);--lg-raised:rgba(255,250,253,.98);--lg-control:rgba(255,250,253,.96);--lg-paper:rgba(255,250,253,.98);--lg-accent:#e7b5ce;color:var(--read-ink)}
+.dd-app.dd-app.dd-app[data-theme=midnight]{--read-ink:#faf5ff;--read-muted:#e0d6e7;--read-surface:#24212e;--read-wash:rgba(24,22,32,.9);--lg-surface:rgba(36,33,46,.96);--lg-raised:rgba(36,33,46,.98);--lg-control:rgba(36,33,46,.96);--lg-paper:rgba(36,33,46,.98);--lg-accent:#633d58;--lg-glint:rgba(255,255,255,.07)}
+.dd-app.dd-app.dd-app *{color:var(--read-ink)!important;text-shadow:none!important;transition-property:transform,box-shadow,border-radius!important}
+.dd-app.dd-app.dd-app :is(input,textarea)::placeholder{color:var(--read-muted)!important;opacity:1}
+.dd-app.dd-app.dd-app :is(button,input,textarea,select,dialog,.dd-chat-head,.dd-topbar,.dd-profile-head,.dd-bottom-nav,.dd-availability-pill,.dd-chat-menu,.dd-attach-menu,.dd-emoji-picker,.dd-gif-picker,.dd-chat-emojis,.dd-availability-dialog){background-color:var(--read-surface);background-image:none}
+.dd-app.dd-app.dd-app :is(.dd-title,.dd-sub,.dd-wordmark,.dd-book-name,.dd-foot,.dd-page-nav,.dd-chat-status,.dd-chat-day span,.dd-inbox-note){background-color:var(--read-wash);border-radius:8px}
+.dd-app.dd-app.dd-app :is(.dd-btn-primary,.dd-chat-send,.dd-cal-day.is-sel,.dd-theme-modes button[aria-pressed=true]){background:var(--lg-accent)}
+.dd-app.dd-app.dd-app :is(.dd-book-cover,.dd-hue-pink,.dd-hue-lavender,.dd-chat-profile,.dd-profile-person,.dd-shared-empty,.dd-shared-error){background:var(--read-surface)}
+.dd-app.dd-app.dd-app :is(.dd-chat-msg,.dd-chat-time,.dd-page-text,.dd-page-input,.dd-editor,.dd-read-text){color:var(--read-ink)!important}
+.dd-app.dd-app.dd-app .dd-chat-msg.is-sticker .dd-chat-time{background:var(--read-surface);border-radius:6px}
+.dd-app.dd-app.dd-app .dd-weather-scene::after{content:'';position:absolute;inset:0;background:var(--read-wash);z-index:2;pointer-events:none;opacity:.82}
+.dd-app.dd-app.dd-app :is(.dd-viewer,.dd-shared-viewer) button{background:#24212e;--read-ink:#faf5ff}
+.dd-app.dd-app.dd-app :is(.dd-avatar,.dd-new-pill,.dd-daypanel,.dd-guide-time,.dd-switchline,.dd-login,.dd-field,.dd-sticker-tray-head){background-color:var(--read-surface);background-image:none}
+.dd-app.dd-app.dd-app :is(.dd-chat-msg:not(.is-sticker),.dd-chat-row.is-mine .dd-chat-msg:not(.is-sticker)){background:var(--read-surface)}
+.dd-app.dd-app.dd-app :is(.dd-availability-pill>small,.dd-weather-summary small){opacity:1}
+.dd-app.dd-app.dd-app .dd-hue-pink{background:#f0c9d9}.dd-app.dd-app.dd-app .dd-hue-lavender{background:#ded2ee}
+.dd-app.dd-app.dd-app[data-theme=midnight] .dd-hue-pink{background:#503549}.dd-app.dd-app.dd-app[data-theme=midnight] .dd-hue-lavender{background:#3c3555}
+.dd-app.dd-app.dd-app .dd-chat-list.has-held .dd-chat-row{opacity:1}
+.dd-app.dd-app.dd-app :is(.dd-chat-head,.dd-topbar,.dd-profile-head,.dd-sticker-tray-head,.dd-contact-label){background:var(--read-surface)!important}
+.dd-app.dd-app.dd-app .dd-sticker-help{background:var(--read-surface)}
+.dd-app.dd-app.dd-app .dd-sticker-toolbar{background:var(--read-surface);border-radius:14px;padding:10px}
+/* Do not cross-fade opposite-polarity text, which can lose contrast mid-frame. */
+::view-transition-old(diary-theme){display:none!important}::view-transition-new(diary-theme){animation:none!important;mix-blend-mode:normal!important}
