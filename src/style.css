@@ -1376,3 +1376,9 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-weather-scene:has(.is-fallback) { background:linear-gradient(var(--sky-top),var(--sky-bottom)); }
 .dd-weather-scene[data-sky-day=false]:has(.is-fallback)::after { opacity:.18; }
 .dd-weather-scene:is(.weather-sun,.weather-clear-night):has(.is-fallback)::after { background:radial-gradient(circle at 78% 16%,#fff0c8cc 0 4%,#fff0c82a 8%,transparent 28%); }
+/* One continuous top colour across browser chrome, safe area and page headers. */
+.dd-app[data-weather-mode] .dd-weather-scene::before { content:'';position:absolute;inset:0 0 auto;height:calc(180px + env(safe-area-inset-top,0px));z-index:1;pointer-events:none;background:linear-gradient(to bottom,var(--sky-top) 0,var(--sky-top) calc(84px + env(safe-area-inset-top,0px)),transparent 100%); }
+.dd-app[data-weather-mode] .dd-chat-head,.dd-app[data-weather-mode][data-theme=midnight] .dd-chat-head { background:transparent;border-radius:0; }
+.dd-app[data-weather-mode] :is(.dd-chat-head h1,.dd-chat-head p,.dd-chat-back,.dd-wordmark) { color:#fff;text-shadow:0 1px 3px #11223788; }
+.dd-app[data-weather-mode] .dd-topbar .dd-iconbtn { color:#fff;background:#ffffff12;border-color:#ffffff60; }
+.dd-app[data-weather][data-weather-mode] > .dd-weather-scene.dd-weather-scene,.dd-app[data-weather][data-weather-mode] .dd-chat > .dd-weather-scene,.dd-app[data-weather][data-weather-mode][data-theme=midnight] > .dd-weather-scene.dd-weather-scene,.dd-app[data-weather][data-weather-mode][data-theme=midnight] .dd-chat > .dd-weather-scene { opacity:1; }
