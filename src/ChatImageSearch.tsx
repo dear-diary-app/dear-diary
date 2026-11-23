@@ -2,6 +2,16 @@ import React,{useEffect,useRef,useState} from 'react';
 import {prepareImage} from './chatImages';
 export const imageQuery=(text:string)=>/^\/image-/i.test(text)?text.slice(7).trim().replace(/^\((.*)\)$/,'$1').slice(0,100):null;
 export const IMAGE_CREDIT='Image via Wikimedia Commons\n';
+// Only omit the affordance when the stored license line is unambiguously CC0/PD.
+// Unknown/older/incomplete metadata keeps accessible credit as the safe fallback.
+export function imageNeedsCredit(body:string):boolean{
+ if(!body.startsWith(IMAGE_CREDIT))return true;
+ const line=body.split('\n')[3]||'';
+ const match=line.match(/^([^\n]+): (https:\/\/creativecommons\.org\/publicdomain\/(zero|mark)\/1\.0\/?)$/);
+ if(!match)return true;
+ const label=match[1].trim().toLowerCase();
+ return match[3]==='zero'?!/^(cc0(?: 1\.0)?|cc-zero)$/.test(label):!['public domain','public domain mark','pdm','pdm 1.0'].includes(label);
+}
 export interface SearchImage{id:number;title:string;url:string;page:string;license:string;licenseUrl:string;artist:string;extra:string;caption:string}
 const plain=(v:unknown)=>{const d=document.createElement('template');d.innerHTML=String(v||'');return (d.content.textContent||'').replace(/\s+/g,' ').trim();};
 function safe(v:unknown,hosts:string[]){try{const u=new URL(String(v));return u.protocol==='https:'&&hosts.includes(u.hostname)&&!u.username&&!u.password?u.href:'';}catch{return '';}}

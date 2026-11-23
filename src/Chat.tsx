@@ -17,7 +17,7 @@ import { ScheduledChat } from './ScheduledChat';
 import { ChatStatus } from './ChatStatus';
 import { VoicePlayer, VoiceRecorder, Mic } from './VoiceNote';
 import {OneYearCard,isOneYear} from './ChatOneYear';
-import {ImageSuggestions,ImageCreditInfo,imageQuery,IMAGE_CREDIT} from './ChatImageSearch';
+import {ImageSuggestions,ImageCreditInfo,imageQuery,IMAGE_CREDIT,imageNeedsCredit} from './ChatImageSearch';
 import {SongCard,SongSuggestions,musicQuery} from './ChatMusic';
 import { WeatherScene,WeatherContext } from './Weather';
 import {ChatWeatherCard,fetchChatWeather} from './ChatWeather';
@@ -151,7 +151,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
             {m.weather && <ChatWeatherCard weather={m.weather}/>}
             {m.song && <SongCard song={m.song}/>}
             {m.audio && (m.state?<span className="dd-chat-text">🎙 Voice note · {Math.round(m.audio.duration)}s</span>:<VoicePlayer voice={m.audio}/>)}
-            {m.images.length > 0 && <div className={`dd-chat-photos n${m.images.length}`}>{m.images.map((p, i) => <Thumb key={p} path={p} index={i} total={m.images.length} sending={m.state === 'sending'} onOpen={k => { if (Date.now() - noClick.current > 600) onPhoto(m.images, k); }} />)}{m.body.startsWith(IMAGE_CREDIT)&&<ImageCreditInfo body={m.body}/>}</div>}
+            {m.images.length > 0 && <div className={`dd-chat-photos n${m.images.length}`}>{m.images.map((p, i) => <Thumb key={p} path={p} index={i} total={m.images.length} sending={m.state === 'sending'} onOpen={k => { if (Date.now() - noClick.current > 600) onPhoto(m.images, k); }} />)}{m.body.startsWith(IMAGE_CREDIT)&&imageNeedsCredit(m.body)&&<ImageCreditInfo body={m.body}/>}</div>}
             {m.gif_id && <div className="dd-chat-gif">{gif ? <><GifMedia gif={gif}/><GifCredit gif={gif}/></> : <div className="dd-gif-placeholder">{gif === null ? 'GIF is unavailable.' : gifError || 'Loading GIF...'}{gifError && <button type="button" onPointerDown={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();retryGif();}}>Retry GIF</button>}</div>}</div>}
             {sticker ? <img className="dd-chat-sticker" src={art(m.sticker!)} alt={stickerName(m.sticker!)} width="128" height="128" draggable={false} />
                 : m.sticker ? <span className="dd-chat-text">Sticker</span> : m.body ? (isOneYear(m.body)&&!m.images.length?null:m.images.length>0&&m.body.startsWith(IMAGE_CREDIT)?null:<span className="dd-chat-text">{m.body}</span>) : null}
