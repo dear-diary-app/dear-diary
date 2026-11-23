@@ -92,7 +92,6 @@ export function Login() {
 // This sits above every route, so a restored URL cannot bypass the app lock.
 export function AppEntryGate({ children }: { children: React.ReactNode }) {
     const auth = useAuth();
-    const navigate = useNavigate();
     const [stage, setStage] = useState<'welcome' | 'pin' | 'open'>('welcome');
     if (stage === 'welcome') return (
         <div className="dd-overlay" role="dialog" aria-label="Welcome to Dear Diary">
@@ -104,7 +103,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
             </div>
         </div>
     );
-    if (stage === 'pin') return <Pin person={auth.me!} appEntry onEntryUnlock={() => { navigate('/', { replace: true }); setStage('open'); }} />;
+    if (stage === 'pin') return <Pin person={auth.me!} appEntry onEntryUnlock={() => { setStage('open'); }} />;
     return <>{children}</>;
 }
 

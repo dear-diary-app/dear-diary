@@ -255,14 +255,30 @@ export function ChatView({ partner }: { partner: Person }) {
         if (viewer && !chat.messages.some(m => m.images.length && m.images[0] === viewer.paths[0])) { if (window.history.state?.ddv) window.history.back(); else setViewer(null); }
     }, [byId, chat.loaded, chat.messages, selected, replyTo, editing, viewer, emojiFor]);
     const lastMineId = useMemo(() => { for (let i = chat.messages.length - 1; i >= 0; i--) if (chat.messages[i].sender_id === chat.uid) return chat.messages[i].id; return null; }, [chat.messages, chat.uid]);
+    const [resumeTick,setResumeTick]=useState(0);
+    const resumeKey=`dd_chat_place_${chat.uid}`;
+    const resume=useRef<{id?:string;offset?:number;bottom?:boolean;top?:number}|null>(null),resumeDone=useRef(false),resumeLoading=useRef(false),resumePages=useRef(0);
+    useState(()=>{try{resume.current=JSON.parse(localStorage.getItem(resumeKey)||'null');}catch{}return null;});
+    useLayoutEffect(()=>{
+        if(!chat.loaded||resumeDone.current)return;
+        const el=scroller.current,r=resume.current;if(!el||!r||r.bottom){resumeDone.current=true;return;}
+        const row=r.id?el.querySelector<HTMLElement>(`[data-id="${CSS.escape(r.id)}"]`):null;
+        if(!row&&chat.hasMore&&resumePages.current<20){stick.current=false;if(!resumeLoading.current){resumeLoading.current=true;resumePages.current++;void chat.loadOlder().finally(()=>{resumeLoading.current=false;setResumeTick(n=>n+1);});}return;}
+        resumeDone.current=true;stick.current=false;
+        requestAnimationFrame(()=>{if(row)el.scrollTop+=row.getBoundingClientRect().top-el.getBoundingClientRect().top-(r.offset||0);else el.scrollTop=r.top||0;});
+    },[chat.loaded,chat.messages,chat.hasMore,resumeTick]);
+    useEffect(()=>{
+        const save=()=>{const el=scroller.current;if(!el||!resumeDone.current)return;const top=el.getBoundingClientRect().top;const row=[...el.querySelectorAll<HTMLElement>('.dd-chat-row[data-id]')].find(r=>r.getBoundingClientRect().bottom>top+18);try{localStorage.setItem(resumeKey,JSON.stringify({id:row?.dataset.id,offset:row?row.getBoundingClientRect().top-top:0,bottom:el.scrollHeight-el.scrollTop-el.clientHeight<80,top:el.scrollTop}));}catch{}};
+        document.addEventListener('visibilitychange',save);window.addEventListener('pagehide',save);const el=scroller.current;let timer:number|undefined;const scroll=()=>{clearTimeout(timer);timer=window.setTimeout(save,200);};el?.addEventListener('scroll',scroll,{passive:true});return()=>{save();clearTimeout(timer);el?.removeEventListener('scroll',scroll);document.removeEventListener('visibilitychange',save);window.removeEventListener('pagehide',save);};
+    },[resumeKey]);
     const toBottom = (smooth = false) => { const el = scroller.current; if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'smooth' : 'auto' }); };
     useLayoutEffect(() => {
         const grew = chat.messages.length > prevLen.current;
         const last = chat.messages[chat.messages.length - 1];
-        if (stick.current || (grew && last?.id!==prevLastId.current && last?.sender_id === chat.uid)) { toBottom(prevLen.current > 0); setNewBelow(false); }
+        if ((!resume.current || resumeDone.current) && (stick.current || (grew && last?.id!==prevLastId.current && last?.sender_id === chat.uid))) { toBottom(prevLen.current > 0); setNewBelow(false); }
         prevLen.current = chat.messages.length;prevLastId.current=last?.id;
     }, [chat.messages, chat.partnerTyping, chat.uid]);
-    useLayoutEffect(() => { if (chat.loaded) toBottom(); }, [chat.loaded]);
+    useLayoutEffect(() => { if (chat.loaded && (!resume.current || resume.current.bottom)) toBottom(); }, [chat.loaded]);
     // Baseline existing/history messages once. Only newly added incoming IDs count.
     // Equal timestamps are allowed, and receipts/edits/duplicate deliveries do not recount IDs.
     useLayoutEffect(()=>{
@@ -277,6 +293,7 @@ export function ChatView({ partner }: { partner: Person }) {
     },[chat.messages,chat.loaded,chat.uid,profileOpen]);
     const measureBelow=useCallback(()=>{
         const el=scroller.current;if(!el)return;
+        if(resume.current&&!resume.current.bottom&&!resumeDone.current){stick.current=false;return;}
         const distance=el.scrollHeight-el.scrollTop-el.clientHeight;
         const near=distance<80;stick.current=near;setAwayFromBottom(distance>120);
         if(near){jumpingToBottom.current=false;setBelowIds(ids=>ids.length?[]:ids);}

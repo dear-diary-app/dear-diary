@@ -15,6 +15,7 @@ import { ThemeFrame } from './Themes';
 import { PageSlide } from './PageSlide';
 import { TabSwipe } from './TabSwipe';
 import { NotificationInbox } from './NotificationInbox';
+import { ResumePlace } from './Resume';
 import { finishLaunch } from './launch';
 
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
@@ -102,7 +103,7 @@ function Shell() {
         <StoreProvider key={auth.session.user.id} me={auth.me}>
             <ThemeFrame key={auth.session.user.id} className={live ? 'dd-app dd-live' : 'dd-app'}>
                 <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
-                <AppEntryGate>
+                <ResumePlace><AppEntryGate>
                 <ChatProvider uid={auth.session.user.id}>
                 <TabSwipe><div className="dd-with-nav">
                 <PageSlide>{location => <Routes location={location}>
@@ -128,7 +129,7 @@ function Shell() {
                 <BottomNav />
                 </div></TabSwipe>
                 </ChatProvider>
-                </AppEntryGate>
+                </AppEntryGate></ResumePlace>
             </ThemeFrame>
         </StoreProvider>
     );
