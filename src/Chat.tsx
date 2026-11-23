@@ -16,6 +16,7 @@ import { ChatPins } from './ChatPins';
 import { ScheduledChat } from './ScheduledChat';
 import { ChatStatus } from './ChatStatus';
 import { VoicePlayer, VoiceRecorder, Mic } from './VoiceNote';
+import {OneYearCard,isOneYear} from './ChatOneYear';
 import {ImageSuggestions,ImageCreditInfo,imageQuery,IMAGE_CREDIT} from './ChatImageSearch';
 import {SongCard,SongSuggestions,musicQuery} from './ChatMusic';
 import { WeatherScene,WeatherContext } from './Weather';
@@ -40,7 +41,7 @@ const Heart = () => <svg width="46" height="46" viewBox="0 0 24 24" fill="curren
 const Send = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.3 10l12 2-12 2Z" /></svg>;
 
 const photoWord = (n: number) => n > 1 ? `${n} photos` : 'Photo';
-function snippet(m: ChatMsg) { if(m.images.length&&m.body.startsWith(IMAGE_CREDIT))return photoWord(m.images.length); if(m.weather)return `Weather: ${m.weather.place} · ${Math.round(m.weather.temperature)}°C`; if(m.song)return `Song: ${m.song.title} · ${m.song.artist}`; if(m.audio)return 'Voice note'; if (m.gif_id) return 'GIF'; if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
+function snippet(m: ChatMsg) { if(isOneYear(m.body)&&!m.images.length)return 'Our first year · Live timer'; if(m.images.length&&m.body.startsWith(IMAGE_CREDIT))return photoWord(m.images.length); if(m.weather)return `Weather: ${m.weather.place} · ${Math.round(m.weather.temperature)}°C`; if(m.song)return `Song: ${m.song.title} · ${m.song.artist}`; if(m.audio)return 'Voice note'; if (m.gif_id) return 'GIF'; if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
 
 function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, onOpen, onPhoto, onReply, onJump, onMore, gif, gifError, retryGif, flash, lastMine }: {
     arrive: boolean; gif?: Gif | null; gifError: string; retryGif: () => void;
@@ -146,13 +147,14 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
                 <strong>{original ? (original.sender_id === chat.uid ? 'You' : partner.name) : 'Message'}</strong>
                 <span>{original ? snippet(original) : 'Original message is not available'}</span>
             </button>}
+            {isOneYear(m.body)&&!m.images.length&&!m.song&&!m.weather&&!m.audio&&!m.sticker&&!m.gif_id&&<OneYearCard/>}
             {m.weather && <ChatWeatherCard weather={m.weather}/>}
             {m.song && <SongCard song={m.song}/>}
             {m.audio && (m.state?<span className="dd-chat-text">🎙 Voice note · {Math.round(m.audio.duration)}s</span>:<VoicePlayer voice={m.audio}/>)}
             {m.images.length > 0 && <div className={`dd-chat-photos n${m.images.length}`}>{m.images.map((p, i) => <Thumb key={p} path={p} index={i} total={m.images.length} sending={m.state === 'sending'} onOpen={k => { if (Date.now() - noClick.current > 600) onPhoto(m.images, k); }} />)}{m.body.startsWith(IMAGE_CREDIT)&&<ImageCreditInfo body={m.body}/>}</div>}
             {m.gif_id && <div className="dd-chat-gif">{gif ? <><GifMedia gif={gif}/><GifCredit gif={gif}/></> : <div className="dd-gif-placeholder">{gif === null ? 'GIF is unavailable.' : gifError || 'Loading GIF...'}{gifError && <button type="button" onPointerDown={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();retryGif();}}>Retry GIF</button>}</div>}</div>}
             {sticker ? <img className="dd-chat-sticker" src={art(m.sticker!)} alt={stickerName(m.sticker!)} width="128" height="128" draggable={false} />
-                : m.sticker ? <span className="dd-chat-text">Sticker</span> : m.body ? (m.images.length>0&&m.body.startsWith(IMAGE_CREDIT)?null:<span className="dd-chat-text">{m.body}</span>) : null}
+                : m.sticker ? <span className="dd-chat-text">Sticker</span> : m.body ? (isOneYear(m.body)&&!m.images.length?null:m.images.length>0&&m.body.startsWith(IMAGE_CREDIT)?null:<span className="dd-chat-text">{m.body}</span>) : null}
             <span className="dd-chat-time">{m.scheduled?'Scheduled · ':''}{m.edited_at && !sticker ? 'edited · ' : ''}{timeFmt.format(new Date(m.created_at))}</span>
         </div>
         {groups.length > 0 && <div className="dd-chat-reacts">{groups.map(([e, n]) => <button key={`${e}:${n}`} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => chat.react(m.id, e)} aria-label={`${e} ${n}. Tap to ${mineReact === e ? 'remove' : 'add'} your reaction`}>{e}{n > 1 ? ` ${n}` : ''}</button>)}</div>}
@@ -358,7 +360,7 @@ export function ChatView({ partner }: { partner: Person }) {
     useLayoutEffect(() => { if (stick.current) toBottom(); }, [gifs.items]);
     const startReply = (id: string) => { setEditing(null); setReplyTo(id); setSelected(null); input.current?.focus(); };
     const selMsg = selected ? byId.get(selected) : undefined;
-    const isText = !!selMsg && !selMsg.sticker && !selMsg.gif_id && !selMsg.audio && !selMsg.song && !selMsg.weather && !!selMsg.body && !(selMsg.images.length>0&&selMsg.body.startsWith(IMAGE_CREDIT));
+    const isText = !!selMsg && !selMsg.sticker && !selMsg.gif_id && !selMsg.audio && !selMsg.song && !selMsg.weather && !!selMsg.body && !isOneYear(selMsg.body) && !(selMsg.images.length>0&&selMsg.body.startsWith(IMAGE_CREDIT));
     const canEdit = isText && selMsg!.sender_id === chat.uid && !selMsg!.state;
     const canUnsend = !!selMsg && selMsg.sender_id === chat.uid && selMsg.state !== 'sending';
     const startEdit = () => { if (!selMsg) return; setTrayOpen(false); clearStaged(); setReplyTo(null); setEditing(selMsg.id); setText(selMsg.body); setSelected(null); requestAnimationFrame(() => { grow(); const el = input.current; if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }); };
@@ -405,7 +407,7 @@ export function ChatView({ partner }: { partner: Person }) {
         {emojiFor && byId.has(emojiFor) && <EmojiPicker uid={chat.uid} selected={byId.get(emojiFor)?.reactions[chat.uid]} onPick={e => chat.react(emojiFor, e)} onClose={() => { setEmojiFor(null); setSelected(null); }} />}
         <div className="dd-chat-compose">
             <button type="button" className={`dd-chat-bottom${awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?' is-visible':''}`} aria-label={newBelowCount?`Scroll to latest message, ${newBelowCount} new ${newBelowCount===1?'message':'messages'}`:'Scroll to latest message'} tabIndex={awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?0:-1} aria-hidden={!(awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen)||undefined} onPointerDown={e=>e.preventDefault()} onClick={()=>{jumpingToBottom.current=true;setNewBelow(false);stick.current=true;toBottom(true);}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>{newBelowCount>0&&<span className="dd-chat-bottom-count" aria-hidden="true">{newBelowCount>99?'99+':newBelowCount}</span>}</button>
-            <ScheduledChat draft={text} blocked={!!replyTo||!!editing||staged.length>0||(imageQuery(text)!==null||musicQuery(text)!==null||text.trim().toLowerCase()==='/weather')} request={scheduleRequest} onSaved={()=>{setText('');chat.typing(false);requestAnimationFrame(grow);}}/>
+            <ScheduledChat draft={text} blocked={!!replyTo||!!editing||staged.length>0||(isOneYear(text)||imageQuery(text)!==null||musicQuery(text)!==null||text.trim().toLowerCase()==='/weather')} request={scheduleRequest} onSaved={()=>{setText('');chat.typing(false);requestAnimationFrame(grow);}}/>
             {editing && <div className="dd-chat-replybar"><Pencil /><div><strong>Editing message</strong><span>Change the text, then tap send</span></div>
                 <button type="button" onPointerDown={e => e.preventDefault()} onClick={stopEdit} aria-label="Cancel edit"><XIcon size={16} /></button></div>}
             {replyTo && <div className="dd-chat-replybar"><Reply /><div><strong>Replying to {original ? (original.sender_id === chat.uid ? 'yourself' : partner.name) : 'message'}</strong><span>{original ? snippet(original) : 'Original message is not available'}</span></div>
