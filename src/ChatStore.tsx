@@ -30,7 +30,7 @@ const dropMessage = (list: ChatMsg[], id: string) => list.filter(m => m.id !== i
 export interface ChatApi {
     uid: string; messages: ChatMsg[]; loaded: boolean; loadError: boolean; hasMore: boolean; live: boolean; partnerTyping: boolean; partnerOnline: boolean; unread: number;
     send: (body: string, sticker?: string | null, replyTo?: string | null) => void;
-    sendGif: (id: string, replyTo?: string | null) => void;
+    sendGif: (id: string, replyTo?: string | null, messageId?: string) => Promise<boolean>;
     sendImages: (files: Blob[], body: string, replyTo?: string | null) => void;
     retry: (id: string) => void; discard: (id: string) => void; unsend: (id: string) => Promise<boolean>; edit: (id: string, body: string) => void; react: (id: string, emoji: string) => void;
     loadOlder: () => Promise<void>; typing: (on: boolean) => void; setViewing: (on: boolean) => void; reload: () => void;
@@ -163,12 +163,19 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
         pending.current.delete(m.id);
         insert({ ...m, images: paths });
     }, []);
-    const insert = useCallback((m: ChatMsg) => {
-        void Promise.resolve(supabase.from('chat_messages').insert({ id: m.id, body: m.body, sticker: m.sticker, gif_id: m.gif_id, reply_to: m.reply_to, images: m.images }).select(COLS).single()).then(({ data, error }) => {
-            if (error || !data) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return; }
-            const row = clean(data);
-            if (row) setMessages(prev => prev.map(x => x.id === m.id ? row : x).sort(byTime));
-        });
+    const insert = useCallback(async (m: ChatMsg): Promise<boolean> => {
+        try {
+            let { data, error } = await supabase.from('chat_messages').insert({ id: m.id, body: m.body, sticker: m.sticker, gif_id: m.gif_id, reply_to: m.reply_to, images: m.images }).select(COLS).single();
+            // A retry after a lost response reuses the same id, never a second message.
+            if (error?.code === '23505') {
+                const existing = await supabase.from('chat_messages').select(COLS).eq('id', m.id).single();
+                if (existing.data?.sender_id === m.sender_id && existing.data?.gif_id === m.gif_id) { data = existing.data; error = existing.error; }
+            }
+            const row = !error && data ? clean(data) : null;
+            if (!row) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return false; }
+            setMessages(prev => prev.map(x => x.id === m.id ? row : x).sort(byTime));
+            return true;
+        } catch { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return false; }
     }, []);
 
     const api = useMemo<ChatApi>(() => ({
@@ -180,10 +187,11 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             setMessages(prev => [...prev, m].sort(byTime));
             insert(m);
         },
-        sendGif: (gif_id, replyTo = null) => {
-            if (!isGifId(gif_id)) return;
-            const m: ChatMsg = { id: crypto.randomUUID(), sender_id: uid, recipient_id: partner.current ?? '', body: '', sticker: null, gif_id, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: [], state: 'sending' };
-            setMessages(prev => [...prev, m].sort(byTime)); insert(m);
+        sendGif: async (gif_id, replyTo = null, messageId = crypto.randomUUID()) => {
+            if (!isGifId(gif_id)) return false;
+            const m: ChatMsg = { id: messageId, sender_id: uid, recipient_id: partner.current ?? '', body: '', sticker: null, gif_id, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: [], state: 'sending' };
+            setMessages(prev => [...prev.filter(x => x.id !== m.id), m].sort(byTime));
+            return await insert(m);
         },
         sendImages: (files, body, replyTo = null) => {
             const blobs = files.slice(0, 3);

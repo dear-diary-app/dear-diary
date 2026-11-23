@@ -200,6 +200,7 @@ export function ChatView({ partner }: { partner: Person }) {
     useEffect(() => { setMenuOpen(false); }, [selected]);
     const gifs = useChatGifs(chat.messages.flatMap(m => m.gif_id ? [m.gif_id] : []));
     const [trayOpen, setTrayOpen] = useState(false);
+    const [gifSending,setGifSending]=useState(false);
     const [flash, setFlash] = useState<string | null>(null);
     const [belowIds,setBelowIds] = useState<string[]>([]);
     const arrivalBaseline=useRef<{ready:boolean;ids:Set<string>;latest:string}>({ready:false,ids:new Set(),latest:''});
@@ -369,13 +370,13 @@ export function ChatView({ partner }: { partner: Person }) {
                 <button type="button" onPointerDown={e => e.preventDefault()} onClick={() => setReplyTo(null)} aria-label="Cancel reply"><XIcon size={16} /></button></div>}
             {staged.length > 0 && <div className="dd-chat-staged" aria-label="Photos to send">{staged.map((x, i) => <div key={x.id} className="dd-chat-staged-item"><img src={x.url} alt={`Photo ${i + 1} to send`} draggable={false} /><button type="button" onPointerDown={e => e.preventDefault()} onClick={() => setStaged(prev => { URL.revokeObjectURL(x.url); return prev.filter(y => y.id !== x.id); })} aria-label={`Remove photo ${i + 1}`}><XIcon size={14} /></button></div>)}<span>{staged.length}/{MAX_PHOTOS}</span></div>}
             {note && <p className="dd-chat-note" role="status">{note}</p>}
-            {trayOpen && <GifPicker height={Math.max(160, Math.min(330, (vh ?? window.innerHeight) * .45))} onClose={() => setTrayOpen(false)} onSend={id => { chat.sendGif(id, replyTo); chat.typing(false); setReplyTo(null); setTrayOpen(false); stick.current = true; }} />}
+            {trayOpen && <GifPicker onBusyChange={setGifSending} height={Math.max(160, Math.min(330, (vh ?? window.innerHeight) * .45))} onClose={() => setTrayOpen(false)} onSend={async (id,messageId) => { const ok=await chat.sendGif(id, replyTo,messageId); if(ok){chat.typing(false); setReplyTo(null); setTrayOpen(false); stick.current = true;} return ok; }} />}
             <div className="dd-chat-bar">
-                <ChatAttachments compact={text.length>0} gifDisabled={!!editing||staged.length>0} disabled={!!editing} trayOpen={trayOpen} onGif={()=>{input.current?.blur();setTrayOpen(o=>!o);}} onPhoto={()=>fileInput.current?.click()}/>
+                <ChatAttachments compact={text.length>0} gifDisabled={gifSending||!!editing||staged.length>0} disabled={gifSending||!!editing} trayOpen={trayOpen} onGif={()=>{input.current?.blur();setTrayOpen(o=>!o);}} onPhoto={()=>fileInput.current?.click()}/>
                 <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={e => { void pick(e.target.files); }} />
                 <textarea ref={input} rows={1} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="enter"
                     onChange={e => { setText(e.target.value); grow(); chat.typing(!!e.target.value.trim()); }}
-                    onFocus={() => { document.documentElement.classList.add('dd-chat-typing'); setTrayOpen(false); }}
+                    onFocus={() => { document.documentElement.classList.add('dd-chat-typing'); if(!gifSending)setTrayOpen(false); }}
                     onBlur={() => { document.documentElement.classList.remove('dd-chat-typing'); chat.typing(false); }}
                     />
                 <button type="button" className="dd-chat-send" aria-label="Send message" disabled={!text.trim() && !staged.length} onPointerDown={e=>{e.preventDefault();sendHeld.current=false;sendOrigin.current={x:e.clientX,y:e.clientY};try{e.currentTarget.setPointerCapture(e.pointerId);}catch{}window.clearTimeout(sendHold.current);sendHold.current=window.setTimeout(()=>{sendHeld.current=true;chat.typing(false);input.current?.blur();setScheduleRequest(n=>n+1);},500);}} onPointerMove={e=>{if(Math.hypot(e.clientX-sendOrigin.current.x,e.clientY-sendOrigin.current.y)>12)window.clearTimeout(sendHold.current);}} onPointerUp={()=>window.clearTimeout(sendHold.current)} onPointerCancel={()=>window.clearTimeout(sendHold.current)} onContextMenu={e=>e.preventDefault()} onKeyDown={e=>{if(e.key==='ArrowUp'&&e.altKey){e.preventDefault();chat.typing(false);setScheduleRequest(n=>n+1);}}} onClick={()=>{window.clearTimeout(sendHold.current);if(sendHeld.current){sendHeld.current=false;return;}submit();}}><Send /></button>

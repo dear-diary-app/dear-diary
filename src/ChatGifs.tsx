@@ -272,20 +272,32 @@ function GifGridPreview({ gif }: { gif: Gif }) {
 export function GifPicker({
   onSend,
   onClose,
+  onBusyChange,
   height,
 }: {
-  onSend: (id: string) => void;
+  onSend: (id: string, messageId: string) => Promise<boolean>;
   onClose: () => void;
+  onBusyChange: (busy: boolean) => void;
   height: number;
 }) {
   const [query, setQuery] = useState(""),
     [results, setResults] = useState<Gif[]>([]),
-    [chosen, setChosen] = useState<Gif | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [more, setMore] = useState(false),
     [searched, setSearched] = useState("");
   const [next, setNext] = useState(0);
+  const [sending,setSending]=useState(""),[sendError,setSendError]=useState("");
+  const sendingRef=useRef(false), messageIds=useRef(new Map<string,string>());
+  const tap=useRef<{x:number;y:number;top:number;moved:boolean}|null>(null);
+  const send=async(g:Gif)=>{
+    if(sendingRef.current)return;
+    sendingRef.current=true;onBusyChange(true);setSending(g.id);setSendError("");
+    const id=messageIds.current.get(g.id)||crypto.randomUUID();messageIds.current.set(g.id,id);
+    try{if(!await onSend(g.id,id))setSendError("Could not send GIF. Check your connection, then tap it to retry.");}
+    catch{setSendError("Could not send GIF. Check your connection, then tap it to retry.");}
+    finally{sendingRef.current=false;onBusyChange(false);setSending("");}
+  };
   const pending = useRef("");
   const searchRef = useRef<(append?: boolean) => Promise<void>>();
   const abort = useRef<AbortController>();
@@ -302,7 +314,6 @@ export function GifPicker({
     abort.current = c;
     setBusy(true);
     setError("");
-    setChosen(null);
     if (!append) {
       setResults([]);
       setMore(false);
@@ -345,7 +356,6 @@ export function GifPicker({
     pending.current = "";
     setBusy(false);
     setError("");
-    setChosen(null);
     if (query.trim().length < 2) {
       setResults([]);
       setMore(false);
@@ -365,12 +375,12 @@ export function GifPicker({
       style={{ height }}
       aria-label="GIF search"
       onKeyDown={(e) => {
-        if (e.key === "Escape") onClose();
+        if (e.key === "Escape" && !sendingRef.current) onClose();
       }}
     >
       <header>
         <strong>Send a GIF</strong>
-        <button type="button" aria-label="Close GIF search" onClick={onClose}>
+        <button type="button" aria-label="Close GIF search" disabled={!!sending} onClick={onClose}>
           <XIcon size={18} />
         </button>
       </header>
@@ -385,64 +395,30 @@ export function GifPicker({
           type="search"
           aria-label="Search GIFs"
           placeholder="Search GIPHY"
+          disabled={!!sending}
           maxLength={50}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <button type="submit" disabled={busy || query.trim().length < 2}>
+        <button type="submit" disabled={busy || !!sending || query.trim().length < 2}>
           Search
         </button>
       </form>
+      {sending && <p className="dd-gif-send-state" role="status">Sending GIF...</p>}
+      {sendError && <p className="dd-gif-send-state" role="alert">{sendError}</p>}
       <div ref={grid} className="dd-gif-results">
-        {chosen ? (
-          <div className="dd-gif-preview">
-            <GifMedia gif={chosen} />
-            <GifCredit gif={chosen} />
-            <div>
-              <button type="button" onClick={() => setChosen(null)}>
-                Back to results
-              </button>
-              <button
-                type="button"
-                className="dd-btn-primary"
-                onClick={() => onSend(chosen.id)}
-              >
-                Send GIF
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {!searched && !busy && (
-              <p>Type at least 2 characters. Tap a GIF to preview.</p>
-            )}
-            <div className="dd-gif-grid">
-              {results.map((g) => (
-                <button
-                  type="button"
-                  key={g.id}
-                  aria-label={`Preview ${g.title}`}
-                  onClick={() => setChosen(g)}
-                >
-                  <GifGridPreview gif={g} />
-                </button>
-              ))}
-            </div>
-            {searched && !results.length && !busy && !error && (
-              <p>No matching GIFs. Try another word.</p>
-            )}
-            {more && (
-              <button
-                type="button"
-                disabled={busy}
-                className="dd-gif-more"
-                onClick={() => void search(true)}
-              >
-                Load more GIFs
-              </button>
-            )}
-          </>
-        )}
+        {!searched && !busy && <p>Type at least 2 characters. Tap a GIF to send it.</p>}
+        <div className="dd-gif-grid">
+          {results.map(g => <button type="button" key={g.id} aria-label={`Send ${g.title}`} disabled={!!sending}
+            onPointerDown={e=>{tap.current={x:e.clientX,y:e.clientY,top:grid.current?.scrollTop??0,moved:false};}}
+            onPointerMove={e=>{if(tap.current&&Math.hypot(e.clientX-tap.current.x,e.clientY-tap.current.y)>10)tap.current.moved=true;}}
+            onPointerCancel={()=>{if(tap.current)tap.current.moved=true;}}
+            onClick={e=>{const t=tap.current;tap.current=null;if(e.detail!==0&&(!t||t.moved||Math.abs((grid.current?.scrollTop??0)-t.top)>3))return;void send(g);}}>
+            <GifGridPreview gif={g}/>
+          </button>)}
+        </div>
+        {searched && !results.length && !busy && !error && <p>No matching GIFs. Try another word.</p>}
+        {more && <button type="button" disabled={busy||!!sending} className="dd-gif-more" onClick={()=>void search(true)}>Load more GIFs</button>}
         {busy && <p role="status">Searching...</p>}
         {error && <p role="alert">{error}</p>}
       </div>
