@@ -266,7 +266,6 @@ export function SongPill({
       <span className="dd-song-bar" aria-hidden="true">
         <i style={{ width: `${p.progress * 100}%` }} />
       </span>
-      {!compact && <Credit url={store} />}
       {p.failed && (
         <small className="dd-song-error" role="status">
           Could not play this song. Check your connection.
