@@ -2,7 +2,6 @@ import { ChatNotificationSettings } from './ChatNotificationSettings';
 import { PrivacySettings } from './PrivacySettings';
 import { DiaryExport } from './DiaryExport';
 import { PushSettings } from './PushSettings';
-import { dismissMotion } from './motion';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import {
@@ -92,17 +91,7 @@ export function Login() {
 // This sits above every route, so a restored URL cannot bypass the app lock.
 export function AppEntryGate({ children }: { children: React.ReactNode }) {
     const auth = useAuth();
-    const [stage, setStage] = useState<'welcome' | 'pin' | 'open'>('welcome');
-    if (stage === 'welcome') return (
-        <div className="dd-overlay" role="dialog" aria-label="Welcome to Dear Diary">
-            <div className="dd-welcome">
-                <span className="dd-welcome-heart"><Heart size={26} /></span>
-                <h1 className="dd-welcome-title">Dear Diary</h1>
-                <p className="dd-welcome-tag">A little space for two, a new page every day.</p>
-                <button type="button" className="dd-btn dd-btn-primary" onClick={e => dismissMotion(e.currentTarget.closest('.dd-overlay'), () => setStage('pin'))}>Open your diaries</button>
-            </div>
-        </div>
-    );
+    const [stage, setStage] = useState<'pin' | 'open'>('pin');
     if (stage === 'pin') return <Pin person={auth.me!} appEntry onEntryUnlock={() => { setStage('open'); }} />;
     return <>{children}</>;
 }
@@ -846,7 +835,7 @@ export function ChangePin() {
 
 export function HowToUse() {
     const sections = [
-        { title: '1. Come in as yourself', text: "Welcome to your little space for two. Joydeep and Aruba each sign in with their own email and password. Open your diaries first asks for your own 4-digit diary PIN at any time of day or night, showing your name and profile picture. Unlock once to reach the books without entering it again straight away. After 10 PM, your partner's nightly page needs no additional PIN once you are inside. Your own diary appears first on the books screen. There is no public sign-up." },
+        { title: '1. Come in as yourself', text: "Welcome to your little space for two. Joydeep and Aruba each sign in with their own email and password. Opening the app goes straight to your own 4-digit diary PIN at any time of day or night, showing your name and profile picture. Unlock once to reach the books without entering it again straight away. After 10 PM, your partner's nightly page needs no additional PIN once you are inside. Your own diary appears first on the books screen. There is no public sign-up." },
         { title: '2. Give your book its own PIN', text: "Tap your diary. The first time, choose a 4-digit PIN and enter it again to confirm. Only the owner can set or change their diary PIN. Joydeep's book and Aruba's book have separate PINs. If the other book has no PIN yet, its owner needs to set one first." },
         { title: "3. Write a little of today's story", text: "Open your book and choose Write today's page. Writing is open from 6:00 AM until 10:00 PM IST. You can return and edit today's draft during those hours. Your partner cannot read an unpublished draft. Older pages cannot be rewritten." },
         { title: '4. Let it save, and add a photo', text: "Your words autosave as you write. Look for Saved before leaving the page, especially on a weak connection. If you see Saving or a retry message, keep the page open until it finishes. Use Stickers to add a ribbon, flower or keepsake to your page. Tap a placed sticker, drag it anywhere on the page, pinch to resize and twist with two fingers to rotate. Corner handles and Size and Rotate controls work too. Tap uncovered words to keep writing. Each sheet has 14 lines. Writing flows automatically to another sheet when the current one fills; use the page arrows to go back. Stickers stay on their numbered sheet, autosave and appear on the published page. Use Add photo in the editor to choose an image from your device. Check that the photo appears before you leave." },
