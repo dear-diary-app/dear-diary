@@ -241,7 +241,7 @@ export function ChatView({ partner }: { partner: Person }) {
     useLayoutEffect(() => { if (chat.loaded) toBottom(); }, [chat.loaded]);
     useLayoutEffect(() => { if (stick.current) toBottom(); }, [vh, replyTo, trayOpen]);
 
-    const grow = () => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; el.style.overflowY = el.scrollHeight > 120 ? 'auto' : 'hidden'; };
+    const grow = () => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; el.style.overflowY = el.scrollHeight > 120 ? 'auto' : 'hidden'; if (stick.current) toBottom(); };
     const submit = () => {
         if (!text.trim() && !staged.length) return;
         setNote('');
@@ -318,11 +318,11 @@ export function ChatView({ partner }: { partner: Person }) {
             <div className="dd-chat-bar">
                 <ChatAttachments compact={text.length>0} gifDisabled={!!editing||staged.length>0} disabled={!!editing} trayOpen={trayOpen} onGif={()=>{input.current?.blur();setTrayOpen(o=>!o);}} onPhoto={()=>fileInput.current?.click()}/>
                 <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={e => { void pick(e.target.files); }} />
-                <textarea ref={input} rows={1} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="send"
+                <textarea ref={input} rows={1} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="enter"
                     onChange={e => { setText(e.target.value); grow(); chat.typing(!!e.target.value.trim()); }}
                     onFocus={() => { document.documentElement.classList.add('dd-chat-typing'); setTrayOpen(false); }}
                     onBlur={() => { document.documentElement.classList.remove('dd-chat-typing'); chat.typing(false); }}
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && window.matchMedia('(pointer: fine)').matches) { e.preventDefault(); submit(); } }} />
+                    />
                 <button type="button" className="dd-chat-send" aria-label="Send message" disabled={!text.trim() && !staged.length} onPointerDown={e => e.preventDefault()} onClick={submit}><Send /></button>
             </div>
         </div>
