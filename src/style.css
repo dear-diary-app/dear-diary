@@ -1329,3 +1329,13 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 @media(prefers-reduced-motion:reduce) { .dd-weather-scene * { animation:none!important; } }
 
 .weather-rain { background:linear-gradient(#8cacc41c,#6f89ad12); }.weather-storm { background:linear-gradient(#4d536938,#616d8114); }.weather-sun { background:linear-gradient(#ffdfa822,transparent 60%); }.weather-cloud { background:linear-gradient(#a4b0c528,transparent 70%); }.weather-snow { background:linear-gradient(#c5d8ec25,transparent); }.weather-wind { background:linear-gradient(120deg,#b6d0cf18,transparent); }
+.dd-weather-city { margin:14px 0;padding:12px;border:1px solid #bdaabe55;border-radius:16px; }
+.dd-weather-city-form { display:flex;gap:6px;margin:7px 0; }
+.dd-weather-city-form input { width:0;min-width:0;flex:1;padding:10px;border:1px solid #bdaabe88;border-radius:12px;font:inherit;background:#fff9;color:inherit;font-size:16px; }
+.dd-weather-city-form button { padding:10px;border:0;border-radius:12px;background:#d6c6e8;color:#493a61;font:inherit;cursor:pointer; }
+.dd-weather-city-form button:disabled { opacity:.5; }
+.dd-weather-city ul { list-style:none;padding:0;margin:10px 0;display:grid;gap:7px; }
+.dd-weather-city li button { display:flex;flex-direction:column;align-items:flex-start;text-align:left;width:100%;padding:11px;border:1px solid #bdaabe66;border-radius:12px;background:#fff7;color:inherit;font:inherit;cursor:pointer;min-height:48px; }
+.dd-weather-city li span { font-size:12px; }
+.dd-app[data-theme=midnight] .dd-weather-city :is(input,li button) { background:#302733;color:#f0e3e6; }
+.dd-weather-city .dd-weather-city-form input { height:44px;min-height:44px;box-sizing:border-box; }

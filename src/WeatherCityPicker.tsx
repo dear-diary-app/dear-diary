@@ -1,0 +1,18 @@
+import React,{useContext,useEffect,useRef,useState}from'react';
+import{WeatherContext,type WeatherCity}from'./Weather';
+export function WeatherCityPicker(){
+ const weather=useContext(WeatherContext),[query,setQuery]=useState(''),[results,setResults]=useState<WeatherCity[]>([]),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
+ const request=useRef(0),abort=useRef<AbortController>();
+ useEffect(()=>()=>{request.current++;abort.current?.abort();},[]);
+ const search=async(e:React.FormEvent)=>{
+  e.preventDefault();const name=query.trim();if(name.length<2){setMessage('Enter at least 2 letters.');return;}
+  abort.current?.abort();const seq=++request.current,controller=new AbortController();abort.current=controller;setBusy(true);setResults([]);setMessage('Searching cities...');const timer=window.setTimeout(()=>controller.abort(),12000);
+  try{const url=new URL('https://geocoding-api.open-meteo.com/v1/search');url.search=new URLSearchParams({name,count:'8',language:'en',format:'json'}).toString();const response=await fetch(url,{signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer'});if(!response.ok)throw Error();const data=await response.json();
+   const cities:WeatherCity[]=(Array.isArray(data.results)?data.results:[]).filter((c:any)=>Number.isFinite(c.id)&&typeof c.name==='string'&&Number.isFinite(c.latitude)&&Math.abs(c.latitude)<=90&&Number.isFinite(c.longitude)&&Math.abs(c.longitude)<=180).map((c:any)=>({id:c.id,name:c.name,region:[c.admin1,c.admin2].filter(Boolean).join(', '),country:c.country||c.country_code||'',latitude:Math.round(c.latitude*20)/20,longitude:Math.round(c.longitude*20)/20}));
+   if(seq!==request.current)return;setResults(cities);setMessage(cities.length?'Choose the matching city below.':'No matching city found. Try a nearby larger city, or add a country after a comma.');
+  }catch{if(seq===request.current)setMessage('Could not search cities. Check your connection and try again.');}
+  finally{clearTimeout(timer);if(seq===request.current)setBusy(false);}
+ };
+ const label=(city:WeatherCity)=>[city.name,city.region,city.country].filter(Boolean).join(' · ');
+ return <div className="dd-weather-city"><p><strong>Weather location</strong><br/>{weather.city?label(weather.city):'Device location'}</p>{weather.city&&<button type="button" className="dd-btn dd-btn-ghost" onClick={()=>{weather.setCity(null);setResults([]);setMessage('Switched to device location.');}}>Use device location</button>}<form onSubmit={e=>void search(e)}><label htmlFor="weather-city-search">Or search for a city</label><div className="dd-weather-city-form"><input id="weather-city-search" type="search" value={query} maxLength={100} placeholder="City, optional country" autoComplete="off" enterKeyHint="search" onChange={e=>{setQuery(e.target.value);request.current++;abort.current?.abort();setBusy(false);setResults([]);setMessage('');}}/><button type="submit" disabled={busy||query.trim().length<2}>{busy?'Searching...':'Search'}</button></div></form><p>Your search text is sent to Open-Meteo only when you press Search. The city you select and its rounded coordinates are saved for this account on this device, not in your diary. No device location permission is needed for a city.</p>{message&&<p role="status">{message}</p>}{results.length>0&&<ul aria-label="Matching cities">{results.map(city=><li key={city.id}><button type="button" onClick={()=>{weather.setCity(city);setResults([]);setMessage('City selected for weather.');}}><strong>{city.name}</strong><span>{[city.region,city.country].filter(Boolean).join(' · ')}</span></button></li>)}</ul>}</div>;
+}

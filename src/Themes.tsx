@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase';
 import { Check, ChevronRight } from './icons';
 import { fadeTheme } from './motion';
 import { WeatherContext,WeatherScene,useWeather } from './Weather';
+import { WeatherCityPicker } from './WeatherCityPicker';
 
 const PALETTES = [
     { id: 'paper', name: 'Warm paper', note: 'The original', top: '#fdf9f4', mid: '#faf3ee', bottom: '#f7efe9', glass: '255, 250, 247' },
@@ -107,7 +108,7 @@ export function ThemePicker() {
                 <span><strong>{p.name}</strong><small>{p.note}</small></span>
             </button>)}
         </div>
-        <div className="dd-weather-settings"><label><input type="checkbox" checked={state.weatherOn} onChange={e=>state.setWeatherOn(e.target.checked)}/> Local weather background</label><p>Optional. Uses your browser location, rounded to about 5 km, to get weather from Open-Meteo about every 30 minutes while open. Coordinates stay out of your diary and are not saved by this app. The weather provider receives them and your IP address. Each person sees their own local weather.</p>{state.weatherOn&&<><button type="button" className="dd-btn dd-btn-ghost" onClick={weather.refresh}>Enable / refresh weather</button><p role="status">{weather.status}</p></>}<p>Rain, snow, wind (25 km/h or more), sun or moon, cloud and storm scenes are estimates, not a live camera. Reduced motion, data saver or low-power devices use still scenes. Weather unavailable? Your selected colour stays on.</p><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Weather data by Open-Meteo</a></div>
+        <div className="dd-weather-settings"><label><input type="checkbox" checked={state.weatherOn} onChange={e=>state.setWeatherOn(e.target.checked)}/> Local weather background</label><p>Optional. Uses your device location or selected city, rounded to about 5 km, to get weather from Open-Meteo about every 30 minutes while open. Device coordinates stay out of your diary and are not saved. A manually selected city is saved only on this device. The weather provider receives them and your IP address. Each person sees their own local weather.</p>{state.weatherOn&&<><WeatherCityPicker/><button type="button" className="dd-btn dd-btn-ghost" onClick={weather.refresh}>Enable / refresh weather</button><p role="status">{weather.status}</p></>}<p>Rain, snow, wind (25 km/h or more), sun or moon, cloud and storm scenes are estimates, not a live camera. Reduced motion, data saver or low-power devices use still scenes. Weather unavailable? Your selected colour stays on.</p><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Weather data by Open-Meteo</a></div>
         {state.message && <p className="dd-theme-message" role="status">{state.message}</p>}
         </div></details>
     </section>;
