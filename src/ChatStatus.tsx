@@ -156,6 +156,7 @@ export function ChatStatus({
             Choose what your friend sees. Your status stays until you change or
             clear it. Online is automatic and separate.
           </p>
+          <p className="dd-card-note">Changing any status to Free can notify your friend if they turn on Friend is free in Settings → Notifications. Saving Free again does not send another alert.</p>
           <label className="dd-field">
             <span>Your status</span>
             <input

@@ -5,7 +5,7 @@ import { TopBar } from './ui';
 import { Bell, Clock } from './icons';
 
 interface Notice { id: string; account_id: string; title: string; body: string; received_at: number; type: string }
-const labels: Record<string,string> = {scheduled_sent:'Scheduled message',open:'New page',writing:'Writing reminder',lock:'Before lock',published:'Reading time',reminder:'Reminder'};
+const labels: Record<string,string> = {friend_free:'Friend is free',scheduled_sent:'Scheduled message',open:'New page',writing:'Writing reminder',lock:'Before lock',published:'Reading time',reminder:'Reminder'};
 function readNotices(account: string): Promise<Notice[]> {
  return new Promise((resolve,reject)=>{
   const request=indexedDB.open('dear-diary-inbox',1);
