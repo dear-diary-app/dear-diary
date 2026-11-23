@@ -36,3 +36,5 @@ Synthetic browser network interception passed 320/390/820px in paper and midnigh
 ## In-place flow update
 
 Translate now opens a small language picker. Selecting a language is the explicit request action. Before the first request for each account/browser, a short online-AI notice requires Continue & translate. No provider request occurs merely on opening. Results replace the captured composer selection or whole draft, without a review box. Undo restores the original until the translated draft is edited, cleared, sent or the chat is left. Consent is per account on this browser, and repeats on a different browser or after storage is cleared. No names/history/profile/context are added. The backend/provider/quotas are unchanged. Synthetic UI tests passed both accounts at 320/390/820 in paper/midnight: consent cancellation and double-tap guard, selected payload, replace/undo, remembered consent, rate-limit preservation, Escape/Back, no auto-send or overflow.
+
+The returning-user picker was simplified to only its title, close and three language buttons. First-use consent and post-translation Undo remain.
