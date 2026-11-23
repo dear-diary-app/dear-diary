@@ -21,8 +21,8 @@ export function SkyCanvas({kind,day,animate}:{kind:WeatherKind;day:boolean;anima
  const time=useRef(0),ref=useRef<HTMLCanvasElement>(null),last=useRef({kind,day}),[fallback,setFallback]=useState(false);
  useEffect(()=>{
   const canvas=ref.current;if(!canvas)return;const ctx=canvas.getContext('2d',{alpha:false});if(!ctx){setFallback(true);window.dispatchEvent(new Event('dd-sky-still'));return;}
-  let alive=true,frame=0,lastPaint=0,elapsed=time.current,previous=performance.now(),transition=last.current.kind===kind&&last.current.day===day?1:0,slow=0,still=false;let w=0,h=0;const rng=random(422),particles=Array.from({length:kind==='snow'?65:110},()=>({x:rng(),y:rng(),z:.3+rng()*.7})),stars=Array.from({length:70},()=>({x:rng(),y:rng()*.7,z:rng()}));
-  const resize=()=>{w=canvas.clientWidth;h=canvas.clientHeight;const scale=Math.min(1,640/Math.max(w,1));canvas.width=Math.max(1,Math.round(w*scale));canvas.height=Math.max(1,Math.round(h*scale));w=canvas.width;h=canvas.height;};
+  let alive=true,frame=0,lastPaint=0,elapsed=time.current,previous=performance.now(),transition=last.current.kind===kind&&last.current.day===day?1:0,slow=0,still=false,quality=0;delete canvas.dataset.power;let w=0,h=0;const rng=random(422),particles=Array.from({length:kind==='snow'?65:110},()=>({x:rng(),y:rng(),z:.3+rng()*.7})),stars=Array.from({length:70},()=>({x:rng(),y:rng()*.7,z:rng()}));
+  const resize=()=>{w=canvas.clientWidth;h=canvas.clientHeight;const scale=Math.min(1,(quality===0?640:quality===1?420:280)/Math.max(w,1));canvas.width=Math.max(1,Math.round(w*scale));canvas.height=Math.max(1,Math.round(h*scale));w=canvas.width;h=canvas.height;};
   resize();const observer=new ResizeObserver(()=>{resize();paint(elapsed,1);});observer.observe(canvas);
   if(!textures)textures=[cloudTexture(71),cloudTexture(208)];
   const old=last.current;last.current={kind,day};
@@ -35,7 +35,7 @@ export function SkyCanvas({kind,day,animate}:{kind:WeatherKind;day:boolean;anima
     const disc=ctx.createRadialGradient(x,y,0,x,y,r*1.15);disc.addColorStop(0,night?'#e2e9f3':'#fff8e7');disc.addColorStop(.82,night?'#e2e9f3':'#fff5da');disc.addColorStop(1,night?'#e2e9f300':'#fff5da00');ctx.fillStyle=disc;ctx.fillRect(x-r*1.15,y-r*1.15,r*2.3,r*2.3);
     if(night){ctx.globalAlpha=.12;for(let i=0;i<7;i++){ctx.fillStyle='#75859b';ctx.beginPath();ctx.arc(x+(rngFixed(i)-.5)*r,y+(rngFixed(i+9)-.5)*r,r*(.08+rngFixed(i+18)*.14),0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;}
    }
-   const dense=['cloud','rain','storm','snow'].includes(k);for(let layer=0;layer<3;layer++){
+   const dense=['cloud','rain','storm','snow'].includes(k);for(let layer=0;layer<(quality===2?2:3);layer++){
     const tw=w*(layer===0?2.8:layer===1?2.1:1.7),th=h*(dense?.84:.5),speed=k==='wind'?18:layer===0?2.8:4.6+layer*2,offset=((t*speed+layer*w*.49)%tw+tw)%tw;
     ctx.globalAlpha=(dense?.68:.20)*(night?.72:1)*(layer===2?.65:1);ctx.filter=k==='storm'?'brightness(.52) contrast(1.25)':night?'brightness(.68) saturate(.65)':'none';
     for(let copy=-1;copy<2;copy++)ctx.drawImage(textures[layer%2],copy*tw-offset,-th*.18+layer*h*.16,tw,th);
@@ -53,7 +53,7 @@ export function SkyCanvas({kind,day,animate}:{kind:WeatherKind;day:boolean;anima
   }
   const oldCanvas=document.createElement('canvas');oldCanvas.width=w;oldCanvas.height=h;scene(old.kind,old.day,0);oldCanvas.getContext('2d')?.drawImage(canvas,0,0);
   function paint(t:number,mix:number){if(!ctx)return;scene(kind,day,t);if(mix<1){ctx.globalAlpha=1-mix;ctx.drawImage(oldCanvas,0,0,w,h);ctx.globalAlpha=1;}}
-  const tick=(now:number)=>{if(!alive)return;frame=requestAnimationFrame(tick);if(document.hidden){cancelAnimationFrame(frame);frame=0;previous=now;return;}if(now-lastPaint<1000/24)return;const start=performance.now(),dt=Math.max(0,Math.min(.1,(now-previous)/1000));previous=now;lastPaint=now-(now-lastPaint)%(1000/24);if(animate&&!still)elapsed+=dt;time.current=elapsed;transition=Math.min(1,transition+dt/1.4);paint(elapsed,animate?transition:1);const cost=performance.now()-start;slow=cost>22?slow+1:Math.max(0,slow-1);if(slow>24){still=true;canvas.dataset.power='adaptive-still';window.dispatchEvent(new Event('dd-sky-still'));}if((!animate||still)&&transition>=1){cancelAnimationFrame(frame);frame=0;}};
+  const tick=(now:number)=>{if(!alive)return;frame=requestAnimationFrame(tick);if(document.hidden){cancelAnimationFrame(frame);frame=0;previous=now;return;}const fps=quality===0?24:quality===1?16:10;if(now-lastPaint<1000/fps)return;const start=performance.now(),dt=Math.max(0,Math.min(.1,(now-previous)/1000));previous=now;lastPaint=now-(now-lastPaint)%(1000/fps);if(animate&&!still)elapsed+=dt;time.current=elapsed;transition=Math.min(1,transition+dt/1.4);paint(elapsed,animate?transition:1);const cost=performance.now()-start;slow=cost>(quality===2?50:22)?slow+1:Math.max(0,slow-1);if(slow>24){slow=0;if(quality<2){quality++;canvas.dataset.power=quality===1?'adaptive-light':'adaptive-low';resize();}else{still=true;canvas.dataset.power='adaptive-still';window.dispatchEvent(new Event('dd-sky-still'));}}if((!animate||still)&&transition>=1){cancelAnimationFrame(frame);frame=0;}};
   paint(elapsed,animate?transition:1);if(animate)frame=requestAnimationFrame(tick);const visibility=()=>{previous=performance.now();if(animate&&!document.hidden&&!frame)frame=requestAnimationFrame(tick);};document.addEventListener('visibilitychange',visibility);
   return()=>{alive=false;cancelAnimationFrame(frame);observer.disconnect();document.removeEventListener('visibilitychange',visibility);};
  },[kind,day,animate]);

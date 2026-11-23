@@ -1490,3 +1490,6 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 
 .dd-profile-field textarea{font:inherit;color:inherit;line-height:1.55;padding:12px 14px;border-radius:14px;border:1px solid rgba(160,125,139,.35);background:rgba(var(--dd-glass,255,250,247),.2)}.dd-profile-hero h2 span,.dd-mood button{font-family:system-ui,'Noto Color Emoji',sans-serif}.dd-profile-page{padding-bottom:120px}.dd-mood .dd-emoji{position:static;transform:none}
 .dd-song-credit{flex:1 0 100%;box-sizing:border-box}.dd-song-credit img{border-radius:0;background:transparent;object-fit:contain}.dd-song-main{min-width:0}.dd-profile-page .dd-songbox{width:100%}.dd-profile-page fieldset{min-width:0}.dd-song-credit>span{line-height:1.4}.dd-song-credit a{flex-shrink:0}
+/* The route snapshot must not paint over the shared sky behind normal pages.
+   Fixed and Auto keep their opaque transition background. Chat owns its canvas. */
+.dd-app[data-weather] .dd-route-page { background:transparent; }
