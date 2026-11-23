@@ -12,6 +12,7 @@ import { EmojiPicker } from './EmojiPicker';
 import { quickReactions } from './reactions';
 import { ChatProfile } from './ChatProfile';
 import { ChatAttachments } from './ChatAttachments';
+import { ChatPins } from './ChatPins';
 import { ScheduledChat } from './ScheduledChat';
 import { ChatStatus } from './ChatStatus';
 import { WeatherScene } from './Weather';
@@ -169,6 +170,8 @@ export function ChatView({ partner }: { partner: Person }) {
     const [text, setText] = useState('');
     const [replyTo, setReplyTo] = useState<string | null>(null);
     const [selected, setSelected] = useState<string | null>(null);
+    const [pinnedIds,setPinnedIds]=useState<Set<string>>(new Set());
+    const [pinRequest,setPinRequest]=useState<{id:string;pin:boolean;n:number}|null>(null);
     const [editing, setEditing] = useState<string | null>(null);
     const [menuOpen, setMenuOpen] = useState(false);
     const [emojiFor, setEmojiFor] = useState<string | null>(null);
@@ -358,16 +361,18 @@ export function ChatView({ partner }: { partner: Person }) {
             {selected ? <div className="dd-chat-selection"><h1>1 selected</h1><p>Choose a reaction</p></div> : <Link to="/chat/profile" state={{ ddChatProfile: true }} className="dd-chat-contact" aria-label={`View ${partner.name}'s profile`} onClick={()=>input.current?.blur()}><Avatar person={partner} size="sm" />
             <div className={`dd-contact-label${chat.partnerOnline?' is-online':''}`}><h1>{partner.name}</h1><p aria-live="polite" aria-hidden={!chat.partnerOnline||undefined}>Online</p></div></Link>}
             {!selMsg && <ChatStatus partner={partner} online={chat.partnerOnline}/>}
-            {selMsg && (isText || canUnsend) && <div className="dd-chat-head-actions">
+            {selMsg && !selMsg.state && <div className="dd-chat-head-actions">
                 <button type="button" className="dd-chat-more" aria-label="Message options" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(o => !o)}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg></button>
                 {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => { setMenuOpen(false); setSelected(null); }} />
                     <div className="dd-chat-menu" role="menu">
+                        <button type="button" role="menuitem" onClick={()=>{const id=selMsg.id;setPinRequest({id,pin:!pinnedIds.has(id),n:Date.now()});setMenuOpen(false);setSelected(null);}}>{pinnedIds.has(selMsg.id)?'Unpin':'Pin'}</button>
                         {isText && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); copySel(); }}>Copy</button>}
                         {canEdit && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); startEdit(); }}>Edit</button>}
                         {canUnsend && <button type="button" role="menuitem" className="is-danger" onClick={() => { setMenuOpen(false); const id=selMsg.id; setSelected(null); say('Unsending...'); void chat.unsend(id).then(ok=>say(ok?'':'Could not unsend. Check your connection and try again.')); }}>Unsend</button>}
                     </div></>}
             </div>}
         </header>
+        <ChatPins uid={chat.uid} request={pinRequest} onState={setPinnedIds} onJump={async id=>{stick.current=false;for(let i=0;i<21;i++){const el=scroller.current?.querySelector<HTMLElement>(`[data-id="${CSS.escape(id)}"]`);if(el){jump(id);return true;}if(i===20)return false;await chat.loadOlder();await new Promise(r=>setTimeout(r,40));}return false;}}/>
         <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
             {!chat.loaded && !chat.loadError && <p className="dd-chat-empty" role="status">Opening your chat...</p>}

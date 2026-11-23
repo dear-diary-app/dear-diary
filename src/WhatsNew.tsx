@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'chatpins', emoji: '📌', title: 'Keep a message close', text: 'Hold any sent message and choose Pin. Shared pins sit above your chat; tap to jump back. Choose 24 hours, 7 days or Always. Expand the bar to see or unpin up to 10 messages. Unsending a message removes its pin too.' },
         { id: 'resumeplace', emoji: '📍', title: 'Return to your place', text: 'Reopening the app restores your last page for this account, after the usual PIN check. Chat remembers your reading position on this device. Your phone can still reload the app when memory is low.' },
         { id: 'giftapsend', emoji: '🎞️', title: 'Tap a GIF to send', text: 'Tap a search result to send it straight to your chat. There is no extra Send step. Sending blocks repeat taps; a failed send stays open so you can retry.' },
         { id: 'unsendtouchfix', emoji: '🛠️', title: 'Message options work again', text: 'The message menu now stays above the chat, so Unsend, Edit and Copy receive your taps. Unsend keeps your message visible and shows an error if the connection fails.' },
