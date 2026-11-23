@@ -4,6 +4,7 @@ import { useAuth, useStore } from "./store";
 import { personById, otherId, todayKey, PersonId } from "./model";
 import { Avatar, TopBar, useNow } from "./ui";
 import { ProfileSongReactions } from "./ProfileSongReactions";
+import { ProfilePhoto } from "./ProfilePhoto";
 import { ProfileCrop } from "./ProfileCrop";
 import { ProfileStreak, useProfileStreaks } from "./ProfileStreak";
 import { supabase } from "./lib/supabase";
@@ -228,7 +229,7 @@ function ProfileBody({ who }: { who: PersonId }) {
         </Link>
       </header>
       <section className="dd-card dd-profile-hero">
-        <Avatar person={p} size="lg" />
+        <ProfilePhoto person={p} />
         <h2>
           {p.name}{" "}
           {saved.mood && <span aria-label="Current mood">{saved.mood}</span>}
