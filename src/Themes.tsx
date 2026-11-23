@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase';
 import { Check, ChevronRight } from './icons';
 import { fadeTheme } from './motion';
 import { WeatherContext,WeatherScene,WeatherSummary,useWeather } from './Weather';
+import { skyPalette } from './SkyCanvas';
 import { WeatherCityPicker } from './WeatherCityPicker';
 
 const PALETTES = [
@@ -53,16 +54,7 @@ export function ThemeFrame({ className, children }: { className: string; childre
         return () => { active = false; };
     }, [uid]);
     const activeTheme=mode==='auto'?autoTheme(clock):theme;
-    const weatherPalettes={
-        sun:{top:'#fff3d5',mid:'#f9e7bc',bottom:'#eed7a5',glass:'255, 243, 213'},
-        'clear-night':{top:'#141c35',mid:'#202a48',bottom:'#30374e',glass:'25, 35, 58'},
-        cloud:{top:'#e0e7ed',mid:'#cfd9e4',bottom:'#bdcad8',glass:'224, 231, 237'},
-        rain:{top:'#d8e6ee',mid:'#bfd2e1',bottom:'#a3bbcf',glass:'216, 230, 238'},
-        wind:{top:'#e2eeeb',mid:'#c9dfdc',bottom:'#b5cecd',glass:'226, 238, 235'},
-        storm:{top:'#202a3b',mid:'#303b50',bottom:'#444e61',glass:'32, 42, 59'},
-        snow:{top:'#edf3fa',mid:'#dbe7f3',bottom:'#c6d9eb',glass:'237, 243, 250'},
-    };
-    const weatherPalette=mode==='weather'&&weather.kind?weatherPalettes[!weather.day&&weather.kind!=='storm'?'clear-night':weather.kind]:null;
+    const weatherPalette=mode==='weather'&&weather.kind?skyPalette(weather.kind,weather.day):null;
     const renderTheme=weatherPalette?(!weather.day||weather.kind==='clear-night'||weather.kind==='storm'?'midnight':'paper'):activeTheme;
     const palette = weatherPalette||PALETTES.find(p => p.id === activeTheme)!;
     useEffect(() => {
@@ -93,7 +85,7 @@ export function ThemeFrame({ className, children }: { className: string; childre
         setBusy(false);
     };
     return <ThemeContext.Provider value={{mode,setMode,weatherOn,setWeatherOn,theme,busy,message,choose}}>
-        <WeatherContext.Provider value={weather}><div className={className} data-theme={renderTheme} data-weather={weatherOn&&weather.kind?weather.kind:undefined} data-weather-mode={mode==='weather'||undefined} style={{
+        <WeatherContext.Provider value={weather}><div className={className} data-theme={renderTheme} data-weather={weatherOn&&weather.kind?weather.kind:undefined} data-weather-mode={mode==='weather'||undefined} data-sky-dark={!!weatherPalette&&(weather.kind==='storm'||!weather.day||weather.kind==='clear-night')||undefined} style={{
             '--dd-bg-top': palette.top, '--dd-bg-mid': palette.mid, '--dd-bg-bottom': palette.bottom,
             '--dd-glass': palette.glass,
         } as React.CSSProperties}><WeatherScene/>{children}</div></WeatherContext.Provider>
@@ -120,7 +112,7 @@ export function ThemePicker() {
                 <span><strong>{p.name}</strong><small>{p.note}</small></span>
             </button>)}
         </div>
-        <div className="dd-weather-settings"><label><input type="checkbox" checked={state.weatherOn} onChange={e=>{state.setWeatherOn(e.target.checked);if(!e.target.checked&&state.mode==='weather')state.setMode('fixed');}}/> Local weather background</label><p>Optional. Uses your device location or selected city, rounded to about 5 km, to get weather from Open-Meteo about every 30 minutes while open. Device coordinates stay out of your diary and are not saved. A manually selected city is saved only on this device. The weather provider receives them and your IP address. Each person sees their own local weather.</p>{state.weatherOn&&<><WeatherCityPicker/><button type="button" className="dd-btn dd-btn-ghost" onClick={weather.refresh}>Enable / refresh weather</button></>}<p>Rain, snow, wind (25 km/h or more), sun or moon, cloud and storm scenes are estimates, not a live camera. Reduced motion, data saver or low-power devices use still scenes. Weather unavailable? Your selected colour stays on.</p><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Weather data by Open-Meteo</a></div>
+        <div className="dd-weather-settings"><label><input type="checkbox" checked={state.weatherOn} onChange={e=>{state.setWeatherOn(e.target.checked);if(!e.target.checked&&state.mode==='weather')state.setMode('fixed');}}/> Local weather background</label><p>Optional. Uses your device location or selected city, rounded to about 5 km, to get weather from Open-Meteo about every 30 minutes while open. Device coordinates stay out of your diary and are not saved. A manually selected city is saved only on this device. The weather provider receives them and your IP address. Each person sees their own local weather.</p>{state.weatherOn&&<><WeatherCityPicker/><button type="button" className="dd-btn dd-btn-ghost" onClick={weather.refresh}>Enable / refresh weather</button></>}<p>Generated sky scenes, not video or a live camera. Layered clouds drift over sun, moon, rain, snow and wind (25 km/h or more). Motion is capped at 24 fps and pauses when hidden. It can use more battery. Reduced motion, data saver or low-power devices use still scenes. Weather unavailable? Your selected colour stays on.</p><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Weather data by Open-Meteo</a></div>
         {state.message && <p className="dd-theme-message" role="status">{state.message}</p>}
         </div></details>
     </section>;

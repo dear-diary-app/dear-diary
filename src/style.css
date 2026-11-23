@@ -1354,3 +1354,25 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-app[data-theme=midnight] .dd-weather-summary { background:#18203266; }
 .dd-app[data-theme=midnight] .dd-theme-modes button { background:#302733;border-color:#66526c;color:#eadfe9; }
 .dd-app[data-theme=midnight] .dd-theme-modes button[aria-pressed=true] { background:#d6c6e8;color:#493a61; }
+/* Full generated sky in Weather mode. Canvas stays behind every input surface. */
+.dd-sky-canvas { display:block;width:100%;height:100%;pointer-events:none; }
+.dd-app[data-weather-mode] > .dd-weather-scene.dd-weather-scene,.dd-app[data-weather-mode] .dd-chat > .dd-weather-scene { opacity:1; }
+.dd-app[data-weather-mode] { color:#263340; }
+.dd-app[data-weather-mode] .dd-grain { display:none; }
+.dd-app[data-weather-mode] :is(.dd-card,.dd-status,.dd-menu-card,.dd-cal,.dd-dayentry,.dd-empty) { background:rgba(249,251,252,.9);border-color:#ffffff80;box-shadow:0 6px 24px #172a3b12; }
+.dd-app[data-weather-mode] :is(.dd-title,.dd-wordmark,.dd-book-name,.dd-sub,.dd-foot p,.dd-page-nav) { color:#f5f7fa;text-shadow:0 1px 4px #142737a6; }
+.dd-app[data-weather-mode] .dd-chat-head { background:#eff5f9d9;border-radius:0 0 20px 20px; }
+.dd-app[data-weather-mode] .dd-chat-compose { background:linear-gradient(transparent,#d8e4ebad); }
+.dd-app[data-weather-mode][data-theme=midnight] :is(.dd-card,.dd-status,.dd-menu-card,.dd-cal,.dd-dayentry,.dd-empty) { background:rgba(23,32,47,.9);border-color:#aabbd64d;color:#f0f3f8; }
+.dd-app[data-weather-mode][data-theme=midnight] .dd-chat-head { background:#17202fe6; }
+.dd-app[data-weather-mode][data-theme=midnight] .dd-chat-compose { background:linear-gradient(transparent,#101b30ad); }
+/* No-canvas fallback uses original CSS cloud shapes, not a missing/blank surface. */
+.dd-weather-scene:has(.is-fallback) { background:linear-gradient(#657b90,#afc0cc); }
+.dd-weather-scene:has(.is-fallback)::after { content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 20%,#e2e7ea99,transparent 50%),radial-gradient(ellipse at 80% 40%,#d8dfe5aa,transparent 55%); }
+.dd-weather-scene[data-sky-day=false]:has(.is-fallback) { background:linear-gradient(#101b30,#536275); }
+.dd-app[data-weather-mode]:not([data-theme=midnight]) :is(.dd-menu-card,.dd-status,.dd-card,.dd-cal,.dd-dayentry) :is(.dd-menu-text small,.dd-card-sub,.dd-card-note,.dd-toggle-hint,.dd-field span,.dd-theme-message,.dd-streak-note,.dd-streak-time) { color:#596471; }
+.dd-app[data-weather-mode] .dd-menu-card { background:rgba(249,251,252,.87); }
+.dd-app[data-weather-mode][data-theme=midnight] .dd-menu-card { background:rgba(23,32,47,.9); }
+.dd-weather-scene:has(.is-fallback) { background:linear-gradient(var(--sky-top),var(--sky-bottom)); }
+.dd-weather-scene[data-sky-day=false]:has(.is-fallback)::after { opacity:.18; }
+.dd-weather-scene:is(.weather-sun,.weather-clear-night):has(.is-fallback)::after { background:radial-gradient(circle at 78% 16%,#fff0c8cc 0 4%,#fff0c82a 8%,transparent 28%); }

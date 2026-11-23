@@ -1,3 +1,5 @@
+import {useLocation} from 'react-router-dom';
+import {SkyCanvas,skyPalette} from './SkyCanvas';
 import React,{createContext,useContext,useEffect,useRef,useState}from'react';
 export type WeatherKind='sun'|'clear-night'|'cloud'|'rain'|'wind'|'storm'|'snow';
 export type WeatherCity={id:number;name:string;region:string;country:string;latitude:number;longitude:number};
@@ -21,7 +23,7 @@ export function useWeather(uid:string,enabled:boolean):WeatherState{
  const setCity=(value:WeatherCity|null)=>{const next=cleanCity(value);setCityState(next);cache.current=null;lastAttempt.current=0;setKind(null);setUpdatedAt(null);try{if(next)localStorage.setItem(cityKey(uid),JSON.stringify(next));else localStorage.removeItem(cityKey(uid));}catch{};if(!next)explicit.current=true;setTick(n=>n+1);};
  const lastAttempt=useRef(0);
  const explicit=useRef(false),version=useRef(0),cache=useRef<{at:number;kind:WeatherKind}|null>(null);
- useEffect(()=>{const mq=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setAnimate(!mq.matches&&!(navigator as any).connection?.saveData&&(navigator.hardwareConcurrency||8)>2&&!document.hidden);update();mq.addEventListener('change',update);document.addEventListener('visibilitychange',update);return()=>{mq.removeEventListener('change',update);document.removeEventListener('visibilitychange',update);};},[]);
+ useEffect(()=>{let powerStill=false;const mq=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setAnimate(!powerStill&&!mq.matches&&!(navigator as any).connection?.saveData&&(navigator.hardwareConcurrency||8)>2&&!document.hidden);const stop=()=>{powerStill=true;update();};window.addEventListener('dd-sky-still',stop);const connection=(navigator as any).connection;connection?.addEventListener?.('change',update);update();mq.addEventListener('change',update);document.addEventListener('visibilitychange',update);return()=>{window.removeEventListener('dd-sky-still',stop);connection?.removeEventListener?.('change',update);mq.removeEventListener('change',update);document.removeEventListener('visibilitychange',update);};},[]);
  useEffect(()=>{cache.current=null;setKind(null);},[uid]);
  useEffect(()=>{
   const run=++version.current;let timer:number|undefined,controller:AbortController|undefined;
@@ -58,9 +60,9 @@ export function useWeather(uid:string,enabled:boolean):WeatherState{
  return{updatedAt,day,kind,status,animate,city,setCity,refresh:()=>{explicit.current=true;cache.current=null;setTick(n=>n+1);}};
 }
 export function WeatherScene({chat=false}:{chat?:boolean}){
- const weather=useContext(WeatherContext);if(!weather.kind)return null;
- return <div className={`dd-weather-scene${chat?' is-chat':''} weather-${weather.kind}${weather.animate?' is-moving':''}`} aria-hidden="true"><div className="dd-weather-orb"/><div className="dd-weather-cloud c1"/><div className="dd-weather-cloud c2"/>{Array.from({length:weather.kind==='rain'||weather.kind==='storm'?22:weather.kind==='snow'?16:7},(_,i)=><i key={i} style={{'--wx-i':i,'--wx-x':`${(i*37+7)%100}%`,'--wx-delay':`${-i*.37}s`} as React.CSSProperties}/>)}</div>;
+ const weather=useContext(WeatherContext),location=useLocation();if(!weather.kind||(!chat&&location.pathname.startsWith('/chat')))return null;
+ return <div className={`dd-weather-scene${chat?' is-chat':''} weather-${weather.kind}${weather.animate?' is-moving':''}`} data-sky-day={weather.day} style={{'--sky-top':skyPalette(weather.kind,weather.day).top,'--sky-bottom':skyPalette(weather.kind,weather.day).bottom} as React.CSSProperties} aria-hidden="true"><SkyCanvas kind={weather.kind} day={weather.day} animate={weather.animate}/></div>;
 }
 
 export const weatherLabel=(kind:WeatherKind)=>({'sun':'Sunny','clear-night':'Clear night','cloud':'Cloudy / foggy','rain':'Rain','wind':'Windy','storm':'Thunderstorm','snow':'Snow'}[kind]);
-export function WeatherSummary(){const w=useContext(WeatherContext);return <div className="dd-weather-summary" role="status">{w.kind&&<strong>{weatherLabel(w.kind)}{w.updatedAt?` · updated ${new Date(w.updatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`:''}</strong>}<span>{w.status}</span>{w.kind&&<small>{w.animate?'Animated background':'Still background (reduced motion, data saver or low-power device)'}</small>}</div>;}
+export function WeatherSummary(){const w=useContext(WeatherContext);return <div className="dd-weather-summary" role="status">{w.kind&&<strong>{weatherLabel(w.kind)}{w.updatedAt?` · updated ${new Date(w.updatedAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`:''}</strong>}<span>{w.status}</span>{w.kind&&<small>{w.animate?'Animated background':'Still background (motion preference, power saving or renderer fallback)'}</small>}</div>;}
