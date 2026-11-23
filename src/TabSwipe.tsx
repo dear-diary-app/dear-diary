@@ -4,7 +4,7 @@ import{useAuth}from'./store';
 import type{PersonId}from'./model';
 export const tabPaths=(me:PersonId)=>['/',`/hub/${me}`,'/chat',`/calendar/${me}`,'/settings'];
 const blocked='a,button,input,textarea,select,summary,label,[role="button"],[role="slider"],[role="tab"],[contenteditable]:not([contenteditable="false"]),.dd-chat-msg,.dd-chat-actions,.dd-chat-compose,.dd-chat-profile,.dd-viewer,.dd-shared-viewer,.dd-crop-overlay,dialog,.dd-gif-picker,.dd-emoji-picker,.dd-journal,.dd-photo,.dd-photos,.dd-bottom-nav,[data-no-tab-swipe]';
-const overlay='dialog[open],.dd-viewer,.dd-shared-viewer,.dd-crop-overlay,.dd-gif-picker,.dd-chat-profile,.dd-chat-actions,.dd-overlay,.dd-entry-shell';
+const overlay='.dd-attach-menu.is-open,dialog[open],.dd-viewer,.dd-shared-viewer,.dd-crop-overlay,.dd-gif-picker,.dd-chat-profile,.dd-chat-actions,.dd-overlay,.dd-entry-shell';
 function selected(){return !!window.getSelection()?.toString();}
 function editing(){const draft=document.querySelector<HTMLTextAreaElement>('.dd-chat-compose textarea');if(draft?.value.trim()||document.querySelector('.dd-chat-staged,.dd-chat-replybar'))return true;const e=document.activeElement;return e instanceof HTMLElement&&(e.matches('input,textarea,select')||e.isContentEditable);}
 function horizontalControl(target:Element,root:Element){for(let e:Element|null=target;e&&e!==root;e=e.parentElement){const s=getComputedStyle(e);if(/auto|scroll/.test(s.overflowX)&&e.scrollWidth>e.clientWidth+2)return true;if(s.touchAction==='none'||s.touchAction.includes('pan-x'))return true;}return false;}

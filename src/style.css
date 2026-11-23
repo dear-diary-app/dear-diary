@@ -1255,3 +1255,26 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 @media(prefers-reduced-motion:reduce) {
  .dd-chat *, .dd-chat *::before, .dd-chat *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
 }
+
+/* Stable avatar alignment, with presence only changing the name/subtitle inside it. */
+.dd-chat-contact .dd-contact-label { position:relative; height:42px; min-width:0; display:flex; align-items:center; }
+.dd-chat-contact .dd-contact-label h1 { font-size:19px; line-height:24px; transform-origin:left center; transform:translateY(0) scale(1); transition:transform 240ms cubic-bezier(.2,.75,.25,1); }
+.dd-chat-contact .dd-contact-label.is-online h1 { transform:translateY(-8px) scale(.895); }
+.dd-chat-contact .dd-contact-label p { position:absolute; left:0; top:25px; margin:0; min-height:0; line-height:15px; opacity:0; transform:translateY(4px); transition:opacity 180ms ease,transform 240ms cubic-bezier(.2,.75,.25,1); }
+.dd-chat-contact .dd-contact-label.is-online p { opacity:1; transform:translateY(0); }
+.dd-attach-controls { flex:0 0 auto; position:relative; height:44px; width:94px; transition:width 220ms cubic-bezier(.2,.75,.25,1); }
+.dd-attach-controls.is-compact { width:44px; }
+.dd-attach-pair { position:absolute; left:0; bottom:0; display:flex; gap:6px; width:94px; opacity:1; transform:scale(1); transform-origin:left center; transition:opacity 140ms ease,transform 220ms cubic-bezier(.2,.75,.25,1); }
+.dd-attach-controls.is-compact .dd-attach-pair { opacity:0; transform:scale(.65); pointer-events:none; }
+.dd-attach-controls .dd-attach-clip { position:absolute; left:0; bottom:0; opacity:0; transform:scale(.65) rotate(-20deg); pointer-events:none; transition:opacity 180ms ease,transform 220ms cubic-bezier(.2,.75,.25,1); }
+.dd-attach-controls.is-compact .dd-attach-clip { opacity:1; transform:scale(1) rotate(0); pointer-events:auto; }
+.dd-attach-menu { position:absolute; left:0; bottom:calc(100% + 12px); z-index:45; display:flex; gap:4px; width:164px; padding:6px; box-sizing:border-box; border:1px solid #e2d5c5; border-radius:20px; background:#fffaf5; box-shadow:0 8px 24px #35232925; opacity:0; visibility:hidden; transform:translateY(7px) scale(.94); transform-origin:bottom left; transition:opacity 160ms ease,transform 200ms cubic-bezier(.2,.75,.25,1),visibility 200ms; }
+.dd-attach-menu.is-open { opacity:1; visibility:visible; transform:translateY(0) scale(1); }
+.dd-attach-menu button { flex:1; min-height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; padding:8px; border:0; border-radius:14px; color:#786955; background:none; font:12px var(--ds-font-text); cursor:pointer; }
+.dd-attach-menu button:focus-visible { outline:2px solid #a87986; outline-offset:-2px; }
+.dd-attach-menu button:hover { background:#eee1e4; }
+.dd-attach-menu button:disabled { opacity:.35; cursor:default; }
+.dd-app[data-theme=midnight] .dd-attach-menu { background:#231e25; border-color:#51414b; box-shadow:0 8px 24px #0005; }
+.dd-app[data-theme=midnight] .dd-attach-menu button { color:#f0e3e6; }
+.dd-app[data-theme=midnight] .dd-attach-menu button:hover { background:#40303c; }
+@media(prefers-reduced-motion:reduce) { .dd-chat-contact .dd-contact-label :is(h1,p),.dd-attach-controls,.dd-attach-pair,.dd-attach-controls .dd-attach-clip,.dd-attach-menu { transition:none!important; } }

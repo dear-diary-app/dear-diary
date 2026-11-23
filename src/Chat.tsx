@@ -6,11 +6,12 @@ import { Avatar } from './ui';
 import type { Person } from './model';
 import { ArrowLeft, XIcon } from './icons';
 import { MAX_PHOTOS, prepareImage } from './chatImages';
-import { ImageIcon, Thumb, Viewer } from './ChatPhotos';
+import { Thumb, Viewer } from './ChatPhotos';
 import { GifPicker, GifMedia, GifCredit, useChatGifs, type Gif } from './ChatGifs';
 import { EmojiPicker } from './EmojiPicker';
 import { quickReactions } from './reactions';
 import { ChatProfile } from './ChatProfile';
+import { ChatAttachments } from './ChatAttachments';
 
 const art = (id: string) => `${import.meta.env.BASE_URL}stickers/${id}.webp`;
 const stickerName = (id: string) => pack.find(p => p.id === id)?.name ?? 'Sticker';
@@ -284,7 +285,7 @@ export function ChatView({ partner }: { partner: Person }) {
         <header className="dd-chat-head">
             <button type="button" className="dd-chat-back" onClick={() => selected ? setSelected(null) : leave()} aria-label={selected ? "Cancel selection" : "Back"}><ArrowLeft size={22} /></button>
             {selected ? <div className="dd-chat-selection"><h1>1 selected</h1><p>Choose a reaction</p></div> : <Link to="/chat/profile" state={{ ddChatProfile: true }} className="dd-chat-contact" aria-label={`View ${partner.name}'s profile`} onClick={()=>input.current?.blur()}><Avatar person={partner} size="sm" />
-            <div><h1>{partner.name}</h1><p aria-live="polite">{chat.partnerOnline ? 'Online' : ''}</p></div></Link>}
+            <div className={`dd-contact-label${chat.partnerOnline?' is-online':''}`}><h1>{partner.name}</h1><p aria-live="polite" aria-hidden={!chat.partnerOnline||undefined}>Online</p></div></Link>}
             {selMsg && (isText || canUnsend) && <div className="dd-chat-head-actions">
                 <button type="button" className="dd-chat-more" aria-label="Message options" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(o => !o)}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg></button>
                 {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => { setMenuOpen(false); setSelected(null); }} />
@@ -315,8 +316,7 @@ export function ChatView({ partner }: { partner: Person }) {
             {note && <p className="dd-chat-note" role="status">{note}</p>}
             {trayOpen && <GifPicker height={Math.max(160, Math.min(330, (vh ?? window.innerHeight) * .45))} onClose={() => setTrayOpen(false)} onSend={id => { chat.sendGif(id, replyTo); chat.typing(false); setReplyTo(null); setTrayOpen(false); stick.current = true; }} />}
             <div className="dd-chat-bar">
-                <button type="button" className={`dd-chat-iconbtn${trayOpen ? ' is-on' : ''}`} aria-label={trayOpen ? 'Close GIF search' : 'Open GIF search'} aria-expanded={trayOpen} disabled={!!editing || staged.length > 0} onClick={() => { input.current?.blur(); setTrayOpen(o => !o); }}><span className="dd-gif-icon">GIF</span></button>
-                <button type="button" className="dd-chat-iconbtn" aria-label="Send photos" onClick={() => { if (editing) { say('Finish editing first.'); return; } fileInput.current?.click(); }}><ImageIcon /></button>
+                <ChatAttachments compact={text.length>0} gifDisabled={!!editing||staged.length>0} disabled={!!editing} trayOpen={trayOpen} onGif={()=>{input.current?.blur();setTrayOpen(o=>!o);}} onPhoto={()=>fileInput.current?.click()}/>
                 <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={e => { void pick(e.target.files); }} />
                 <textarea ref={input} rows={1} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="send"
                     onChange={e => { setText(e.target.value); grow(); chat.typing(!!e.target.value.trim()); }}
