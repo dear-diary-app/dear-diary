@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'quietsongcredit', emoji: '🎵', title: 'A cleaner song card', text: 'Song cards keep their title, artist and play button, with a compact store badge and preview credit. The extra duration sentence is gone. Trademark credit is in Settings → Music credits.' },
         { id: 'headerpin', emoji: '📌', title: 'A smaller place for pins', text: 'Pinned messages now use a small pin beside chat status instead of a banner. Tap to jump to a pinned message; with several pins, taps cycle through them newest first. Hold a message and choose Unpin to remove its pin. No active pins means no icon.' },
         { id: 'quiettranslate', emoji: '文', title: 'Just pick your language', text: 'The Translate picker now keeps only its heading, language buttons and close button. First-use consent and Undo after translation are unchanged.' },
         { id: 'quicktranslate', emoji: '文', title: 'Translate right in your draft', text: 'Tap Translate and choose Bangla, English or Hindi. The translated, lightly polished text replaces your selection or current draft, with Undo to restore the original. No separate review box. First use asks before sending the chosen text to Cloudflare. Check the result and press Send yourself. Undo stays until you edit, clear or send the translated draft.' },

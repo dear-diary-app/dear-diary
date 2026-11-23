@@ -219,8 +219,6 @@ function Credit({ url }: { url?: string }) {
       )}
       <span>
         Preview provided courtesy of iTunes.
-        <br />
-        Up to 30 seconds · iTunes Store is a trademark of Apple Inc.
       </span>
     </div>
   );

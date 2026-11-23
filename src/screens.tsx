@@ -944,6 +944,7 @@ export function Settings() {
                     ))}
                     <DiaryExport />
                 </section>
+                <details className="dd-music-legal"><summary>Music credits</summary><p>iTunes Store is a trademark of Apple Inc., registered in the U.S. and other countries.</p></details>
                 <span style={{ display: 'none' }}>{now.toISOString()}</span>
                 <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>
             </div>

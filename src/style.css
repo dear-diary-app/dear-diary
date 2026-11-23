@@ -1647,3 +1647,9 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-header-pin-error { position:absolute;right:12px;top:100%;max-width:260px;padding:10px 12px;border:1px solid var(--lg-edge);border-radius:12px;background:var(--lg-fallback);color:var(--lg-ink);font:12px/1.5 var(--ds-font-text);z-index:10; }
 .dd-header-pin-error button { min-height:36px;background:transparent;color:inherit;border:0;cursor:pointer; }
 @media(max-width:360px) { .dd-chat-head { gap:6px;padding-right:8px; } .dd-chat-contact { gap:6px; } .dd-chat-status-group .dd-availability-pill { max-width:103px;min-width:70px;padding-inline:7px; } .dd-chat-status-group .dd-availability-pill>span,.dd-chat-status-group .dd-availability-pill>small { max-width:87px; } .dd-header-pin-button { width:32px;min-width:32px; } }
+
+.dd-song-credit { padding:3px 0 0;gap:7px;flex-wrap:nowrap;font-size:10px; }
+.dd-song-credit>span { flex:1;min-width:0;line-height:1.4; }
+.dd-song-credit img { height:30px; }
+.dd-music-legal { font:11px/1.5 var(--ds-font-text);color:var(--lg-muted);margin-top:18px; }
+.dd-music-legal summary { min-height:36px;cursor:pointer; }
