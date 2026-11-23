@@ -714,7 +714,7 @@ export function ChangePassword() {
     const [cur, setCur] = useState('');
     const [next, setNext] = useState('');
     const [confirm, setConfirm] = useState('');
-    const [show, setShow] = useState(false);
+    const [show, setShow] = useState<Record<string,boolean>>({});
     const [error, setError] = useState<string | null>(null);
     const [done, setDone] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -736,47 +736,8 @@ export function ChangePassword() {
         setDone(true);
     };
 
-    return (
-        <main className="dd-shell dd-shell-narrow">
-            <TopBar back="/settings" backLabel="Back to settings" />
-            <div className="dd-anim" key="change-password">
-                <h1 className="dd-title">Change password</h1>
-                <p className="dd-sub">Enter your current password, then choose a new one.</p>
-                {done ? (
-                    <section className="dd-card">
-                        <p className="dd-card-title">Password updated</p>
-                        <p className="dd-card-body">Use the new password next time you sign in.</p>
-                        <Link className="dd-btn dd-btn-primary" to="/settings">Back to settings</Link>
-                    </section>
-                ) : (
-                    <form onSubmit={submit} className="dd-form">
-                        <label className="dd-field">
-                            <span>Current password</span>
-                            <input type={show ? 'text' : 'password'} value={cur} onChange={e => setCur(e.target.value)}
-                                autoComplete="current-password" required />
-                        </label>
-                        <label className="dd-field">
-                            <span>New password</span>
-                            <input type={show ? 'text' : 'password'} value={next} onChange={e => setNext(e.target.value)}
-                                autoComplete="new-password" required minLength={6} />
-                        </label>
-                        <label className="dd-field">
-                            <span>New password again</span>
-                            <input type={show ? 'text' : 'password'} value={confirm} onChange={e => setConfirm(e.target.value)}
-                                autoComplete="new-password" required minLength={6} />
-                        </label>
-                        <button type="button" className="dd-btn dd-btn-ghost" onClick={() => setShow(v => !v)}>
-                            {show ? <EyeOff size={16} /> : <Eye size={16} />} {show ? 'Hide passwords' : 'Show passwords'}
-                        </button>
-                        {error && <p className="dd-pin-msg is-error">{error}</p>}
-                        <button type="submit" className="dd-btn dd-btn-primary" disabled={busy}>
-                            {busy ? 'Updating...' : 'Update password'}
-                        </button>
-                    </form>
-                )}
-            </div>
-        </main>
-    );
+    const passwordField=(id:string,label:string,value:string,change:(v:string)=>void,auto:string,hint?:string)=><div className="dd-security-field"><label htmlFor={id}>{label}</label><div className="dd-security-input"><input id={id} type={show[id]?'text':'password'} value={value} onChange={e=>{change(e.target.value);setError(null);}} autoComplete={auto} required minLength={id==='current-password'?undefined:6} aria-describedby={hint?`${id}-hint`:undefined}/><button type="button" aria-label={`${show[id]?'Hide':'Show'} ${label.toLowerCase()}`} aria-pressed={!!show[id]} onClick={()=>setShow(v=>({...v,[id]:!v[id]}))}>{show[id]?<EyeOff size={18}/>:<Eye size={18}/>}</button></div>{hint&&<small id={`${id}-hint`}>{hint}</small>}</div>;
+    return <main className="dd-shell dd-shell-narrow dd-security-page"><TopBar back="/settings" backLabel="Back to settings"/><div className="dd-anim" key="change-password"><header className="dd-security-heading"><span className="dd-security-emblem"><KeyRound size={24}/></span><div><p>ACCOUNT SECURITY</p><h1 className="dd-title">Change password</h1></div></header><p className="dd-security-intro">A fresh key for your shared space.</p>{done?<section className="dd-security-card dd-security-success" role="status"><span className="dd-security-emblem"><Check size={26}/></span><h2>Password updated</h2><p>Use the new password next time you sign in.</p><Link className="dd-btn dd-btn-primary" to="/settings">Back to settings</Link></section>:<form onSubmit={submit} className="dd-security-card" aria-busy={busy}><div className="dd-security-cardhead"><Lock size={18}/><div><h2>Your sign-in password</h2><p>Confirm it's you, then choose a new password.</p></div></div>{passwordField('current-password','Current password',cur,setCur,'current-password')}{passwordField('new-password','New password',next,setNext,'new-password','At least 6 characters. A longer, unique password is safer.')}{next&&<div className="dd-password-cue" aria-live="polite"><span className={next.length>=6?'is-met':''}/><span className={next.length>=10?'is-met':''}/><span className={next.length>=14?'is-met':''}/><small>{next.length<6?'Keep going, 6 characters minimum':next.length<10?'Minimum length met':next.length<14?'Longer is better':'Good length. Keep it unique.'}</small></div>}{passwordField('confirm-password','Confirm new password',confirm,setConfirm,'new-password')}{confirm&&<small className="dd-security-match" role="status">{next===confirm?'Passwords match':'Both new passwords must match'}</small>}{error&&<p className="dd-security-error" role="alert">{error}</p>}<button type="submit" className="dd-btn dd-btn-primary dd-security-submit" disabled={busy}>{busy?'Updating…':'Update password'}<ChevronRight size={17}/></button><p className="dd-security-foot"><Lock size={13}/> Your diary PIN stays the same.</p></form>}</div></main>;
 }
 
 // ---------- Change diary PIN (settings) ----------
@@ -793,6 +754,8 @@ export function ChangePin() {
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
     const checked = useRef(false);
+    const [showPin,setShowPin]=useState(false);
+    useEffect(()=>setShowPin(false),[stage]);
 
     useEffect(() => {
         if (checked.current) return;
@@ -841,11 +804,9 @@ export function ChangePin() {
     };
 
     return (
-        <main className="dd-shell dd-shell-narrow">
+        <main className="dd-shell dd-shell-narrow dd-security-page">
             <TopBar back="/settings" backLabel="Back to settings" />
-            <div className="dd-anim dd-pin" key="change-pin">
-                <Avatar person={p} size="lg" />
-                <h1 className="dd-title">Change diary PIN</h1>
+            <div className="dd-anim" key="change-pin"><header className="dd-security-heading"><span className="dd-security-emblem"><Lock size={24}/></span><div><p>DIARY SECURITY</p><h1 className="dd-title">Change diary PIN</h1></div></header><p className="dd-security-intro">A little privacy for your pages.</p><section className="dd-security-card dd-security-pin"><div className="dd-security-pinperson"><Avatar person={p} size="sm"/><div><strong>{p.name}'s diary</strong><small>4-digit diary PIN</small></div></div>{stage!=='done'&&<ol className="dd-security-steps" aria-label="PIN change progress">{['Verify','New PIN','Confirm'].map((label,i)=><li key={label} className={(['verify','create','confirm'].indexOf(stage)>=i)?'is-active':''} aria-current={['verify','create','confirm'][i]===stage?'step':undefined}><span>{i+1}</span>{label}</li>)}</ol>}
                 <p className="dd-sub">
                     {stage === 'verify' ? 'Enter your current 4-digit PIN'
                         : stage === 'create' ? 'Choose your new 4-digit PIN'
@@ -855,26 +816,27 @@ export function ChangePin() {
                 {stage !== 'done' ? (<>
                 <div className={`dd-pin-dots${error ? ' is-error' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>
                     {[0, 1, 2, 3].map(i => (
-                        <span key={i} className={`dd-pin-dot${i < pin.length ? ' is-filled' : ''}`} />
+                        <span key={i} aria-hidden="true" className={`dd-pin-dot${i < pin.length ? ' is-filled' : ''}${showPin?' is-revealed':''}`}>{showPin?pin[i]||'':''}</span>
                     ))}
                 </div>
-                <p className={`dd-pin-msg${error ? ' is-error' : ''}`}>{error ?? ' '}</p>
+                <button type="button" className="dd-security-reveal" aria-pressed={showPin} onClick={()=>setShowPin(v=>!v)}>{showPin?<EyeOff size={16}/>:<Eye size={16}/>} {showPin?'Hide entered digits':'Show entered digits'}</button>
+                <p role="status" className={`dd-pin-msg${error ? ' is-error' : ''}`}>{error ?? ' '}</p>
                 <div className="dd-keypad" role="group" aria-label="PIN keypad">
                     {KEYS.map((k, i) => k === ''
                         ? <span key={i} />
                         : (
-                            <button key={i} type="button" className="dd-key" onClick={() => press(k)}
+                            <button key={i} type="button" className="dd-key" disabled={busy} onClick={() => press(k)}
                                 aria-label={k === 'del' ? 'Delete last digit' : `Digit ${k}`}>
                                 {k === 'del' ? <Erase /> : k}
                             </button>
                         ))}
                 </div>
                 </>) : (
-                    <section className="dd-card">
+                    <section className="dd-security-success" role="status"><span className="dd-security-emblem"><Check size={26}/></span><h2>PIN updated</h2>
                         <p className="dd-card-body">Use the new PIN the next time your diary asks for it.</p>
                         <Link className="dd-btn dd-btn-primary" to="/settings">Back to settings</Link>
                     </section>
-                )}
+                )}{stage!=='done'&&<p className="dd-security-foot"><Lock size={13}/> Your sign-in password stays the same.</p>}</section>
             </div>
         </main>
     );
