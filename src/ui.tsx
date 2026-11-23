@@ -1,3 +1,4 @@
+import {ZoomPhoto} from './ZoomPhoto';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Person, PersonId } from './model';
@@ -95,7 +96,7 @@ function PhotoViewer({ photos, start, title, onClose }: { photos: { src: string;
     return (
         <div className="dd-viewer" role="dialog" aria-label={title} onClick={onClose}>
             <div className="dd-viewer-inner" onClick={e => e.stopPropagation()}>
-                <img src={photos[idx].src} alt={photos[idx].alt} />
+                <ZoomPhoto src={photos[idx].src} alt={photos[idx].alt} onSwipe={d=>setIdx(i=>Math.max(0,Math.min(photos.length-1,i+d)))}/>
                 <div className="dd-viewer-bar">
                     <button type="button" className="dd-iconbtn" disabled={idx === 0} onClick={() => setIdx(i => i - 1)} aria-label="Previous photo"><ChevronLeft /></button>
                     <span>{idx + 1} / {photos.length}</span>

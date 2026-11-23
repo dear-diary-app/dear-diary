@@ -1,3 +1,4 @@
+import {ZoomPhoto} from './ZoomPhoto';
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft } from './icons';
 import { useChatImage } from './chatImages';
@@ -13,10 +14,10 @@ export function Thumb({ path, index, total, sending, onOpen }: { path: string; i
     </div>;
 }
 
-function Slide({ path, n, total }: { path: string; n: number; total: number }) {
+function Slide({ path, n, total, onSwipe }: { path: string; n: number; total: number; onSwipe:(d:number)=>void }) {
     const { url, failed, retry } = useChatImage(path);
     return <div className="dd-viewer-slide">{url
-        ? <img src={url} alt={`Photo ${n} of ${total}`} draggable={false} onLoad={e=>e.currentTarget.classList.add('dd-media-ready')} onContextMenu={e => e.preventDefault()} />
+        ? <ZoomPhoto src={url} alt={`Photo ${n} of ${total}`} onSwipe={onSwipe}/>
         : <span className="dd-viewer-note" onClick={failed ? retry : undefined}>{failed ? 'Could not load. Tap to retry' : 'Loading...'}</span>}</div>;
 }
 
@@ -40,7 +41,7 @@ export function Viewer({ paths, start, onClose }: { paths: string[]; start: numb
         <div className="dd-viewer-top"><button type="button" onClick={close} aria-label="Back"><ArrowLeft size={22} /></button>{paths.length > 1 && <span aria-live="polite">{at + 1} / {paths.length}</span>}</div>
         <div className="dd-viewer-track" ref={track} onScroll={e => { const el = e.currentTarget; setAt(Math.round(el.scrollLeft / Math.max(1, el.clientWidth))); }}
             onClick={e => { if ((e.target as HTMLElement).tagName !== 'IMG') close(); }}>
-            {paths.map((p, i) => <Slide key={p} path={p} n={i + 1} total={paths.length} />)}
+            {paths.map((p, i) => <Slide key={p} path={p} n={i + 1} total={paths.length} onSwipe={d=>{const el=track.current;if(el)el.scrollTo({left:Math.max(0,Math.min(paths.length-1,i+d))*el.clientWidth,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'});}} />)}
         </div>
     </div>;
 }
