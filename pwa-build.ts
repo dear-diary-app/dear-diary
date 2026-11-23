@@ -68,7 +68,7 @@ self.addEventListener('push', event => {
    return;
   }
   if(typeof data.account_id==='string' && /^[0-9a-f-]{36}$/i.test(data.account_id)){
-   const type=['open','writing','lock','published'].includes(data.type)?data.type:'reminder';
+   const type=['open','writing','lock','published','scheduled_sent'].includes(data.type)?data.type:'reminder';
    await storeInbox({id:data.account_id+':'+tag,account_id:data.account_id,title:'Dear Diary',body,received_at:Date.now(),type}).catch(()=>{});
    for(const client of await clients.matchAll({type:'window',includeUncontrolled:true}))client.postMessage({type:'diary-inbox-updated',account_id:data.account_id});
   }

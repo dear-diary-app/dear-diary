@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'scheduledchat', emoji: '🕒', title: 'Send a little later', text: 'Hold Send to schedule a plain-text message in IST. Pending messages are private to you, with change-time and cancel controls. Delivered messages carry a Scheduled label. Server delivery runs about once a minute, even when the app is closed.' },
         { id: 'smoothchat', emoji: '🍃', title: 'Lighter chat scrolling', text: 'Chat keeps its glass colours with less blur work on message bubbles. The weather sky slows while you scroll and returns to normal when you stop.' },
         { id: 'giflive', emoji: '🎞️', title: 'GIFs move while you search', text: 'GIF search updates as you type, with moving previews in the grid and a cleaner footer. Reduced motion and data saver keep previews still until you choose to play.' },
         { id: 'chatstatus', emoji: '💬', title: 'Share your chat status', text: 'Set Free, Studying, Busy or your own short status from the top right of Chat. Your friend can see it there. Clear it whenever you like; Online stays automatic and separate.' },
