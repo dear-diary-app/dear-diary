@@ -276,6 +276,12 @@ export function ChatView({ partner }: { partner: Person }) {
         const near=distance<80;stick.current=near;setAwayFromBottom(distance>120);
         if(near){jumpingToBottom.current=false;setBelowIds(ids=>ids.length?[]:ids);}
     },[]);
+    useEffect(()=>{
+        const el=scroller.current;if(!el)return;let frame=0,idle:number|undefined,scrolling=false;
+        const finish=()=>{scrolling=false;el.classList.remove('is-scrolling');window.dispatchEvent(new CustomEvent('dd-chat-scroll',{detail:false}));};
+        const scroll=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;measureBelow();});if(!scrolling){scrolling=true;el.classList.add('is-scrolling');window.dispatchEvent(new CustomEvent('dd-chat-scroll',{detail:true}));}window.clearTimeout(idle);idle=window.setTimeout(finish,180);};
+        el.addEventListener('scroll',scroll,{passive:true});return()=>{el.removeEventListener('scroll',scroll);cancelAnimationFrame(frame);window.clearTimeout(idle);if(scrolling)finish();};
+    },[measureBelow]);
     useLayoutEffect(()=>{
         const el=scroller.current;if(!el)return;
         const observer=new ResizeObserver(measureBelow);observer.observe(el);
@@ -340,7 +346,7 @@ export function ChatView({ partner }: { partner: Person }) {
                     </div></>}
             </div>}
         </header>
-        <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onScroll={measureBelow} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
+        <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
             {!chat.loaded && !chat.loadError && <p className="dd-chat-empty" role="status">Opening your chat...</p>}
             {chat.loadError && <p className="dd-chat-empty" role="alert">Could not load the chat. <button type="button" className="dd-chat-link" onClick={chat.reload}>Try again</button></p>}
