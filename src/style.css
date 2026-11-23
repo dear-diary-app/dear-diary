@@ -1477,3 +1477,10 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-app.dd-app.dd-app .dd-switch.is-on .dd-switch-knob { left:2px; }
 .dd-app.dd-app.dd-app .dd-welcome { padding:28px 22px; border:1px solid var(--lg-edge); border-radius:30px; background:var(--lg-sheen),var(--lg-surface); box-shadow:var(--lg-depth); -webkit-backdrop-filter:blur(24px) saturate(160%); backdrop-filter:blur(24px) saturate(160%); }
 .dd-app.dd-app.dd-app .dd-theme-option.is-selected { outline:2px solid var(--lg-muted); outline-offset:-3px; }
+/* Headers own the safe area: never leave an unpainted band above the bar. */
+.dd-app.dd-app.dd-app .dd-chat { padding-top:0; }
+.dd-app.dd-app.dd-app .dd-chat-head { padding-top:calc(6px + env(safe-area-inset-top,0px)); }
+.dd-app.dd-app.dd-app .dd-chat-profile { padding-top:0; }
+.dd-app.dd-app.dd-app .dd-profile-head { padding-top:calc(10px + env(safe-area-inset-top,0px)); }
+.dd-app.dd-app.dd-app .dd-shell:has(> .dd-topbar) { padding-top:0; }
+.dd-app.dd-app.dd-app .dd-shell > .dd-topbar { padding-top:calc(6px + env(safe-area-inset-top,0px)); }

@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'flushheader', emoji: '↟', title: 'No strip above your chat', text: 'The chat header now starts at the top of the app, without the extra outer gap. Safe-area space stays inside the header so notched phones keep their controls clear. Shared page and contact headers follow the same layout.' },
         { id: 'allglass', emoji: '🫧', title: 'Glass, everywhere', text: 'A shared frosted-glass finish across cards, chat bubbles, controls, sheets, history and Settings. Soft highlights and tinted edges follow your light, dark or Weather background, with denser glass behind words and a solid fallback for browsers without blur.' },
         { id: 'weathertopblend', emoji: '🌅', title: 'One sky across the top', text: 'Weather mode now blends the browser top colour, safe area and chat header into one continuous sky. Home and Settings use the same top treatment, with clear header text in day and night.' },
         { id: 'proceduralsky', emoji: '☁️', title: 'A living sky behind your diary', text: 'Weather mode now paints an original moving sky: textured cloud layers, sun glow, a moonlit sky, rain with mist and ripples, or snow at different depths. Day and night have their own lighting. No downloaded video or stock images. Motion pauses when hidden and stays still for reduced motion, data saver and low-power devices. It may use more battery.' },
