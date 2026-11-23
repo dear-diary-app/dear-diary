@@ -1653,3 +1653,27 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-song-credit img { height:30px; }
 .dd-music-legal { font:11px/1.5 var(--ds-font-text);color:var(--lg-muted);margin-top:18px; }
 .dd-music-legal summary { min-height:36px;cursor:pointer; }
+
+.dd-reader-route { width:100%;max-width:760px;padding:0 0 115px;box-sizing:border-box; }
+.dd-reader-route>.dd-topbar { display:none; }
+.dd-reader-route .dd-reader-person { margin:0;padding:10px 14px 4px;gap:8px; }
+.dd-reader-person>.dd-avatar { display:none; }
+.dd-reader-route .dd-reader-person .dd-title { font-size:17px;margin:0; }
+.dd-reader-route .dd-reader-person .dd-sub { font-size:11px;margin:3px 0; }
+.dd-reader-route .dd-reading-options { display:none; }
+.dd-reader-route .dd-date-nav { margin:2px 10px;padding:0; }
+.dd-reader-route .dd-date-nav button { width:30px;height:30px;min-height:30px; }
+.dd-reader-pages { width:100%;max-width:760px;margin:auto; }
+.dd-reader-pages>.dd-song { margin:6px 8px 0; }
+.dd-reader-pages .dd-journal { max-width:760px;width:100%; }
+.dd-reader-pages .dd-page-nav { gap:12px;padding:5px 0;font-size:11px; }
+.dd-reader-pages .dd-page-nav button { width:30px;height:30px;font-size:21px; }
+.dd-reader-pages .dd-page-nav span { min-width:80px; }
+.dd-reader-pages .dd-journal-paper { border-radius:10px; }
+.dd-reader-route>.dd-anim>.dd-photos,.dd-reader-route .dd-react { margin-inline:12px; }
+.dd-reader-dialog { position:fixed;inset:0;width:100%;max-width:none;height:100dvh;max-height:none;box-sizing:border-box;padding:0 0 110px;margin:0;border:0;border-radius:0;background:var(--lg-fallback,#fffaf5);color:var(--lg-ink);overflow-y:auto; }
+.dd-reader-heading { display:flex;align-items:center;gap:10px;padding:calc(6px + env(safe-area-inset-top,0px)) 12px 4px;font:12px var(--ds-font-text); }
+.dd-reader-heading button { width:36px;height:36px;border:0;background:transparent;font-size:28px;color:inherit; }
+.dd-reader-open { background:transparent;border:1px solid var(--lg-edge);border-radius:12px;color:inherit;font:12px var(--ds-font-text);padding:9px 12px;min-height:40px;margin:6px 0 12px;cursor:pointer; }
+
+.dd-reader-back { display:grid;place-items:center;width:32px;height:38px;color:inherit;text-decoration:none;font-size:28px;flex-shrink:0; }

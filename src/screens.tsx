@@ -1,3 +1,4 @@
+import {DiaryPages,OpenDiaryReader} from './DiaryReader';
 import { ChatNotificationSettings } from './ChatNotificationSettings';
 import { PrivacySettings } from './PrivacySettings';
 import { DiaryExport } from './DiaryExport';
@@ -475,10 +476,10 @@ export function Read({ viewer, publishedOwner }: { viewer: PersonId; publishedOw
     };
 
     return (
-        <main className="dd-shell">
+        <main className="dd-shell dd-reader-route">
             <TopBar back={`/hub/${viewer}`} backLabel="Back to your diary" alert={Boolean(store.unreadLatest(viewer, now))} />
             <div className="dd-anim" key={`read-${viewer}-${date}`}>
-                <div className="dd-hub-head">
+                <div className="dd-hub-head dd-reader-person"><Link to={`/hub/${viewer}`} className="dd-reader-back" aria-label="Back to diary options">‹</Link>
                     <Avatar person={other} size="lg" />
                     <div>
                         <h1 className="dd-title">{other.name}&rsquo;s Diary</h1>
@@ -499,8 +500,7 @@ export function Read({ viewer, publishedOwner }: { viewer: PersonId; publishedOw
                 </div>}
                 {entry && (!publishedOwner || entry.status === 'published') ? (
                     <>
-                        {entry.song && <SongPill song={entry.song} />}
-                        <Stickers text={entry.text} value={entry.stickers ?? []} />
+                        <DiaryPages key={other.id+pageDate} text={entry.text} stickers={entry.stickers??[]} song={entry.song}/>
                         <PhotoGallery photos={entry.photos} title={`${other.name}'s photos`} />
                         {viewer !== other.id && <div className="dd-react">
                             <p className="dd-react-label">React to {other.name}&rsquo;s page</p>
@@ -654,6 +654,7 @@ export function Calendar({ viewer }: { viewer: PersonId }) {
                                         </div>
                                         {entry && readable ? (
                                             <>
+                                                <OpenDiaryReader title={`${person.name}'s page · ${fmtDateShort(day)}`} text={entry.text} stickers={entry.stickers??[]} song={entry.song}/>
                                                 {entry.song && <SongPill song={entry.song} />}
                                                 <Stickers text={entry.text} value={entry.stickers ?? []} />
                                                 <PhotoGallery photos={entry.photos} title={`${person.name}'s photos`} />

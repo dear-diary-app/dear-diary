@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'diaryreader', emoji: '📖', title: 'More room for your diary', text: 'Published diary pages now use a wider reading view with the song at the top. Swipe left or right across the page to turn sheets, or use the small arrows. Vertical scrolling still works. History pages have an Open full-screen reader button. Writing and sticker editing are unchanged.' },
         { id: 'songcreditsettings', emoji: '🎵', title: 'Only the song on your card', text: 'Song cards now show the artwork, title, artist and play button without a credit row. iTunes credit and its badge link are in Settings → Music credits.' },
         { id: 'quietsongcredit', emoji: '🎵', title: 'A cleaner song card', text: 'Song cards keep their title, artist and play button, with a compact store badge and preview credit. The extra duration sentence is gone. Trademark credit is in Settings → Music credits.' },
         { id: 'headerpin', emoji: '📌', title: 'A smaller place for pins', text: 'Pinned messages now use a small pin beside chat status instead of a banner. Tap to jump to a pinned message; with several pins, taps cycle through them newest first. Hold a message and choose Unpin to remove its pin. No active pins means no icon.' },
