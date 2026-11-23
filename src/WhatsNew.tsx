@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'micfade', emoji: '🍃', title: 'A softer icon switch', text: 'The microphone and Send icons fade in gently when you start or clear a message. The button stays in place. Reduced motion skips the fade.' },
         { id: 'micandsend', emoji: '🎙️', title: 'One place to send', text: 'The microphone now sits in the send button spot when the message box is empty. Start typing or choose a photo and it becomes Send. Recording still lets you listen before sending.' },
         { id: 'voicenotes', emoji: '🎙️', title: 'Say it in a voice note', text: 'Tap the microphone in an empty chat message box. Record up to two minutes, stop to listen back, then send or cancel. Voice notes have a waveform, seeking and 1x, 1.5x or 2x playback. Recording stops when the app is hidden. Unsend removes the message and queues its audio for deletion. Browser microphone permission is required; recording formats vary by device.' },
         { id: 'tabheaders', emoji: '↟', title: 'Simpler tab headers', text: 'My diary, History and Profile no longer have a back arrow in the top left. Use the bottom tabs to move around. Chat, Contact info and other detail pages keep their back controls.' },
