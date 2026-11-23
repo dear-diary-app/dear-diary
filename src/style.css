@@ -1339,3 +1339,18 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-weather-city li span { font-size:12px; }
 .dd-app[data-theme=midnight] .dd-weather-city :is(input,li button) { background:#302733;color:#f0e3e6; }
 .dd-weather-city .dd-weather-city-form input { height:44px;min-height:44px;box-sizing:border-box; }
+/* Give the sky room to show through long Settings cards as well as page gutters. */
+.dd-app[data-weather] > .dd-weather-scene.dd-weather-scene,.dd-app[data-weather] .dd-chat > .dd-weather-scene { opacity:.72; }
+.dd-app[data-weather][data-theme=midnight] > .dd-weather-scene.dd-weather-scene,.dd-app[data-weather][data-theme=midnight] .dd-chat > .dd-weather-scene { opacity:.52; }
+.dd-app[data-weather] .dd-card { background:rgba(255,253,250,.88); }
+.dd-app[data-weather][data-theme=midnight] .dd-card { background:rgba(35,29,38,.89); }
+.dd-app[data-weather] .dd-weather-cloud { filter:blur(18px);height:200px; }
+.dd-app[data-weather] .dd-weather-cloud.c2 { top:45%; }
+.dd-app[data-weather] .dd-weather-orb { top:12%;right:4%;width:135px;height:135px; }
+.dd-app[data-weather] .weather-clear-night .dd-weather-orb { width:85px;height:85px; }
+.dd-app[data-weather] :is(.weather-rain,.weather-storm) i { width:2px;height:44px;background:linear-gradient(transparent,#668eae99); }
+.dd-weather-summary { display:grid;gap:5px;padding:12px;margin:12px 0;border:1px solid #a2aabc66;border-radius:14px;background:#fff5; }
+.dd-weather-summary strong { font-size:14px; }.dd-weather-summary small { opacity:.8; }
+.dd-app[data-theme=midnight] .dd-weather-summary { background:#18203266; }
+.dd-app[data-theme=midnight] .dd-theme-modes button { background:#302733;border-color:#66526c;color:#eadfe9; }
+.dd-app[data-theme=midnight] .dd-theme-modes button[aria-pressed=true] { background:#d6c6e8;color:#493a61; }
