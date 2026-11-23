@@ -28,6 +28,7 @@ function ProfileBody({ who }: { who: PersonId }) {
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
+    [editing, setEditing] = useState(false),
     [note, setNote] = useState(""),
     [retry, setRetry] = useState(0),
     [songRetry, setSongRetry] = useState(0),
@@ -200,6 +201,7 @@ function ProfileBody({ who }: { who: PersonId }) {
       setBio(clean.bio);
       setSaved(clean);
       setNote("Profile saved.");
+      setEditing(false);
     }
     setBusy(false);
   };
@@ -243,35 +245,14 @@ function ProfileBody({ who }: { who: PersonId }) {
             </p>
           )
         )}
-        {own && (
-          <div className="dd-profile-upload">
-            <button
-              className="dd-btn dd-btn-primary"
-              onClick={() => file.current?.click()}
-            >
-              Update profile picture
-            </button>
-            <input
-              ref={file}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              hidden
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                e.target.value = "";
-                if (!f) return;
-                if (
-                  !["image/jpeg", "image/png", "image/webp"].includes(f.type) ||
-                  f.size > 10 * 1024 * 1024
-                ) {
-                  setNote("Choose a JPG, PNG or WebP photo up to 10 MB.");
-                  return;
-                }
-                setCrop(f);
-              }}
-            />
-            <p className="dd-card-sub">JPG, PNG or WebP · Up to 10 MB</p>
-          </div>
+        {own && !editing && (
+          <button
+            className="dd-btn dd-btn-primary"
+            disabled={loading || !!error}
+            onClick={() => setEditing(true)}
+          >
+            Edit profile
+          </button>
         )}
         <ProfileStreak
           streak={streak.streaks[who]}
@@ -291,9 +272,42 @@ function ProfileBody({ who }: { who: PersonId }) {
             Retry
           </button>
         </section>
-      ) : own ? (
+      ) : own && editing ? (
         <section className="dd-card">
-          <h2 className="dd-card-title">Make it yours</h2>
+          <h2 className="dd-card-title">Edit profile</h2>
+          {editing && (
+            <div className="dd-profile-upload">
+              <button
+                className="dd-btn dd-btn-primary"
+                onClick={() => file.current?.click()}
+              >
+                Update profile picture
+              </button>
+              <input
+                ref={file}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!f) return;
+                  if (
+                    !["image/jpeg", "image/png", "image/webp"].includes(
+                      f.type,
+                    ) ||
+                    f.size > 10 * 1024 * 1024
+                  ) {
+                    setNote("Choose a JPG, PNG or WebP photo up to 10 MB.");
+                    return;
+                  }
+                  setCrop(f);
+                }}
+              />
+              <p className="dd-card-sub">JPG, PNG or WebP · Up to 10 MB</p>
+            </div>
+          )}
+
           <label className="dd-field dd-profile-field">
             <span>Bio</span>
             <textarea
@@ -334,19 +348,18 @@ function ProfileBody({ who }: { who: PersonId }) {
             >
               {busy ? "Saving..." : "Save profile"}
             </button>
-            {(bio !== saved.bio || mood !== saved.mood) && (
-              <button
-                className="dd-btn dd-btn-ghost"
-                disabled={busy}
-                onClick={() => {
-                  setBio(saved.bio);
-                  setMood(saved.mood);
-                  setNote("Changes discarded.");
-                }}
-              >
-                Discard
-              </button>
-            )}
+            <button
+              className="dd-btn dd-btn-ghost"
+              disabled={busy}
+              onClick={() => {
+                setBio(saved.bio);
+                setMood(saved.mood);
+                setEditing(false);
+                setNote("");
+              }}
+            >
+              Cancel
+            </button>
           </div>
           {(bio !== saved.bio || mood !== saved.mood) && (
             <p className="dd-card-sub">Unsaved changes</p>
@@ -357,9 +370,6 @@ function ProfileBody({ who }: { who: PersonId }) {
         <h2 className="dd-card-title">
           {own ? "Your song" : "Song of the day"}
         </h2>
-        <p className="dd-card-sub">
-          One song, shared for 24 hours. A fixed preview, up to 30 seconds.
-        </p>
         {songLoading ? (
           <p role="status">Loading song...</p>
         ) : songError ? (
@@ -378,7 +388,7 @@ function ProfileBody({ who }: { who: PersonId }) {
               disabled={songBusy}
               style={{ border: 0, padding: 0, margin: 0 }}
             >
-              <SongPicker song={songDraft} onChange={setSongDraft} />
+              <SongPicker song={songDraft} onChange={setSongDraft} compact />
             </fieldset>
             {songDirty && (
               <div className="dd-profile-save">
@@ -413,7 +423,7 @@ function ProfileBody({ who }: { who: PersonId }) {
             )}
           </>
         ) : song && !expired ? (
-          <SongPill song={song} />
+          <SongPill song={song} compact />
         ) : (
           <p className="dd-card-sub">No song shared right now.</p>
         )}

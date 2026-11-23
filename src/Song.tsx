@@ -227,9 +227,11 @@ function Credit({ url }: { url?: string }) {
 export function SongPill({
   song,
   onRemove,
+  compact = false,
 }: {
   song: Song;
   onRemove?: () => void;
+  compact?: boolean;
 }) {
   const store = useStoreLink(song);
   const p = usePreview(song.url);
@@ -264,10 +266,10 @@ export function SongPill({
       <span className="dd-song-bar" aria-hidden="true">
         <i style={{ width: `${p.progress * 100}%` }} />
       </span>
-      <Credit url={store} />
+      {!compact && <Credit url={store} />}
       {p.failed && (
         <small className="dd-song-error" role="status">
-          Could not play this preview. Check your connection.
+          Could not play this song. Check your connection.
         </small>
       )}
     </div>
@@ -286,8 +288,10 @@ function Result({
   hit,
   chosen,
   onPick,
+  compact = false,
 }: {
   hit: Hit;
+  compact?: boolean;
   chosen: boolean;
   onPick: () => void;
 }) {
@@ -322,7 +326,11 @@ function Result({
           "Use"
         )}
       </button>
-      <Credit url={storeURL(hit.trackViewUrl) ? hit.trackViewUrl : undefined} />
+      {!compact && (
+        <Credit
+          url={storeURL(hit.trackViewUrl) ? hit.trackViewUrl : undefined}
+        />
+      )}
     </li>
   );
 }
@@ -330,8 +338,10 @@ function Result({
 export function SongPicker({
   song,
   onChange,
+  compact = false,
 }: {
   song?: Song | null;
+  compact?: boolean;
   onChange: (s: Song | null) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -395,7 +405,11 @@ export function SongPicker({
   return (
     <section className="dd-songbox" aria-label="Song for this page">
       {song ? (
-        <SongPill song={song} onRemove={() => onChange(null)} />
+        <SongPill
+          song={song}
+          onRemove={() => onChange(null)}
+          compact={compact}
+        />
       ) : (
         <button
           type="button"
@@ -448,6 +462,7 @@ export function SongPicker({
             <ul className="dd-song-list">
               {hits.map((h) => (
                 <Result
+                  compact={compact}
                   key={h.trackId}
                   hit={h}
                   chosen={song?.id === h.trackId}
@@ -456,10 +471,12 @@ export function SongPicker({
               ))}
             </ul>
           )}
-          <p className="dd-song-note">
-            Up to 30 seconds, from the provider’s fixed preview. Previews
-            provided courtesy of iTunes.
-          </p>
+          {!compact && (
+            <p className="dd-song-note">
+              Up to 30 seconds, from the provider’s fixed preview. Previews
+              provided courtesy of iTunes.
+            </p>
+          )}
         </div>
       )}
     </section>
