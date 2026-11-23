@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'livepresence', emoji: '🟢', title: 'Online updates sooner', text: 'Your friend opening or leaving the app now prompts an immediate server status check through the live chat connection. Chat also checks every three seconds if a live update is missed. Network delays still apply; a lost connection can take up to the presence lease window to clear. No last-seen history is shown.' },
         { id: 'imageonlyzoom', emoji: '🔎', title: 'Zoom the photo, not the page', text: 'Two-finger gestures no longer enlarge the whole app. Open a photo to pinch-zoom up to 4x, drag around it, or double-tap to zoom. Reset zoom returns to the full photo. Your phone can override page zoom limits through accessibility settings.' },
         { id: 'micfade', emoji: '🍃', title: 'A softer icon switch', text: 'The microphone and Send icons fade in gently when you start or clear a message. The button stays in place. Reduced motion skips the fade.' },
         { id: 'micandsend', emoji: '🎙️', title: 'One place to send', text: 'The microphone now sits in the send button spot when the message box is empty. Start typing or choose a photo and it becomes Send. Recording still lets you listen before sending.' },

@@ -109,6 +109,8 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     useEffect(() => {
         let dead = false;
         let ch: RealtimeChannel | null = null;
+        const publish=(e:Event)=>{const d=(e as CustomEvent).detail;if(d?.uid===uid&&joined.current)void ch?.send({type:'broadcast',event:'presence-change',payload:{uid}});};
+        window.addEventListener('dd-presence-published',publish);
         (async () => {
             await fetchLatest();
             const { data: f } = await supabase.from('friendship').select('user1_id, user2_id').maybeSingle();
@@ -122,6 +124,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
                     const m = clean(p.new);
                     if (m && m.sender_id !== uid) { clearTyping(); }
                 })
+                .on('broadcast',{event:'presence-change'},({payload}:{payload?:{uid?:string}})=>{if(payload?.uid===other)window.dispatchEvent(new Event('dd-presence-check'));})
                 .on('broadcast', { event: 'typing' }, ({ payload }: { payload?: { uid?: string; on?: boolean } }) => {
                     if (payload?.uid !== other) return;
                     receiveTyping(payload?.on === true);
@@ -129,11 +132,11 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
                 .subscribe((status: string) => {
                     const ok = status === 'SUBSCRIBED';
                     joined.current = ok; setLive(ok);
-                    if (ok) void fetchLatest(); else { clearTyping(); stopTyping(); }
+                    if (ok) {void fetchLatest();window.dispatchEvent(new Event('dd-presence-reconnect'));} else { clearTyping(); stopTyping(); }
                 });
             channel.current = ch;
         })();
-        return () => { dead = true; stopTyping(); clearTyping(); joined.current = false; if (ch) void supabase.removeChannel(ch); channel.current = null; };
+        return () => { dead = true;window.removeEventListener('dd-presence-published',publish); stopTyping(); clearTyping(); joined.current = false; if (ch) void supabase.removeChannel(ch); channel.current = null; };
     }, [uid, fetchLatest, merge, receiveTyping, clearTyping, stopTyping]);
 
     useEffect(() => {
