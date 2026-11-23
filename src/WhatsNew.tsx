@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
+        { id: 'contactglass', emoji: '🫧', title: 'A softer shared space', text: 'Contact info has a clearer glass header, a smaller profile card and rounded Photos and Links tabs. Your shared photos and links work as before, visible only to the two of you.' },
         { id: 'chatpins', emoji: '📌', title: 'Keep a message close', text: 'Hold any sent message and choose Pin. Shared pins sit above your chat; tap to jump back. Choose 24 hours, 7 days or Always. Expand the bar to see or unpin up to 10 messages. Unsending a message removes its pin too.' },
         { id: 'resumeplace', emoji: '📍', title: 'Return to your place', text: 'Reopening the app restores your last page for this account, after the usual PIN check. Chat remembers your reading position on this device. Your phone can still reload the app when memory is low.' },
         { id: 'giftapsend', emoji: '🎞️', title: 'Tap a GIF to send', text: 'Tap a search result to send it straight to your chat. There is no extra Send step. Sending blocks repeat taps; a failed send stays open so you can retry.' },

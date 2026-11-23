@@ -1510,3 +1510,30 @@ input::selection, textarea::selection { background:rgba(123,134,111,.35); }
 .dd-gif-send-state{margin:4px 0;font-size:12px;flex-shrink:0}.dd-gif-grid button:disabled{opacity:.6;cursor:wait}
 .dd-pinned{position:relative;z-index:2;flex-shrink:0;margin:0 12px;font-size:12px;color:var(--lg-ink)}.dd-pinned:empty{display:none}.dd-pinned-bar{display:flex;border:1px solid var(--lg-edge);border-radius:14px;background:var(--lg-sheen),var(--lg-raised)}.dd-pinned button{font:inherit;color:inherit;background:transparent;border:0;cursor:pointer;min-height:40px;padding:7px 10px;text-align:left}.dd-pinned-bar>button:first-child{flex:1;min-width:0}.dd-pinned-bar strong,.dd-pinned-bar span{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.dd-pinned-list{max-height:180px;overflow:auto;background:var(--lg-raised);border:1px solid var(--lg-edge);border-radius:12px}.dd-pinned-list>div{display:flex;border-bottom:1px solid var(--lg-edge)}.dd-pinned-list>div>button:first-child{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dd-pinned p{margin:6px 10px}.dd-pinned button:disabled{opacity:.5;cursor:wait}
 .dd-availability-dialog select{font:inherit;color:var(--lg-ink);background:var(--lg-control);border:1px solid var(--lg-edge);border-radius:12px;padding:12px;width:100%;min-height:44px}.dd-availability-dialog select option{background:var(--lg-fallback);color:var(--lg-ink)}
+
+/* Contact info: a quiet, contained glass surface. Scoped to this page only. */
+.dd-app.dd-app.dd-app .dd-chat-profile { background:linear-gradient(var(--dd-bg-top),var(--dd-bg-bottom)); color:var(--lg-ink); }
+.dd-app.dd-app.dd-app .dd-chat-profile .dd-profile-head { margin:8px 14px 12px; padding:10px 12px; padding-top:calc(10px + env(safe-area-inset-top,0px)); border:1px solid var(--lg-edge); border-radius:24px; background:var(--lg-sheen),var(--lg-raised); box-shadow:var(--lg-depth); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+.dd-chat-profile .dd-profile-head h1 { color:var(--lg-ink); font-size:18px; letter-spacing:-.3px; }
+.dd-chat-profile .dd-profile-head button { flex-shrink:0; }
+.dd-chat-profile .dd-profile-scroll { padding:0 16px calc(28px + env(safe-area-inset-bottom,0px)); }
+.dd-app.dd-app.dd-app .dd-chat-profile .dd-profile-person { padding:24px 18px 22px; margin-bottom:20px; border-radius:30px; background:var(--lg-sheen),var(--lg-raised); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+.dd-chat-profile .dd-profile-person .dd-avatar { width:76px; height:76px; font-size:30px; border:3px solid var(--lg-edge); box-shadow:0 6px 20px var(--lg-shadow); }
+.dd-chat-profile .dd-profile-person h2 { font-size:26px; line-height:1.2; letter-spacing:-.6px; margin:14px 0 0; color:var(--lg-ink); overflow-wrap:anywhere; }
+.dd-app.dd-app.dd-app .dd-chat-profile .dd-profile-online { color:var(--lg-muted); min-height:0; margin:7px 0 17px; font-size:12px; }
+.dd-chat-profile .dd-profile-online.is-online::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:#3b8a65; margin-right:6px; vertical-align:1px; }
+.dd-chat-profile .dd-profile-person .dd-profile-intro { margin:0 0 10px; font-size:14px; color:var(--lg-ink); }
+.dd-app.dd-app.dd-app .dd-chat-profile .dd-profile-privacy { display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:11px; line-height:1.6; color:var(--lg-muted); }
+.dd-app.dd-app.dd-app .dd-chat-profile .dd-shared-tabs { padding:5px; gap:6px; margin:0 0 20px; top:0; border:1px solid var(--lg-edge); border-radius:20px; background:var(--lg-sheen),var(--lg-raised); box-shadow:var(--lg-depth); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+.dd-chat-profile .dd-shared-tabs button { min-height:46px; display:flex; align-items:center; justify-content:center; gap:8px; border:1px solid transparent; border-radius:15px; color:var(--lg-muted); }
+.dd-chat-profile .dd-shared-tabs button span { display:inline-grid; place-items:center; min-width:23px; height:23px; padding:0 5px; margin:0; border-radius:9px; background:var(--lg-control); color:inherit; opacity:1; font-size:11px; }
+.dd-app.dd-app.dd-app .dd-chat-profile .dd-shared-tabs button[aria-selected=true] { background:var(--lg-sheen),var(--lg-accent); border-color:var(--lg-edge); color:var(--lg-ink); }
+.dd-shared-heading { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:0 2px 12px; padding:10px 12px; border-radius:14px; background:var(--lg-raised); color:var(--lg-ink); }
+.dd-shared-heading h3 { margin:0; font:600 13px/1.5 var(--ds-font-text); }
+.dd-shared-heading>span { font:10px/1.5 var(--ds-font-text); color:var(--lg-muted); text-align:right; }
+.dd-chat-profile .dd-shared-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.dd-chat-profile .dd-shared-photo { border-radius:16px; border:1px solid var(--lg-edge); background:var(--lg-raised); box-shadow:0 3px 12px var(--lg-shadow); }
+.dd-chat-profile .dd-shared-links { gap:10px; }
+.dd-app.dd-app.dd-app .dd-chat-profile .dd-shared-links a { border-radius:21px; padding:14px 12px; background:var(--lg-sheen),var(--lg-raised); }
+.dd-chat-profile :is(button,a,[role=tabpanel]):focus-visible { outline:2px solid var(--lg-ink); outline-offset:3px; }
+@media(min-width:600px) { .dd-chat-profile .dd-profile-scroll { padding-inline:28px; } .dd-app.dd-app.dd-app .dd-chat-profile .dd-profile-head { margin-inline:26px; } .dd-chat-profile .dd-shared-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; } }
