@@ -1,4 +1,5 @@
 import React from 'react';
+import { DesktopFrame } from './DesktopLayout';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, StoreProvider, isUnlocked, useAuth } from './store';
 import { PersonId, publishWaitMs, schedule, otherId, personById } from './model';
@@ -107,7 +108,7 @@ function Shell() {
                 <ResumePlace><AppEntryGate>
                 <ChatProvider uid={auth.session.user.id}>
                 <ChatBanner/>
-                <TabSwipe><div className="dd-with-nav">
+                <TabSwipe><DesktopFrame>
                 <PageSlide>{location => <Routes location={location}>
                     <Route path="/" element={<Home />} />
                     <Route path="/pin/:person" element={<PinRoute />} />
@@ -129,7 +130,7 @@ function Shell() {
                     <Route path="*" element={<Home />} />
                 </Routes>}</PageSlide>
                 <BottomNav />
-                </div></TabSwipe>
+                </DesktopFrame></TabSwipe>
                 </ChatProvider>
                 </AppEntryGate></ResumePlace>
             </ThemeFrame>

@@ -1834,3 +1834,87 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-app[data-theme=midnight] .dd-chat-banner,.dd-app[data-theme=midnight] .dd-chat-banner-notice{background:var(--dd-bg-top,#101013)}
 .dd-app .dd-login-form .dd-pin-msg.is-error{color:#a83450;opacity:1}
 .dd-app[data-theme=midnight] .dd-login-form .dd-pin-msg.is-error{color:#f3adbf}
+
+/* Large non-touch computers only. DesktopFrame never adds this class on a
+   phone or tablet. Keep every rule scoped here so their layouts stay intact. */
+.dd-desktop { --dd-web-surface:var(--dd-bg-top,#fffaf6); --dd-web-line:#b6a7ad45; --dd-web-hover:#c5a8b514; --dd-web-muted:#8c7b84; padding:0 0 0 232px; min-height:100dvh; }
+.dd-desktop-sidebar { position:fixed; z-index:40; inset:0 auto 0 0; width:232px; padding:36px 16px 22px; box-sizing:border-box; border-right:1px solid var(--dd-web-line); background:var(--dd-web-surface); display:flex; flex-direction:column; gap:38px; }
+.dd-desktop-brand { display:flex; align-items:center; gap:9px; padding:0 9px; text-decoration:none; color:inherit; font-family:var(--ds-font-display); font-size:25px; white-space:nowrap; }
+.dd-desktop-sidebar nav { display:flex; flex-direction:column; gap:8px; }
+.dd-desktop-sidebar nav a,.dd-desktop-more { display:flex; align-items:center; gap:17px; min-height:52px; padding:10px 14px; border-radius:9px; text-decoration:none; color:inherit; font-size:16px; box-sizing:border-box; transition:background .15s; }
+.dd-desktop-sidebar a:hover { background:var(--dd-web-hover); }
+.dd-desktop-sidebar a[aria-current=page] { font-weight:750; }
+.dd-desktop-sidebar a[aria-current=page] svg { stroke-width:2.5; }
+.dd-desktop-more { margin-top:auto; }
+.dd-desktop-navicon { position:relative; display:flex; }
+.dd-desktop-navicon i { position:absolute; right:-9px; top:-8px; padding:1px 4px; min-width:17px; height:17px; border-radius:10px; background:#e84c64; color:white; font:normal 10px/15px sans-serif; text-align:center; border:2px solid var(--dd-web-surface); }
+.dd-desktop .dd-bottom-nav,.dd-desktop .dd-dock-frost { display:none; }
+.dd-desktop .dd-route-page { min-height:100dvh; }
+.dd-desktop .dd-shell { max-width:960px; padding:22px 36px 56px; }
+.dd-desktop .dd-shell-narrow { max-width:840px; }
+.dd-desktop .dd-topbar { min-height:44px; border-bottom:1px solid var(--dd-web-line); margin-bottom:30px; padding:0 0 14px; }
+.dd-desktop .dd-topbar .dd-wordmark { visibility:hidden; }
+.dd-desktop .dd-topbar .dd-iconbtn { background:transparent; box-shadow:none; border-color:transparent; }
+.dd-desktop .dd-title { font-family:var(--ds-font-body, sans-serif); font-size:26px; }
+.dd-desktop .dd-card,.dd-desktop .dd-menu-card { box-shadow:none; border-color:var(--dd-web-line); }
+.dd-desktop .dd-menu-card { border-radius:12px; }
+.dd-desktop .dd-home-page { max-width:1000px; padding-top:26px; }
+.dd-desktop .dd-home-page > .dd-topbar { display:none; }
+.dd-desktop .dd-home-page > .dd-anim { display:grid; grid-template-columns:minmax(0,550px) 260px; gap:20px 44px; align-items:start; }
+.dd-desktop .dd-home-page .dd-stories { grid-column:1; grid-row:1; margin:0; padding:0 8px 16px; border-bottom:1px solid var(--dd-web-line); }
+.dd-desktop .dd-home-page .dd-feed { grid-column:1; grid-row:2 / span 4; width:100%; max-width:none; margin:0; }
+.dd-desktop .dd-feed-heading { padding:12px 2px; background:var(--dd-web-surface); backdrop-filter:blur(18px); }
+.dd-desktop .dd-feed-heading h2 { font-size:19px; }
+.dd-desktop .dd-feed-post { border-radius:0; border:0; border-bottom:1px solid var(--dd-web-line); box-shadow:none; padding-bottom:20px; background:transparent; }
+.dd-desktop .dd-home-page .dd-books { grid-column:2; grid-row:1 / span 2; display:flex; flex-direction:column; width:100%; gap:18px; padding:0; margin:8px 0 0; }
+.dd-desktop .dd-home-page .dd-book { aspect-ratio:auto; height:118px; animation:none; }
+.dd-desktop .dd-home-page .dd-book-cover { border-radius:12px; box-shadow:none; }
+.dd-desktop .dd-home-page .dd-stitch { inset:8px; border-radius:8px; display:grid; grid-template-columns:44px 1fr; grid-template-rows:1fr 1fr; gap:2px 12px; padding:20px 16px; text-align:left; }
+.dd-desktop .dd-home-page .dd-stitch .dd-avatar { width:42px; height:42px; font-size:20px; grid-row:1 / span 2; }
+.dd-desktop .dd-home-page .dd-cover-title { font-size:17px; align-self:end; }
+.dd-desktop .dd-home-page .dd-cover-hint { font-size:9px; align-self:start; }
+.dd-desktop .dd-home-page .dd-cover-heart,.dd-desktop .dd-home-page .dd-book-pages,.dd-desktop .dd-home-page .dd-book-name { display:none; }
+.dd-desktop .dd-home-page .dd-status { grid-column:2; grid-row:3; padding:4px 0 20px; margin:0; border:0; border-bottom:1px solid var(--dd-web-line); background:transparent; box-shadow:none; border-radius:0; }
+.dd-desktop .dd-home-page .dd-status-row { flex-direction:column; align-items:flex-start; gap:9px; }
+.dd-desktop .dd-home-page .dd-status-item { font-size:12px; line-height:1.6; }
+.dd-desktop .dd-home-page .dd-foot { grid-column:2; grid-row:4; text-align:left; padding:0; }
+.dd-desktop .dd-history-page { max-width:860px; }
+.dd-desktop .dd-history-page .dd-cal { padding:24px; margin-top:22px; border-radius:10px; box-shadow:none; }
+.dd-desktop .dd-history-page .dd-cal-day { min-height:64px; }
+.dd-desktop .dd-profile-page { max-width:900px; }
+.dd-desktop .dd-profile-hero { display:grid; grid-template-columns:150px 1fr; grid-template-rows:repeat(3,auto); column-gap:38px; align-items:center; padding:32px; text-align:left; border:0; border-bottom:1px solid var(--dd-web-line); border-radius:0; background:transparent; }
+.dd-desktop .dd-profile-hero > :first-child { grid-column:1; grid-row:1 / span 4; margin:auto; }
+.dd-desktop .dd-profile-hero > :not(:first-child) { grid-column:2; margin:5px 0; }
+.dd-desktop .dd-profile-hero h2 { font-size:25px; }
+.dd-desktop .dd-chat { left:532px; right:0; max-width:none; margin:0; width:auto; padding-top:0; background:var(--dd-web-surface); }
+.dd-desktop .dd-chat-head { flex:none; min-height:82px; padding:18px 28px; border:0; border-bottom:1px solid var(--dd-web-line); border-radius:0; background:var(--dd-web-surface); box-shadow:none; }
+.dd-desktop .dd-chat-head .dd-chat-back { display:none; }
+.dd-desktop .dd-chat-list { padding:24px 36px; }
+.dd-desktop .dd-chat-compose { padding:12px 24px 16px; background:transparent; border-top:1px solid var(--dd-web-line); }
+.dd-desktop .dd-chat-conversation { max-width:none; }
+.dd-desktop-conversations { position:fixed; z-index:25; top:0; bottom:0; left:232px; width:300px; border-right:1px solid var(--dd-web-line); background:var(--dd-web-surface); padding:32px 0; box-sizing:border-box; }
+.dd-desktop-conversations > header { display:flex; align-items:center; justify-content:space-between; padding:4px 24px 32px; }
+.dd-desktop-conversations h1 { margin:0; font-size:23px; }
+.dd-desktop-conversations a { color:inherit; text-decoration:none; }
+.dd-desktop-inbox-title { display:flex; align-items:center; justify-content:space-between; padding:0 24px 16px; }
+.dd-desktop-inbox-title h2 { font-size:16px; margin:0; }
+.dd-desktop-inbox-title > span { font-size:11px; color:var(--dd-web-muted); }
+.dd-desktop-conversation { display:flex; gap:13px; padding:20px 24px; align-items:center; background:var(--dd-web-hover); }
+.dd-desktop-conversation > span:not(.dd-avatar) { display:flex; flex-direction:column; gap:7px; min-width:0; }
+.dd-desktop-conversation strong { font-size:14px; }
+.dd-desktop-conversation small { display:block; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:158px; opacity:.65; }
+.dd-desktop-conversation i { flex:none; width:8px; height:8px; background:#e883a6; border-radius:50%; margin-left:auto; }
+.dd-desktop-private { padding:20px 24px; display:flex; align-items:flex-start; gap:9px; font-size:11px; line-height:1.6; color:var(--dd-web-muted); }
+.dd-desktop-private svg { flex:none; margin-top:2px; }
+@media (min-width:1600px) { .dd-desktop { padding-left:260px; } .dd-desktop-sidebar { width:260px; } .dd-desktop-conversations { left:260px; width:340px; } .dd-desktop .dd-chat { left:600px; } }
+/* Override the existing high-specificity glass finish on desktop surfaces. */
+.dd-app.dd-app.dd-app .dd-desktop .dd-chat-head { border-radius:0; background:var(--dd-web-surface); box-shadow:none; padding:18px 28px; }
+.dd-app.dd-app.dd-app .dd-desktop .dd-home-page .dd-status { background:transparent; border:0; border-bottom:1px solid var(--dd-web-line); box-shadow:none; }
+.dd-app.dd-app.dd-app .dd-desktop .dd-profile-hero { background:transparent; border:0; border-bottom:1px solid var(--dd-web-line); box-shadow:none; }
+.dd-app.dd-app.dd-app .dd-desktop .dd-profile-hero > .dd-btn { justify-self:start; width:auto; min-width:150px; box-shadow:none; }
+.dd-app.dd-app.dd-app .dd-desktop .dd-card,.dd-app.dd-app.dd-app .dd-desktop .dd-menu-card,.dd-app.dd-app.dd-app .dd-desktop .dd-cal { box-shadow:none; }
+.dd-desktop .dd-history-page .dd-cal-day { aspect-ratio:auto; height:60px; min-height:60px; }
+.dd-desktop .dd-profile-hero > :first-child { grid-row:1 / span 6; }
+/* Keep Home's existing top-bar controls and its private shortcut available. */
+.dd-desktop .dd-home-page > .dd-topbar { display:flex; margin-bottom:20px; }
+.dd-desktop .dd-chat-head:has(.dd-chat-selection) .dd-chat-back { display:inline-flex; }

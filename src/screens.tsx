@@ -116,7 +116,7 @@ export function Home() {
     const PhaseIcon = sched.phase === 'writing' ? PenLine : sched.phase === 'quiet' ? Moon : BookOpen;
 
     return (
-        <main className="dd-shell">
+        <main className="dd-shell dd-home-page">
             <TopBar alert={store.unreadAny(now)} />
             <div className="dd-anim" key="home">
                 <Stories/>
@@ -597,7 +597,7 @@ export function Calendar({ viewer }: { viewer: PersonId }) {
     const dayEntries = peopleOwnFirst(auth.me).map(p => ({ person: p, entry: store.entries[ekey(p.id, day)] }));
 
     return (
-        <main className="dd-shell">
+        <main className="dd-shell dd-history-page">
             <TopBar alert={Boolean(store.unreadLatest(viewer, now))} />
             <div className="dd-anim" key={`cal-${viewer}`}>
                 <h1 className="dd-title">Diary history</h1>

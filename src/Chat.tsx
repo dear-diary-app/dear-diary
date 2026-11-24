@@ -1,3 +1,4 @@
+import { DesktopConversations, useDesktopLayout } from './DesktopLayout';
 import {parseFeedReply} from './FeedSocial';
 import {useChatStyle,chatStyleProps} from './ChatStyle';
 import {SlashCommands} from './SlashCommands';
@@ -184,6 +185,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
 }
 
 export function ChatView({ partner }: { partner: Person }) {
+    const desktop = useDesktopLayout();
     const weatherContext=useContext(WeatherContext),weatherSending=useRef(false),weatherController=useRef<AbortController>();
     const [weatherBusy,setWeatherBusy]=useState(false);
     useEffect(()=>()=>weatherController.current?.abort(),[]);
@@ -415,7 +417,7 @@ export function ChatView({ partner }: { partner: Person }) {
             selected={selected === m.id} gif={m.gif_id ? gifs.items[m.gif_id] : undefined} gifError={gifs.error} retryGif={gifs.retry} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => setSelected(m.id)} onPhoto={(paths, i) => setViewer({ paths, i })} onReply={() => startReply(m.id)} onMore={() => { input.current?.blur(); setEmojiFor(m.id); }} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
     });
 
-    return <><main {...(profileOpen ? { inert: '' } : {})} aria-hidden={profileOpen || undefined} className="dd-chat" {...customStyle} style={{...customStyle.style,...(vh?{height:vh}:{})}} aria-label={`Chat with ${partner.name}`}
+    return <>{desktop && <DesktopConversations/>}<main {...(profileOpen ? { inert: '' } : {})} aria-hidden={profileOpen || undefined} className="dd-chat" {...customStyle} style={{...customStyle.style,...(vh?{height:vh}:{})}} aria-label={`Chat with ${partner.name}`}
         onPointerDownCapture={e => { dismissOpeningUnread();if (selected && !(e.target as Element).closest('.dd-chat-actions, .dd-chat-head-actions, .dd-chat-back, .dd-emoji-picker')) setSelected(null); }}>
         <WeatherScene chat/><header className="dd-chat-head">
             <button type="button" className="dd-chat-back" onClick={() => selected ? setSelected(null) : leave()} aria-label={selected ? "Cancel selection" : "Back"}><ArrowLeft size={22} /></button>
