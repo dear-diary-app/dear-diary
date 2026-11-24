@@ -1,4 +1,3 @@
-import {VoiceCommands} from './VoiceCommands';
 import { usePageLocked } from './DesktopIdleLock';
 import React from 'react';
 import { DesktopFrame } from './DesktopLayout';
@@ -114,7 +113,6 @@ function Shell() {
                 <ResumePlace><AppEntryGate>
                 <ChatProvider uid={auth.session.user.id}>
                 <ChatBanner/>
-                <VoiceCommands/>
                 <TabSwipe><DesktopFrame>
                 <PageSlide>{location => <Routes location={location}>
                     <Route path="/" element={<Home />} />
