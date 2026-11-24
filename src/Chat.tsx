@@ -24,7 +24,7 @@ import { VoicePlayer, VoiceRecorder, Mic } from './VoiceNote';
 import {QuestionCard,askQuery} from './ChatQuestion';
 import {supabase} from './lib/supabase';
 import {OneYearCard,isOneYear} from './ChatOneYear';
-import {ImageSuggestions,ImageCreditInfo,imageQuery,IMAGE_CREDIT,imageNeedsCredit} from './ChatImageSearch';
+import {ImageSuggestions,ImageCreditInfo,imageQuery,IMAGE_CREDIT,imageNeedsCredit,imageUserCaption} from './ChatImageSearch';
 import {SongCard,SongSuggestions,musicQuery} from './ChatMusic';
 import { WeatherScene,WeatherContext } from './Weather';
 import {ChatWeatherCard,fetchChatWeather} from './ChatWeather';
@@ -48,7 +48,7 @@ const Heart = () => <svg width="46" height="46" viewBox="0 0 24 24" fill="curren
 const Send = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.3 10l12 2-12 2Z" /></svg>;
 
 const photoWord = (n: number) => n > 1 ? `${n} photos` : 'Photo';
-function snippet(m: ChatMsg) { if(m.effect==='blur')return 'Blurred message'; if(askQuery(m.body)!==null&&!m.images.length)return 'Question: '+askQuery(m.body); if(isOneYear(m.body)&&!m.images.length)return 'Our first year · Live timer'; if(m.images.length&&m.body.startsWith(IMAGE_CREDIT))return photoWord(m.images.length); if(m.weather)return `Weather: ${m.weather.place} · ${Math.round(m.weather.temperature)}°C`; if(m.song)return `Song: ${m.song.title} · ${m.song.artist}`; if(m.audio)return 'Voice note'; if (m.gif_id) return 'GIF'; if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
+function snippet(m: ChatMsg) { if(m.effect==='blur')return 'Blurred message'; if(askQuery(m.body)!==null&&!m.images.length)return 'Question: '+askQuery(m.body); if(isOneYear(m.body)&&!m.images.length)return 'Our first year · Live timer'; if(m.images.length&&m.body.startsWith(IMAGE_CREDIT))return imageUserCaption(m.body)||photoWord(m.images.length); if(m.weather)return `Weather: ${m.weather.place} · ${Math.round(m.weather.temperature)}°C`; if(m.song)return `Song: ${m.song.title} · ${m.song.artist}`; if(m.audio)return 'Voice note'; if (m.gif_id) return 'GIF'; if (m.images.length) return m.body ? `${photoWord(m.images.length)}: ${m.body.length > 70 ? m.body.slice(0, 70) + '…' : m.body}` : photoWord(m.images.length); return m.sticker ? `Sticker: ${stickerName(m.sticker)}` : m.body.length > 90 ? m.body.slice(0, 90) + '…' : m.body; }
 
 function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, onOpen, onPhoto, onReply, onJump, onMore, gif, gifError, retryGif, flash, lastMine }: {
     arrive: boolean; gif?: Gif | null; gifError: string; retryGif: () => void;
@@ -162,7 +162,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
             {m.images.length > 0 && <div className={`dd-chat-photos n${m.images.length}`}>{m.images.map((p, i) => <Thumb key={p} path={p} index={i} total={m.images.length} sending={m.state === 'sending'} onOpen={k => { if (Date.now() - noClick.current > 600) onPhoto(m.images, k); }} />)}{m.body.startsWith(IMAGE_CREDIT)&&imageNeedsCredit(m.body)&&<ImageCreditInfo body={m.body}/>}</div>}
             {m.gif_id && <div className="dd-chat-gif">{gif ? <><GifMedia gif={gif}/><GifCredit gif={gif}/></> : <div className="dd-gif-placeholder">{gif === null ? 'GIF is unavailable.' : gifError || 'Loading GIF...'}{gifError && <button type="button" onPointerDown={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();retryGif();}}>Retry GIF</button>}</div>}</div>}
             {sticker ? <img className="dd-chat-sticker" src={art(m.sticker!)} alt={stickerName(m.sticker!)} width="128" height="128" draggable={false} />
-                : m.sticker ? <span className="dd-chat-text">Sticker</span> : m.body ? ((isOneYear(m.body)||askQuery(m.body)!==null)&&!m.images.length?null:m.images.length>0&&m.body.startsWith(IMAGE_CREDIT)?null:<EffectText text={m.body} effect={m.effect} id={m.id} createdAt={m.created_at} recipient={!mine} account={chat.uid}/>) : null}
+                : m.sticker ? <span className="dd-chat-text">Sticker</span> : m.body ? ((isOneYear(m.body)||askQuery(m.body)!==null)&&!m.images.length?null:m.images.length>0&&m.body.startsWith(IMAGE_CREDIT)?(imageUserCaption(m.body)?<span className="dd-chat-text">{imageUserCaption(m.body)}</span>:null):<EffectText text={m.body} effect={m.effect} id={m.id} createdAt={m.created_at} recipient={!mine} account={chat.uid}/>) : null}
             <span className="dd-chat-time">{m.scheduled?'Scheduled · ':''}{m.edited_at && !sticker ? 'edited · ' : ''}{timeFmt.format(new Date(m.created_at))}</span>
         </div>
         {groups.length > 0 && <div className="dd-chat-reacts">{groups.map(([e, n]) => <button key={`${e}:${n}`} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => chat.react(m.id, e)} aria-label={`${e} ${n}. Tap to ${mineReact === e ? 'remove' : 'add'} your reaction`}>{e}{n > 1 ? ` ${n}` : ''}</button>)}</div>}

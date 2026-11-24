@@ -1,0 +1,9 @@
+# Select an image, add a caption, send
+
+/image- results now select instead of immediately sending. Selection blurs the search composer and opens a bottom-anchored modal with the image, title, artist, licence/source links, optional caption and explicit Send image. Back returns to the unchanged search draft. Selection-caption text is temporary and cleared on Back/query change. Only Send downloads/prepares the image for the existing upload/send path. The send lock prevents duplicate preparation, and controls are disabled while preparing. Download/preparation failures unlock retry.
+
+The 2,000-character existing body limit is shared by required rights metadata and user text. The caption field dynamically reserves room for all metadata. Storage format preserves the original Image via Wikimedia Commons prefix and credit lines, followed by a Chat caption delimiter and user text. Chat renders the user caption below the image while keeping the original image credit control. Older credit-only image messages remain unchanged; no backend/schema changes. CC0/PD handling remains as before.
+
+The modal follows visualViewport height/offset, uses compact side-by-side artwork/credits below 450px, and reserves the composer area on tall screens. On tiny heights, the image/credit detail region scrolls while caption/actions remain outside it. Caption focus can open the keyboard; resize updates its bounds. Physical Android keyboard animation remains unverified.
+
+Synthetic actual ChatView checks in paper/midnight at 320/400/850px heights: no send on select, caption field, bounds, source/licence links, dynamic keyboard-sized resize, Back preserves search, explicit send, full credits plus caption within 2,000 characters, visible sent caption and credit affordance. Screenshots use a generated landscape, not any real user's image. No real accounts/messages/uploads/PINs/push touched. Private reference deleted.
