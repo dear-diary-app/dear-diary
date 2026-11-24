@@ -26,3 +26,5 @@ Stage 3: rollback SQL tested outbox creation, single claim, replay prevention, o
 Migrations: 0044 feed, 0045 social, 0046 push. Services: feed-media, send-feed-push. No theme-color/safe-area or profile-picker changes.
 
 Caption follow-up: migration 0047 adds the bounded caption column. Both media service and database enforce the limit. Client uses a bounded textarea and retains text after failed posting.
+
+Instagram-style layout update: square display crop only (original uploaded photo still opens intact), avatar/name/music header, swipe count/dots, outline social icons, hidden eight-emoji tray on long press or accessible chooser, actual-only reaction names, inline expandable caption, timestamp. Composer is header-action New post with large full-photo preview. Feed audio is off on mount, explicit speaker on/off at image bottom right, at most 30 seconds, stops on another audio/visibility/unmount. No profile picker or system colour changes.
