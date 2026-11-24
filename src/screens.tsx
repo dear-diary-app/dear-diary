@@ -1,3 +1,4 @@
+import {SongTasteSettings} from './SongTaste';
 import { PageLockedContext, useComputerBrowser, useDesktopIdle, usePageLocked } from './DesktopIdleLock';
 import {Feed} from './Feed';
 import {Stories} from './Stories';
@@ -985,6 +986,7 @@ export function Settings() {
                     <PrivacySettings />
                     <VoiceLockSettings />
                     <AISettings />
+                    <SongTasteSettings />
                     <ChatStyleSettings />
                     <ThemePicker />
                     {peopleOwnFirst(auth.me).filter(p => p.id === auth.me && !store.avatarPhotos[p.id]).map(p => (

@@ -135,7 +135,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
     const entryIds = useRef<Record<string, string>>({}); // ekey -> entry id
     const photoIds = useRef<Record<string, string[]>>({}); // ekey -> photo ids in order
     const userIds = useRef<Record<PersonId, string>>({} as Record<PersonId, string>);
-    const drafts = useRef<Record<string, { text: string; stickers: Sticker[]; song: Song | null; version: number }>>({});
+    const drafts = useRef<Record<string, { text: string; stickers: Sticker[]; song: Song | null; songChanged?: boolean; version: number }>>({});
     const inFlight = useRef<Record<string, boolean>>({});
     const saveTimer = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
@@ -221,15 +221,34 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
             const k = ekey(me, todayKey());
             const raw = localStorage.getItem(`dd_draft_${k}`);
             if (raw) {
-                const draft = JSON.parse(raw) as { text: string; stickers?: Sticker[]; song?: unknown };
+                const draft = JSON.parse(raw) as { text: string; stickers?: Sticker[]; song?: unknown; songChanged?: boolean };
                 if (typeof draft.text === 'string' && (draft.text !== next[k]?.text || JSON.stringify(cleanSong(draft.song)) !== JSON.stringify(next[k]?.song ?? null) || (Array.isArray(draft.stickers) && JSON.stringify(draft.stickers) !== JSON.stringify(next[k]?.stickers ?? [])))) {
-                    store_save(me, todayKey(), draft.text, Array.isArray(draft.stickers) ? cleanStickers(draft.stickers) : next[k]?.stickers ?? [], cleanSong(draft.song));
+                    store_save(me, todayKey(), draft.text, Array.isArray(draft.stickers) ? cleanStickers(draft.stickers) : next[k]?.stickers ?? [], draft.songChanged===true?cleanSong(draft.song):undefined);
                 }
             }
         } catch { /* ignore */ }
     }
 
     useEffect(() => { loadAll(); }, [me]);
+
+    // A closed-app scheduler can add a song while this editor is sitting idle.
+    // Read only the owner's song metadata; never replace an unsaved song choice.
+    useEffect(()=>{
+        let alive=true;
+        const update=async()=>{
+            const now=new Date(); // time window uses IST below
+            const minute=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:false}).format(now).slice(0,2))*60+Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',minute:'2-digit'}).format(now));
+            if(document.hidden||minute<1310||minute>=1320)return;
+            const uid=userIds.current[me],day=todayKey(now),k=ekey(me,day);if(!uid||drafts.current[k]?.songChanged)return;
+            const{data,error}=await supabase.from('diary_entries').select('song').eq('user_id',uid).eq('entry_date',day).maybeSingle();
+            if(!alive||error||drafts.current[k]?.songChanged)return;
+            const song=cleanSong(data?.song);if(!song)return;
+            if(drafts.current[k])drafts.current[k]={...drafts.current[k],song};
+            setEntries(prev=>prev[k]?{...prev,[k]:{...prev[k],song}}:prev);
+        };
+        const timer=setInterval(()=>void update(),30000);const visible=()=>void update();document.addEventListener('visibilitychange',visible);
+        return()=>{alive=false;clearInterval(timer);document.removeEventListener('visibilitychange',visible);};
+    },[me]);
 
     async function ensureEntryId(p: PersonId, d: string): Promise<string | null> {
         const k = ekey(p, d);
@@ -251,12 +270,14 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
         const uid = userIds.current[p];
         if (!draft || !uid) return;
         inFlight.current[k] = true;
-        const { data, error } = await supabase.from('diary_entries')
-            .upsert({ user_id: uid, entry_date: d, content: draft.text, stickers: draft.stickers, song: draft.song, status: 'draft' }, { onConflict: 'user_id,entry_date' }).select('id').single();
+        const { data: rows, error } = await supabase.rpc('save_diary_draft',{p_day:d,p_text:draft.text,p_stickers:draft.stickers,p_song:draft.song,p_song_changed:draft.songChanged===true});
+        const data=rows?.[0];
         inFlight.current[k] = false;
         if (error) { setSaveState(prev => ({ ...prev, [k]: 'error' })); return; }
         if (data) entryIds.current[k] = data.id;
         if (drafts.current[k]?.version !== draft.version) { void flush(p,d); return; }
+        drafts.current[k]={...draft,song:cleanSong(data?.song),songChanged:false};
+        setEntries(prev=>prev[k]?{...prev,[k]:{...prev[k],song:cleanSong(data?.song)}}:prev);
         try { localStorage.removeItem(`dd_draft_${k}`); } catch { /* ignore */ }
         setSaveState(prev => ({ ...prev, [k]: 'saved' }));
     }
@@ -265,7 +286,7 @@ export function StoreProvider({ me, children }: { me: PersonId; children: React.
         const k = ekey(p,d);
         const nextStickers = stickers ?? drafts.current[k]?.stickers ?? entries[k]?.stickers ?? [];
         const nextSong = song !== undefined ? song : drafts.current[k]?.song !== undefined ? drafts.current[k].song : entries[k]?.song ?? null;
-        const draft = { text, stickers: nextStickers, song: nextSong, version: (drafts.current[k]?.version ?? 0) + 1 };
+        const draft = { text, stickers: nextStickers, song: nextSong, songChanged:song!==undefined||drafts.current[k]?.songChanged===true, version: (drafts.current[k]?.version ?? 0) + 1 };
         drafts.current[k] = draft;
         setEntries(prev => ({ ...prev, [k]: { ...prev[k], date:d, person:p, text, stickers:nextStickers, song:nextSong, photos:prev[k]?.photos ?? [], status:prev[k]?.status ?? 'draft' } }));
         try { localStorage.setItem(`dd_draft_${k}`,JSON.stringify(draft)); } catch { /* full */ }
