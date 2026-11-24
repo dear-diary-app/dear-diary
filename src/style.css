@@ -2041,3 +2041,9 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-app.dd-app.dd-app .dd-home-socialbar .dd-iconbtn{background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important}
 .dd-home-socialbar .dd-iconbtn>svg{fill:none;stroke:currentColor}
 .dd-home-diary-link strong{font-size:11px}
+.dd-story-header button.dd-story-header-avatar{position:relative;flex-shrink:0;padding:0;border:1px solid #fff8;border-radius:50%;width:34px;height:34px;background:transparent;color:white;box-shadow:none;overflow:visible;cursor:pointer;display:grid;place-items:center;font:inherit}
+.dd-story-header button.dd-story-header-avatar>img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.dd-story-header button.dd-story-header-avatar:disabled{opacity:1;cursor:default}
+.dd-story-header button.dd-story-header-avatar:focus-visible{outline:2px solid white;outline-offset:4px}
+.dd-story-replace-note{font-size:12px;line-height:1.5;opacity:.65;padding:0 16px;margin:0 0 14px}
+.dd-story-header button.dd-story-header-avatar{pointer-events:auto}
