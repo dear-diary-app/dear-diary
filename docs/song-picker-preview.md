@@ -13,3 +13,7 @@ Synthetic tests at 320/390/820 in paper/midnight: selection does not send, no au
 ## Keyboard layout correction
 
 The original selected preview expanded inside the fixed-height chat composer. With an Android keyboard reducing the visual viewport, the composer could exceed its available space and push the preview top out of view. Selection now blurs the composer and opens a modal dialog outside normal composer layout. Its top/max-height follow visualViewport height and offsetTop on resize/scroll, with compact controls below 450px height. Header/actions remain outside the scrollable detail region. Actual ChatView synthetic checks at 320/400/520/850px heights in both themes verify visible header, artwork/info, player and Back/Send, dynamic resize, no send on select, and draft preserved on Back. Physical Android keyboard transitions still need device validation.
+
+## Bottom placement
+
+The fitted modal is now bottom-anchored. It reserves 64-90px for the composer when the visual viewport is at least 380px high. Shorter views use an 8px bottom gap and let the modal occupy the available screen. Height remains capped to the current visual viewport and updates on resize/scroll. Synthetic actual-chat tests at 320/400/520/850px in paper/midnight passed bottom anchoring, all key content inside the viewport, dynamic resize and Back preserving the draft. Full-height and short-height pixels inspected. The keyboard is still dismissed on selection; sizing also protects the intermediate keyboard-open viewport. Physical phone keyboard/focus transitions remain unverified.

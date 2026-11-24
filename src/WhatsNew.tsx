@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'songpreviewbottom', emoji: '🎵', title: 'Song preview within reach', text: 'The fitted song preview now opens near the bottom, above the composer when there is room. Short keyboard-sized screens use the available space without losing the actions.' },
         { id: 'songpreviewfit', emoji: '🎵', title: 'Song preview fits your screen', text: 'Selecting a song closes the typing keyboard and opens a screen-fitted preview. Small screens use a compact layout, with Back and Send song kept inside the visible area.' },
         { id: 'songbeforesend', emoji: '🎵', title: 'Listen before sending', text: 'Tap a /music- result to open its preview, then choose Send song. Listen to an available sample first, or go back and pick another. Clips stream from iTunes, up to 30 seconds; availability varies.' },
         { id: 'quietforeground', emoji: '🔕', title: 'Quiet while you are here', text: 'New chat system alerts are skipped when this account is open in a visible, focused app window. Background or closed windows can still receive alerts. Reopen once after updating to activate the change.' },
