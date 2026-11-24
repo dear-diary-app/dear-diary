@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'story-social-layout', emoji: '📷', title: 'A more familiar story view', text: 'Progress now sits at the top above the profile photo, name and story age. Your bottom row has Activity, Share, Copy link and More for Replace/Delete. Activity shows your partner’s view and reaction. Say something opens your private chat composer; nothing sends until you press Send. Hold to pause still works.' },
         { id: 'story-hold-pause', emoji: '⏸️', title: 'Hold a story to pause', text: 'Press and hold the story video to pause it and its progress bar. Release to continue. Back, Share, Copy link and emoji reactions still work with a normal tap.' },
         { id: 'story-share-link', emoji: '🔗', title: 'Share a private story link', text: 'Share or copy a story link from the bottom of the viewer. Only the two linked signed-in accounts can open it, before that story expires or is replaced. The progress bar is cleaner, Back is at the top left, and video fills the screen with some edge cropping.' },
         { id: 'story-fullscreen-reactions', emoji: '😍', title: 'Stories fill your screen', text: 'Stories now play in a full-screen app view without native player menus or seeking. The bottom bar shows progress. Tap an emoji on your partner’s story to send a private reaction; their Home story area shows it. Replace/Delete are beside your own circle. Close with × or swipe down.' },
