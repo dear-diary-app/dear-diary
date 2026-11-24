@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'voicelock-notice', emoji: '🎙️', title: 'A quieter voice-lock notice', text: 'The mic notice fades away after 2 seconds. Listening continues until you turn it off in Settings or say unlock. Errors stay visible; your phone may still show its own mic indicator.' },
         { id: 'voicelock', emoji: '🎙️', title: 'Say lock, show the PIN screen', text: 'Optional Voice lock in Settings is off by default. While on and in the foreground, say the English word lock to lock the app. Unlock only switches listening off. Browser speech services may process audio; recognition is not guaranteed.' },
         { id: 'imagecaptionselect', emoji: '🖼️', title: 'Choose an image, add your words', text: 'Tapping an /image- result now selects it. Add an optional caption, check its source and licence, then tap Send image. Back keeps your search draft; a tap no longer sends immediately.' },
         { id: 'songpreviewbottom', emoji: '🎵', title: 'Song preview within reach', text: 'The fitted song preview now opens near the bottom, above the composer when there is room. Short keyboard-sized screens use the available space without losing the actions.' },
