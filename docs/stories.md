@@ -31,3 +31,7 @@ Single active story means one thin progress segment at the top. Header includes 
 ## Reaction implies viewed
 
 Activity previously depended only on the new story_views table, so an existing reaction could show beside not-viewed. story_react now inserts the matching view atomically, active reactions were backfilled, and Activity treats a same-story reaction as sufficient evidence even if a legacy view row is absent. Rollback synthetic test checked reaction creates view; UI fixture with no view row plus heart displays Viewed. No system-bar, theme-color or safe-area changes in this fix. Reference screenshot inspected and deleted.
+
+## Temporary story system tint, isolated opt-in experiment
+
+User approved a best-effort browser chrome tint, including possible Android bottom-bar tint, after being told exact OS restoration cannot be guaranteed. Published StoryViewer temporarily sets the existing theme-color meta to black, restores the captured value on unmount/hidden/pagehide, and reapplies on visible/pageshow. If the app theme changes underneath, its newest value is captured and restored. No CSS safe-area, canvas, body background, manifest or global theme defaults changed. Synthetic metadata tests cover open/close/hide/show/pagehide/pageshow/theme update, but do not validate Android system pixels. Revert the isolated commit containing storySystemTint.ts and its StoryViewer hook to remove this experiment.

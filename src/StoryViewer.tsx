@@ -1,6 +1,8 @@
+import{useStorySystemTint}from'./storySystemTint';
 import React,{useEffect,useRef,useState}from'react';import{supabase}from'./lib/supabase';import{ArrowLeft}from'./icons';
 export const STORY_EMOJIS=['❤️','😍','😂','🔥','👏','😮','🥹','💯'];
 export function StoryViewer({url,user,expires,mine,onClose,name='Story',photo='',createdAt,partnerName='Your partner',partnerPhoto='',onReplace,onDelete,onReply}:{url:string;user:string;expires:string;mine:boolean;onClose:()=>void;name?:string;photo?:string;createdAt?:string;partnerName?:string;partnerPhoto?:string;onReplace?:()=>void;onDelete?:()=>void;onReply?:()=>void}){
+ useStorySystemTint();
  const dialog=useRef<HTMLDialogElement>(null),video=useRef<HTMLVideoElement>(null),origin=useRef<{x:number;y:number}|null>(null),alive=useRef(true),pending=useRef(false);const[progress,setProgress]=useState(0),[note,setNote]=useState(''),[error,setError]=useState(''),[selected,setSelected]=useState(''),[busy,setBusy]=useState(false);
  const [panel,setPanel]=useState<'activity'|'more'|null>(null),[activity,setActivity]=useState<{viewed:boolean;emoji:string|null;loaded:boolean}>({viewed:false,emoji:null,loaded:false});
  const ageMinutes=Math.max(0,Math.floor((Date.now()-Date.parse(createdAt||new Date(Date.parse(expires)-86400000).toISOString()))/60000));const age=ageMinutes<1?'now':ageMinutes<60?ageMinutes+'m':Math.floor(ageMinutes/60)+'h';
