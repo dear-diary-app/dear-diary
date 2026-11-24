@@ -1,3 +1,4 @@
+import {Stories} from './Stories';
 import {VoiceLockProvider,VoiceLockSettings} from './VoiceLock';
 import {flushSync} from 'react-dom';
 import {ChatStyleSettings} from './ChatStyle';
@@ -114,6 +115,7 @@ export function Home() {
         <main className="dd-shell">
             <TopBar alert={store.unreadAny(now)} />
             <div className="dd-anim" key="home">
+                <Stories/>
                 <section className="dd-books" aria-label="Your two diary books">
                     {peopleOwnFirst(auth.me).map(p => (
                         <div key={p.id} className="dd-book-col">

@@ -1,0 +1,7 @@
+// Read declared movie and track durations. Reject corrupt, incomplete, live/fragmented and non-MP4 headers.
+export function mp4Duration(buffer:ArrayBuffer):number{
+ const v=new DataView(buffer);let ftyp=false;const durations:number[]=[];
+ const text=(p:number)=>String.fromCharCode(...new Uint8Array(buffer,p,4));
+ const walk=(start:number,end:number,depth:number)=>{if(depth>8)throw Error('Invalid MP4');for(let p=start;p<end;){if(p+8>end)throw Error('Invalid MP4');let size=v.getUint32(p),head=8;const type=text(p+4);if(size===1){if(p+16>end)throw Error('Invalid MP4');size=Number(v.getBigUint64(p+8));head=16;}if(size===0)size=end-p;if(size<head||p+size>end||!Number.isSafeInteger(size))throw Error('Invalid MP4');const d=p+head;if(type==='ftyp')ftyp=true;if(type==='mvhd'||type==='mdhd'){if(d+4>p+size)throw Error('Invalid MP4');const version=v.getUint8(d);if(version!==0&&version!==1)throw Error('Invalid MP4');const offset=version===1?20:12;if(d+offset+(version===1?12:8)>p+size)throw Error('Invalid MP4');const scale=v.getUint32(d+offset);const ticks=version===1?Number(v.getBigUint64(d+offset+4)):v.getUint32(d+offset+4);if(!scale||!ticks||ticks===0xffffffff||!Number.isSafeInteger(ticks))throw Error('Invalid MP4 duration');durations.push(ticks/scale);}if(['moov','trak','mdia'].includes(type))walk(d,p+size,depth+1);p+=size;}};
+ walk(0,buffer.byteLength,0);const duration=Math.max(...durations);if(!ftyp||!durations.length||!Number.isFinite(duration)||duration<=0||duration>60)throw Error('Choose an MP4 video no longer than 60 seconds.');return duration;
+}
