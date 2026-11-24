@@ -1740,3 +1740,6 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-slash-commands>div>button span { font-size:11px;opacity:.65;text-align:right; }
 .dd-slash-commands>div>button:disabled { opacity:.45;cursor:not-allowed; }
 .dd-slash-commands>div>button:not(:disabled):hover,.dd-slash-commands>div>button:focus-visible { background:var(--lg-control,#f2e7ec); }
+.dd-unread-divider { display:flex;align-items:center;justify-content:center;gap:14px;padding:15px 0;margin:3px 0 10px;flex:none; }
+.dd-unread-divider::before,.dd-unread-divider::after { content:'';height:1px;flex:1;background:var(--lg-rule,#e0d2d8); }
+.dd-unread-divider span { display:inline-block;padding:8px 17px;border:1px solid var(--lg-edge,#f4e7ed);border-radius:999px;background:var(--lg-fallback,#fffaf5);box-shadow:0 3px 12px var(--lg-shadow,#0001);color:var(--lg-ink,#594553);font:12px/1.4 var(--ds-font-text);white-space:nowrap; }

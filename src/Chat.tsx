@@ -256,11 +256,23 @@ export function ChatView({ partner }: { partner: Person }) {
     useLayoutEffect(()=>{if(!chat.loaded)return;for(const m of chat.messages){seenMessages.current.add(m.id);if(m.created_at>newestSeen.current)newestSeen.current=m.created_at;}animationReady.current=true;},[chat.loaded,chat.messages]);
     useEffect(()=>()=>chat.typing(false),[chat.typing]);
     useEffect(()=>{if(profileOpen)chat.typing(false);},[profileOpen,chat.typing]);
+    const [openingUnread,setOpeningUnread]=useState<{ids:string[];first:string}|null>(null);
+    const [unreadReady,setUnreadReady]=useState(false);
+    const [unreadTick,setUnreadTick]=useState(0);
+    const unreadOldest=useRef('');
+    const unreadCaptured=useRef(false),unreadLoading=useRef(false),unreadPositioned=useRef(false),unreadArmed=useRef(false);
+    useLayoutEffect(()=>{if(!chat.loaded||unreadCaptured.current||profileOpen)return;
+        const unread=chat.messages.filter(m=>m.sender_id!==chat.uid&&!m.seen_at&&!m.state);
+        // If the oldest loaded row is unread, fetch the preceding page before marking seen.
+        if(unread.length&&chat.hasMore&&chat.messages[0]?.id===unread[0].id&&unreadOldest.current!==unread[0].id){unreadOldest.current=unread[0].id;if(!unreadLoading.current){unreadLoading.current=true;void chat.loadOlder().finally(()=>{unreadLoading.current=false;setUnreadTick(n=>n+1);});}return;}
+        unreadCaptured.current=true;setOpeningUnread(unread.length?{ids:unread.map(m=>m.id),first:unread[0].id}:null);setUnreadReady(true);
+    },[chat.loaded,chat.messages,chat.hasMore,chat.uid,profileOpen,unreadTick]);
+    const dismissOpeningUnread=()=>{if(!openingUnread||!unreadArmed.current)return;const pending=chat.messages.some(m=>openingUnread.ids.includes(m.id)&&!m.seen_at);if(!pending)setOpeningUnread(null);};
     const stick = useRef(true);
     const prevLen = useRef(0);
     const prevLastId=useRef<string>();
     const { setViewing } = chat;
-    useEffect(() => { setViewing(!profileOpen); return () => setViewing(false); }, [setViewing, profileOpen]);
+    useEffect(() => { setViewing(!profileOpen&&unreadReady); return () => setViewing(false); }, [setViewing, profileOpen,unreadReady]);
 
     // Keep the layout above the phone keyboard and hide the dock while typing.
     const [vh, setVh] = useState<number | null>(null);
@@ -291,13 +303,14 @@ export function ChatView({ partner }: { partner: Person }) {
     const resume=useRef<{id?:string;offset?:number;bottom?:boolean;top?:number}|null>(null),resumeDone=useRef(false),resumeLoading=useRef(false),resumePages=useRef(0);
     useState(()=>{try{resume.current=JSON.parse(localStorage.getItem(resumeKey)||'null');}catch{}return null;});
     useLayoutEffect(()=>{
-        if(!chat.loaded||resumeDone.current)return;
+        if(!chat.loaded||!unreadReady||resumeDone.current)return;
+        if(openingUnread){resumeDone.current=true;stick.current=false;return;}
         const el=scroller.current,r=resume.current;if(!el||!r||r.bottom){resumeDone.current=true;return;}
         const row=r.id?el.querySelector<HTMLElement>(`[data-id="${CSS.escape(r.id)}"]`):null;
         if(!row&&chat.hasMore&&resumePages.current<20){stick.current=false;if(!resumeLoading.current){resumeLoading.current=true;resumePages.current++;void chat.loadOlder().finally(()=>{resumeLoading.current=false;setResumeTick(n=>n+1);});}return;}
         resumeDone.current=true;stick.current=false;
         requestAnimationFrame(()=>{if(row)el.scrollTop+=row.getBoundingClientRect().top-el.getBoundingClientRect().top-(r.offset||0);else el.scrollTop=r.top||0;});
-    },[chat.loaded,chat.messages,chat.hasMore,resumeTick]);
+    },[chat.loaded,chat.messages,chat.hasMore,resumeTick,unreadReady,openingUnread]);
     useEffect(()=>{
         const save=()=>{const el=scroller.current;if(!el||!resumeDone.current)return;const top=el.getBoundingClientRect().top;const row=[...el.querySelectorAll<HTMLElement>('.dd-chat-row[data-id]')].find(r=>r.getBoundingClientRect().bottom>top+18);try{localStorage.setItem(resumeKey,JSON.stringify({id:row?.dataset.id,offset:row?row.getBoundingClientRect().top-top:0,bottom:el.scrollHeight-el.scrollTop-el.clientHeight<80,top:el.scrollTop}));}catch{}};
         document.addEventListener('visibilitychange',save);window.addEventListener('pagehide',save);const el=scroller.current;let timer:number|undefined;const scroll=()=>{clearTimeout(timer);timer=window.setTimeout(save,200);};el?.addEventListener('scroll',scroll,{passive:true});return()=>{save();clearTimeout(timer);el?.removeEventListener('scroll',scroll);document.removeEventListener('visibilitychange',save);window.removeEventListener('pagehide',save);};
@@ -306,10 +319,11 @@ export function ChatView({ partner }: { partner: Person }) {
     useLayoutEffect(() => {
         const grew = chat.messages.length > prevLen.current;
         const last = chat.messages[chat.messages.length - 1];
-        if ((!resume.current || resumeDone.current) && (stick.current || (grew && last?.id!==prevLastId.current && last?.sender_id === chat.uid))) { toBottom(prevLen.current > 0); setNewBelow(false); }
+        if (unreadReady&&!openingUnread&&(!resume.current || resumeDone.current) && (stick.current || (grew && last?.id!==prevLastId.current && last?.sender_id === chat.uid))) { toBottom(prevLen.current > 0); setNewBelow(false); }
         prevLen.current = chat.messages.length;prevLastId.current=last?.id;
-    }, [chat.messages, chat.partnerTyping, chat.uid]);
-    useLayoutEffect(() => { if (chat.loaded && (!resume.current || resume.current.bottom)) toBottom(); }, [chat.loaded]);
+    }, [chat.messages, chat.partnerTyping, chat.uid,unreadReady,openingUnread]);
+    useLayoutEffect(() => { if (chat.loaded&&unreadReady&&!openingUnread && (!resume.current || resume.current.bottom)) toBottom(); }, [chat.loaded,unreadReady]);
+    useLayoutEffect(()=>{if(!openingUnread||unreadPositioned.current||!unreadReady)return;const el=scroller.current,divider=el?.querySelector<HTMLElement>('.dd-unread-divider');if(!el||!divider)return;unreadPositioned.current=true;stick.current=false;let second=0;const frame=requestAnimationFrame(()=>{el.scrollTop+=divider.getBoundingClientRect().top-el.getBoundingClientRect().top-18;second=requestAnimationFrame(()=>{unreadArmed.current=true;});});return()=>{cancelAnimationFrame(frame);cancelAnimationFrame(second);};},[openingUnread,unreadReady]);
     // Baseline existing/history messages once. Only newly added incoming IDs count.
     // Equal timestamps are allowed, and receipts/edits/duplicate deliveries do not recount IDs.
     useLayoutEffect(()=>{
@@ -389,12 +403,13 @@ export function ChatView({ partner }: { partner: Person }) {
     chat.messages.forEach(m => {
         const d = dayKey.format(new Date(m.created_at));
         if (d !== lastDay) { lastDay = d; items.push(<p key={`d${d}`} className="dd-chat-day"><span>{dayLabel(m.created_at)}</span></p>); }
+        if(openingUnread?.first===m.id)items.push(<div className="dd-unread-divider" key="opening-unread" role="status"><span>{openingUnread.ids.length} unread {openingUnread.ids.length===1?'message':'messages'}</span></div>);
         items.push(<Row key={m.id} arrive={arrivals.has(m.id)} m={m} mine={m.sender_id === chat.uid} partner={partner} original={m.reply_to ? byId.get(m.reply_to) : undefined}
             selected={selected === m.id} gif={m.gif_id ? gifs.items[m.gif_id] : undefined} gifError={gifs.error} retryGif={gifs.retry} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => setSelected(m.id)} onPhoto={(paths, i) => setViewer({ paths, i })} onReply={() => startReply(m.id)} onMore={() => { input.current?.blur(); setEmojiFor(m.id); }} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
     });
 
     return <><main {...(profileOpen ? { inert: '' } : {})} aria-hidden={profileOpen || undefined} className="dd-chat" style={vh ? { height: vh } : undefined} aria-label={`Chat with ${partner.name}`}
-        onPointerDownCapture={e => { if (selected && !(e.target as Element).closest('.dd-chat-actions, .dd-chat-head-actions, .dd-chat-back, .dd-emoji-picker')) setSelected(null); }}>
+        onPointerDownCapture={e => { dismissOpeningUnread();if (selected && !(e.target as Element).closest('.dd-chat-actions, .dd-chat-head-actions, .dd-chat-back, .dd-emoji-picker')) setSelected(null); }}>
         <WeatherScene chat/><header className="dd-chat-head">
             <button type="button" className="dd-chat-back" onClick={() => selected ? setSelected(null) : leave()} aria-label={selected ? "Cancel selection" : "Back"}><ArrowLeft size={22} /></button>
             {selected ? <div className="dd-chat-selection"><h1>1 selected</h1><p>Choose a reaction</p></div> : <Link to="/chat/profile" state={{ ddChatProfile: true }} className="dd-chat-contact" aria-label={`View ${partner.name}'s profile`} onClick={()=>input.current?.blur()}><Avatar person={partner} size="sm" />
@@ -412,7 +427,7 @@ export function ChatView({ partner }: { partner: Person }) {
             </div>}
         </header>
 
-        <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
+        <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onTouchMove={dismissOpeningUnread} onKeyDown={dismissOpeningUnread} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{dismissOpeningUnread();jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
             {!chat.loaded && !chat.loadError && <p className="dd-chat-empty" role="status">Opening your chat...</p>}
             {chat.loadError && <p className="dd-chat-empty" role="alert">Could not load the chat. <button type="button" className="dd-chat-link" onClick={chat.reload}>Try again</button></p>}
@@ -444,7 +459,7 @@ export function ChatView({ partner }: { partner: Person }) {
                 <ChatAttachments compact={text.length>0} gifDisabled={gifSending||!!editing||staged.length>0} disabled={gifSending||!!editing} trayOpen={trayOpen} onGif={()=>{input.current?.blur();setTrayOpen(o=>!o);}} onPhoto={()=>fileInput.current?.click()} onTranslate={()=>{const el=input.current;const start=el?.selectionStart??0,end=el?.selectionEnd??0;const selected=start!==end;setTrayOpen(false);chat.typing(false);setTranslation({full:text,selected,start:selected?start:0,end:selected?end:text.length,text:selected?text.slice(start,end):text});}}/>
                 <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={e => { void pick(e.target.files); }} />
                 <textarea ref={input} rows={1} disabled={askBusy} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="enter"
-                    onChange={e => { setText(e.target.value); grow(); chat.typing(ddaiQuery(e.target.value)===null&&!!e.target.value.trim()); }}
+                    onChange={e => { dismissOpeningUnread();setText(e.target.value); grow(); chat.typing(ddaiQuery(e.target.value)===null&&!!e.target.value.trim()); }}
                     onFocus={() => { document.documentElement.classList.add('dd-chat-typing'); if(!gifSending)setTrayOpen(false); }}
                     onBlur={() => { document.documentElement.classList.remove('dd-chat-typing'); chat.typing(false); }}
                     />
