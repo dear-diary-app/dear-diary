@@ -7,7 +7,7 @@ const cityKey=(uid:string)=>`dd_weather_city_${uid}`;
 const cleanCity=(value:any):WeatherCity|null=>value&&Number.isFinite(value.id)&&typeof value.name==='string'&&typeof value.region==='string'&&typeof value.country==='string'&&Number.isFinite(value.latitude)&&Math.abs(value.latitude)<=90&&Number.isFinite(value.longitude)&&Math.abs(value.longitude)<=180?{id:value.id,name:value.name.slice(0,100),region:value.region.slice(0,100),country:value.country.slice(0,100),latitude:Math.round(value.latitude*20)/20,longitude:Math.round(value.longitude*20)/20}:null;
 export type WeatherState={updatedAt:number|null;day:boolean;kind:WeatherKind|null;status:string;refresh:()=>void;animate:boolean;city:WeatherCity|null;setCity:(city:WeatherCity|null)=>void};
 export const WeatherContext=createContext<WeatherState>({updatedAt:null,day:true,kind:null,status:'',refresh:()=>{},animate:false,city:null,setCity:()=>{}});
-const CACHE_MS=30*60*1000;
+const CACHE_MS=10*60*1000;
 export function weatherKind(code:number,wind:number,day:boolean):WeatherKind{
  if(code>=95)return 'storm';
  if([71,73,75,77,85,86].includes(code))return 'snow';
@@ -31,7 +31,7 @@ export function useWeather(uid:string,enabled:boolean):WeatherState{
   const update=async()=>{
    if(document.hidden)return;
    if(!explicit.current&&lastAttempt.current&&Date.now()-lastAttempt.current<CACHE_MS)return;
-   if(cache.current&&Date.now()-cache.current.at<CACHE_MS){setKind(cache.current.kind);setStatus('Weather updated. Refreshes about every 30 minutes while open.');return;}
+   if(cache.current&&Date.now()-cache.current.at<CACHE_MS){setKind(cache.current.kind);setStatus('Weather updated. Refreshes about every 10 minutes while open.');return;}
    const load=async(lat:number,lon:number)=>{
     if(run!==version.current)return;
     controller=new AbortController();const timeout=window.setTimeout(()=>controller?.abort(),12000);
@@ -39,7 +39,7 @@ export function useWeather(uid:string,enabled:boolean):WeatherState{
      const url=new URL('https://api.open-meteo.com/v1/forecast');url.search=new URLSearchParams({latitude:String(lat),longitude:String(lon),current:'weather_code,wind_speed_10m,is_day',forecast_days:'1'}).toString();
      const response=await fetch(url,{signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer'});if(!response.ok)throw Error('weather');const data=await response.json(),c=data.current;
      if(!c||!Number.isFinite(c.weather_code)||!Number.isFinite(c.wind_speed_10m)||![0,1].includes(c.is_day))throw Error('weather');
-     if(run!==version.current)return;const next=weatherKind(c.weather_code,c.wind_speed_10m,c.is_day===1);cache.current={at:Date.now(),kind:next};setKind(next);setDay(c.is_day===1);setUpdatedAt(Date.now());setStatus('Weather updated. Refreshes about every 30 minutes while open.');
+     if(run!==version.current)return;const next=weatherKind(c.weather_code,c.wind_speed_10m,c.is_day===1);cache.current={at:Date.now(),kind:next};setKind(next);setDay(c.is_day===1);setUpdatedAt(Date.now());setStatus('Weather updated. Refreshes about every 10 minutes while open.');
     }catch(error){if(run===version.current)setStatus(`${cache.current?'Showing the last weather from this visit. ':''}${error instanceof DOMException&&error.name==='AbortError'?'Weather request timed out.':'Weather request failed or was blocked by the network.'} Check your connection and tap refresh.`);}
     finally{window.clearTimeout(timeout);}
    };
