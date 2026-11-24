@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'desktop-login-pin-feedback', emoji: '⌨️', title: 'Clearer sign-in and keyboard PIN entry', text: 'Sign-in and password-reset feedback no longer overlap or show errors as success. Editing your details clears old feedback. On a computer, type PIN digits and use Backspace to correct them. PIN setup still asks you to confirm.' },
         { id: 'chat-foreground-banner', emoji: '💬', title: 'Messages reach you around the app', text: 'New incoming messages show a dismissible top banner while you are outside Chat. Tap it to write a reply without leaving your page, then press Send. It follows New chat messages settings. Hidden or closed apps keep their existing device alerts; device permission is not needed for this in-app banner.' },
         { id: 'chat-inline-sent-seen', emoji: '💬', title: 'Sent and Seen beside the time', text: 'Your latest outgoing message shows Sent to the left of its timestamp, inside the bubble. It changes to Seen in the same spot when your partner reads it. The separate status label below is gone.' },
         { id: 'voice-wave-seek-heart', emoji: '🎙️', title: 'A simpler voice player', text: 'Tap the waveform to jump forward or back, without a separate seek bar. Play and speed stay beside the wave. Double-tap a voice note to add a red heart; repeating it keeps the heart. Play and speed buttons keep their normal actions.' },

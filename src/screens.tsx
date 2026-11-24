@@ -40,22 +40,25 @@ export function Login() {
     const [busy, setBusy] = useState(false);
     const [showPw, setShowPw] = useState(false);
 
+    const working=useRef(false);
+    const clearFeedback=()=>{setError(null);setNotice(null);};
+    const emailValue=()=>email.trim();
+    const emailValid=()=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue())&&!/[\u200B-\u200D\uFEFF]/.test(emailValue());
     const submit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setBusy(true);
-        setError(null);
-        const err = await auth.signIn(email.trim(), password);
-        setBusy(false);
-        if (err) setError(err);
+        e.preventDefault();if(working.current)return;clearFeedback();
+        if(!emailValid()){setError('Enter a valid email address. Check for spaces or hidden characters.');return;}
+        working.current=true;setBusy(true);
+        try{const err=await auth.signIn(emailValue(),password);if(err)setError(err==='Invalid login credentials'?'Email or password was not accepted. Check both and try again.':err);}
+        catch{setError('Could not connect. Check your internet connection and try again.');}
+        finally{working.current=false;setBusy(false);}
     };
-
     const forgot = async () => {
-        if (!email.trim()) { setError('Enter your email first, then tap "forgot password".'); return; }
-        setBusy(true);
-        const err = await auth.resetPassword(email.trim());
-        setBusy(false);
-        setError(null);
-        setNotice(err ?? 'Password reset email sent - check your inbox.');
+        if(working.current)return;clearFeedback();
+        if(!emailValid()){setError('Enter a valid email address first. Check for spaces or hidden characters.');return;}
+        working.current=true;setBusy(true);
+        try{const err=await auth.resetPassword(emailValue());if(err)setError(err);else setNotice('Password reset email requested. Check your inbox.');}
+        catch{setError('Could not connect. Check your internet connection and try again.');}
+        finally{working.current=false;setBusy(false);}
     };
 
     return (
@@ -67,13 +70,13 @@ export function Login() {
                 <form className="dd-login-form" onSubmit={submit}>
                     <label className="dd-field">
                         <span>Email</span>
-                        <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                            autoComplete="email" required placeholder="you@example.com" />
+                        <input type="email" value={email} onChange={e => {setEmail(e.target.value);clearFeedback();}}
+                            autoComplete="email" autoCapitalize="none" spellCheck={false} required placeholder="you@example.com" />
                     </label>
                     <label className="dd-field">
                         <span>Password</span>
                         <span className="dd-pass-wrap">
-                            <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                            <input type={showPw ? 'text' : 'password'} value={password} onChange={e => {setPassword(e.target.value);clearFeedback();}}
                                 autoComplete="current-password" required placeholder="Your password" />
                             <button type="button" className="dd-eye" onClick={() => setShowPw(v => !v)}
                                 aria-label={showPw ? 'Hide password' : 'Show password'}
@@ -82,12 +85,12 @@ export function Login() {
                             </button>
                         </span>
                     </label>
-                    {error && <p className="dd-pin-msg is-error">{error}</p>}
-                    {notice && <p className="dd-pin-msg">{notice}</p>}
+                    {error && <p role="alert" className="dd-pin-msg is-error">{error}</p>}
+                    {notice && <p role="status" className="dd-pin-msg">{notice}</p>}
                     <button type="submit" className="dd-btn dd-btn-primary" disabled={busy}>
                         {busy ? 'Signing in...' : 'Sign in'}
                     </button>
-                    <button type="button" className="dd-linklike" onClick={forgot}>Forgot password?</button>
+                    <button type="button" className="dd-linklike" disabled={busy} onClick={forgot}>Forgot password?</button>
                 </form>
             </div>
         </main>
@@ -228,6 +231,17 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
         // Setup never changes step on a digit tap. The user explicitly continues.
         if (stage === 'enter' && next.length === 4) void submitPin(next);
     };
+
+    useEffect(()=>{
+        const key=(e:KeyboardEvent)=>{
+            if(e.defaultPrevented||e.ctrlKey||e.metaKey||e.altKey||e.repeat||waitingForPublish||readingOpen||busy||ok)return;
+            const target=e.target as HTMLElement|null;if(target?.closest('input,textarea,select,[contenteditable=true]'))return;
+            if(/^\d$/.test(e.key)){e.preventDefault();press(e.key);}
+            else if(e.key==='Backspace'||e.key==='Delete'){e.preventDefault();press('del');}
+            else if(e.key==='Enter'&&pin.length===4&&(stage==='create'||stage==='confirm')&&!target?.closest('button')){e.preventDefault();void submitPin();}
+        };
+        window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
+    },[pin,stage,busy,ok,waitingForPublish,readingOpen]);
 
     if (readingOpen) return <Navigate to={appEntry ? '/?nowelcome' : person === auth.me ? `/hub/${person}` : `/published/${person}`} replace />;
 
