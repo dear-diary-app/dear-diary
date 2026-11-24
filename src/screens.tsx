@@ -1,3 +1,5 @@
+import {VoiceLockProvider,VoiceLockSettings} from './VoiceLock';
+import {flushSync} from 'react-dom';
 import {ChatStyleSettings} from './ChatStyle';
 import {AISettings} from './AISettings';
 import {RulesPrecautions} from './RulesPrecautions';
@@ -96,8 +98,8 @@ export function Login() {
 export function AppEntryGate({ children }: { children: React.ReactNode }) {
     const auth = useAuth();
     const [stage, setStage] = useState<'pin' | 'open'>('pin');
-    if (stage === 'pin') return <Pin person={auth.me!} appEntry onEntryUnlock={() => { setStage('open'); }} />;
-    return <>{children}</>;
+    const lock=()=>{for(const person of ['joydeep','aruba']){try{sessionStorage.removeItem('dd_unlocked_'+person);}catch{}}document.querySelectorAll('dialog[open]').forEach(d=>(d as HTMLDialogElement).close());flushSync(()=>setStage('pin'));};
+    return <VoiceLockProvider uid={auth.session!.user.id} active={stage==='open'} onLock={lock}>{stage==='pin'?<Pin person={auth.me!} appEntry onEntryUnlock={()=>setStage('open')}/>:children}</VoiceLockProvider>;
 }
 
 export function Home() {
@@ -931,6 +933,7 @@ export function Settings() {
 
                 <section className="dd-settings-dropdowns" aria-label="More settings">
                     <PrivacySettings />
+                    <VoiceLockSettings />
                     <AISettings />
                     <ChatStyleSettings />
                     <ThemePicker />
