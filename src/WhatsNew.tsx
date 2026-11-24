@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'feed-push', emoji: '🔔', title: 'Feed activity notifications', text: 'Reactions and comments can notify your partner on registered devices. Control Feed reactions and comments in Notifications. Alerts contain no photo or comment text, and open the private post after sign-in and the app PIN. Rapid activity on one post is grouped. Browser permission and internet are required; delivery is best effort.' },
         { id: 'feed-social', emoji: '💕', title: 'Reactions, comments and private replies', text: 'React to your feed posts with eight emojis or leave a comment. Reply in DM opens a private reply composer, with the post attached as an in-app link. Nothing sends until you tap Send DM. You can delete your own comments.' },
         { id: 'private-feed', emoji: '📷', title: 'Our private feed', text: 'Share up to 3 photos below Home, with an optional song chosen in the app. Swipe through photos, tap to open, and delete your own posts. Posts stay until deleted. Only the two linked accounts can view them after signing in and opening the app.' },
         { id: 'chat-song-row-send', emoji: '🎵', title: 'Preview and send from the song list', text: 'Chat song search now has cover-art preview buttons and a Send button on each row, like the profile picker. Tap the cover to listen, then Send to share immediately. Profile song settings are unchanged.' },

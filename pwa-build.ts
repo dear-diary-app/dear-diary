@@ -79,6 +79,9 @@ self.addEventListener('push', event => {
  const tag=typeof data.tag==='string'?data.tag.slice(0,150):'diary-reminder';
  event.waitUntil((async()=>{
   // Old payloads without an account remain generic OS alerts, never mixed into an inbox.
+  if(data.type==='feed'&&typeof data.post_id==='string'&&/^[0-9a-f-]{36}$/i.test(data.post_id)){
+   await self.registration.showNotification('Dear Diary',{body,icon:BASE+'icons/diary-192.png',badge:BASE+'icons/diary-192.png',tag,data:{feed:true,post_id:data.post_id,account_id:data.account_id},renotify:false});return;
+  }
   if(data.type==='chat'){
    if(await chatIsInForeground(data.account_id).catch(()=>false))return;
    const who=typeof data.title==='string'?data.title.slice(0,40):'Dear Diary';
@@ -96,10 +99,12 @@ self.addEventListener('push', event => {
 self.addEventListener('notificationclick', event => {
  event.notification.close();
  event.waitUntil((async()=>{
+  const feed=event.notification.data?.feed===true&&/^[0-9a-f-]{36}$/i.test(event.notification.data?.post_id);
   const chat=Boolean(event.notification.data&&event.notification.data.chat);
   const reply=chat&&event.action==='reply';
-  const url=BASE+(chat?(reply?'#/chat?compose=1':'#/chat'):'#/inbox');const windows=await clients.matchAll({type:'window',includeUncontrolled:true});
+  const url=feed?BASE+'#/?post='+event.notification.data.post_id:BASE+(chat?(reply?'#/chat?compose=1':'#/chat'):'#/inbox');const windows=await clients.matchAll({type:'window',includeUncontrolled:true});
   const app=windows.find(client=>new URL(client.url).pathname.startsWith(BASE));
+  if(app&&feed)app.postMessage({type:'diary-open-feed',post_id:event.notification.data.post_id,account_id:event.notification.data.account_id});
   if(app&&chat)app.postMessage({type:'diary-open-chat',compose:reply,account_id:event.notification.data.account_id});
   // Do not navigate an open editor away from an unsaved diary page.
   if(app)return app.focus();
