@@ -1,6 +1,6 @@
 import {usePageLocked} from './DesktopIdleLock';
 import React,{useEffect,useRef,useState}from'react';
-import{useLocation}from'react-router-dom';
+import{useLocation,useNavigate}from'react-router-dom';
 import{useChat,type ChatMsg}from'./ChatStore';
 import{useAuth,useStore}from'./store';
 import{otherId,personById}from'./model';
@@ -13,8 +13,8 @@ export function bannerPreview(m:ChatMsg){
  const body=parseFeedReply(m.body)?.text??(m.body.startsWith(IMAGE_CREDIT)?imageUserCaption(m.body):m.body);
  return (m.images.length?`${m.images.length===1?'Photo':'Photos'}${body?': ':''}`:'')+body||'New message';
 }
-export function ChatBanner(){const locked=usePageLocked();const chat=useChat(),store=useStore(),auth=useAuth(),loc=useLocation();return <IncomingChatBanner chat={chat} enabled={!locked&&store.notifPrefs.chat!==false} sender={personById(otherId(auth.me!)).name} path={loc.pathname}/>;}
-export function IncomingChatBanner({chat,enabled,sender,path}:{chat:ReturnType<typeof useChat>;enabled:boolean;sender:string;path:string}){
+export function ChatBanner(){const locked=usePageLocked();const chat=useChat(),store=useStore(),auth=useAuth(),loc=useLocation(),navigate=useNavigate();return <IncomingChatBanner chat={chat} enabled={!locked&&store.notifPrefs.chat!==false} sender={personById(otherId(auth.me!)).name} path={loc.pathname} onOpen={()=>navigate("/chat")}/>;}
+export function IncomingChatBanner({chat,enabled,sender,path,onOpen}:{onOpen:()=>void;chat:ReturnType<typeof useChat>;enabled:boolean;sender:string;path:string}){
  const[message,setMessage]=useState<ChatMsg|null>(null),[reply,setReply]=useState(false),[text,setText]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [remaining,setRemaining]=useState(100);
  const started=useRef(Date.now());
@@ -44,7 +44,7 @@ export function IncomingChatBanner({chat,enabled,sender,path}:{chat:ReturnType<t
  const send=async(e:React.FormEvent)=>{e.preventDefault();if(!message||!text.trim()||sending.current)return;sending.current=true;setBusy(true);setError('');let ok=false;try{ok=await chat.replyFromBanner(text,message.id);}catch{}sending.current=false;if(!mounted.current)return;setBusy(false);if(ok){setReply(false);setText('');setMessage(queued.current);queued.current=null;setNotice('Reply sent');window.setTimeout(()=>{if(mounted.current)setNotice('');},3000);}else setError('Reply could not send. Check Chat for Retry or Delete before sending again.');};
  if(!message)return notice?<div className="dd-chat-banner-notice" role="status">{notice}</div>:null;
  return <section className="dd-chat-banner" aria-label="New chat message" onPointerDown={e=>e.stopPropagation()} onKeyDown={e=>{e.stopPropagation();if(e.key==='Escape'&&!busy)close();}}>
- <div className="dd-chat-banner-top"><button type="button" className="dd-chat-banner-open" aria-label={`Reply to ${sender}`} onClick={()=>setReply(true)}><strong>{sender}</strong><span>{bannerPreview(message).slice(0,240)}</span></button>{!reply&&<button type="button" className="dd-chat-banner-reply" onClick={()=>setReply(true)}>Reply</button>}<button type="button" className="dd-chat-banner-dismiss" aria-label="Dismiss message notification" onClick={close} disabled={busy}>×</button></div>
+ <div className="dd-chat-banner-top"><button type="button" className="dd-chat-banner-open" aria-label={`Open chat with ${sender}`} disabled={busy} onClick={()=>{if(reply&&text.trim()&&!window.confirm("Leave your unsent quick reply and open Chat?"))return;close();onOpen();}}><strong>{sender}</strong><span>{bannerPreview(message).slice(0,240)}</span></button>{!reply&&<button type="button" className="dd-chat-banner-reply" onClick={()=>setReply(true)}>Reply</button>}<button type="button" className="dd-chat-banner-dismiss" aria-label="Dismiss message notification" onClick={close} disabled={busy}>×</button></div>
  <span className="dd-sr-only" role="status">New message from {sender}: {bannerPreview(message).slice(0,240)}</span>
  {reply&&<form onSubmit={e=>void send(e)}><label htmlFor="dd-banner-reply">Reply to {sender}</label><textarea id="dd-banner-reply" ref={input} maxLength={2000} rows={2} value={text} disabled={busy||!!error} onChange={e=>setText(e.target.value)} placeholder="Write a reply..."/><div className="dd-chat-banner-actions"><button type="button" onClick={close} disabled={busy}>Cancel</button><button type="submit" disabled={!text.trim()||busy||!!error}>{busy?'Sending...':'Send'}</button></div>{error&&<p role="alert">{error}</p>}</form>}
  {!reply&&!busy&&<div className="dd-chat-banner-duration" aria-hidden="true"><span style={{transform:`scaleX(${remaining/100})`}}/></div>}
