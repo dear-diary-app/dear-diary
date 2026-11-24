@@ -1685,3 +1685,38 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-rules p { margin:8px 0; }
 .dd-rules a { color:inherit;text-underline-offset:3px; }
 .dd-rules img { display:block;height:30px;width:auto;margin:14px 0; }
+/* Message effects animate only their own content, never the swipe/scroll surface. */
+.dd-effect-content { display:block;position:relative;min-width:70px; }
+.dd-effect-text { display:block;transform-origin:center; }
+.dd-effect-replay { display:block;border:0;background:none;color:inherit;opacity:.65;font:10px/1.5 var(--ds-font-text);padding:5px 0 0;cursor:pointer; }
+.dd-effect-slam .is-playing { animation:dd-effect-slam .65s cubic-bezier(.2,.8,.2,1) both; }
+.dd-effect-loud .is-playing { animation:dd-effect-loud 1s ease-out both; }
+.dd-effect-gentle .is-playing { animation:dd-effect-gentle 1.6s ease-out both; }
+@keyframes dd-effect-slam { 0%{transform:translateY(-24px) scale(1.35);opacity:0}45%{transform:translateY(4px) scale(.94);opacity:1}65%{transform:translateY(-3px) scale(1.03)}100%{transform:none} }
+@keyframes dd-effect-loud { 0%{transform:scale(.8)}25%{transform:scale(1.22) rotate(-2deg)}45%{transform:scale(1.14) rotate(2deg)}65%{transform:scale(1.2) rotate(-1deg)}100%{transform:none} }
+@keyframes dd-effect-gentle { from{transform:scale(.35);opacity:.1}to{transform:scale(1);opacity:1} }
+.dd-effect-text.is-concealed { visibility:hidden;user-select:none; }
+.dd-ink-cover { position:absolute;inset:0;border:0;border-radius:9px;background:radial-gradient(circle,#b6a3b8 1px,transparent 1.6px) 0 0/6px 7px,var(--lg-surface,#e5d9e1);color:var(--lg-text,#594553);font:12px/1.5 var(--ds-font-text);cursor:pointer; }
+.dd-ink-cover.is-revealed { position:static;display:block;background:none;color:inherit;opacity:.65;font-size:10px;padding:5px 0 0; }
+.dd-send-options { box-sizing:border-box;width:calc(100% - 28px);max-width:440px;max-height:85dvh;overflow:auto;border:1px solid var(--lg-border,#d8cbd3);border-radius:24px;background:var(--ds-page,#fff8f5);color:var(--lg-text,#594553);padding:20px;box-shadow:0 18px 70px #0004; }
+.dd-send-options::backdrop { background:#17121b77;backdrop-filter:blur(5px); }
+.dd-send-options header { display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:12px; }
+.dd-send-options h2 { font:500 20px var(--ds-font-display);margin:0; }
+.dd-send-options header button { border:0;background:none;color:inherit;font-size:26px;padding:0 6px; }
+.dd-send-options p { font:11px/1.5 var(--ds-font-text);opacity:.75; }
+.dd-send-options>.dd-btn { width:100%;margin-top:8px; }
+.dd-effect-choices { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0; }
+.dd-effect-choices button { border:1px solid var(--lg-border,#d8cbd3);border-radius:14px;padding:11px 6px;background:transparent;color:inherit;font:13px var(--ds-font-text); }
+.dd-effect-choices button[aria-pressed=true] { background:#b78a9d33;border-color:#aa8295; }
+.dd-effect-preview { padding:28px 20px;min-height:64px;max-height:200px;overflow:auto;background:#b78a9d18;border-radius:18px;margin:16px 0;white-space:pre-wrap;overflow-wrap:anywhere;font:15px/1.5 var(--ds-font-text); }
+@media(prefers-reduced-motion:reduce){.dd-effect-content .dd-effect-text { animation:none!important;transform:none!important; }.dd-ink-cover{transition:none!important;} }
+
+.dd-send-options { position:fixed;inset:auto 12px 90px auto;margin:0;width:min(285px,calc(100vw - 24px));border-radius:20px;padding:16px; }
+.dd-send-options h2 { font-size:17px; }
+.dd-effect-choices { grid-template-columns:1fr;gap:5px;margin:10px 0; }
+.dd-effect-choices button { text-align:left;padding:10px 12px; }
+.dd-effect-preview { padding:17px 14px;min-height:35px;max-height:105px;margin:10px 0;font-size:14px; }
+.dd-send-options { background:var(--lg-fallback,#fffaf5);color:var(--lg-ink,#594553);border-color:var(--lg-edge,#d8cbd3); }
+.dd-ink-cover { background:radial-gradient(circle,#ad91aa 1px,transparent 1.6px) 0 0/6px 7px,var(--lg-fallback,#e5d9e1);color:var(--lg-ink,#594553); }
+.dd-ink-cover.is-revealed { background:none; }
+.dd-effect-choices button { border-color:var(--lg-rule,#d8cbd3); }

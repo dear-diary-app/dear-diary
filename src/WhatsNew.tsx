@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'messageeffects', emoji: '✨', title: 'Say it with an effect', text: 'Hold Send for a vertical options list: Schedule, Invisible ink, Slam, Loud or Gentle. Pick an effect to preview, then send. Your partner sees it too. Tap ink to reveal it briefly; other effects have Replay. Effects work on new text messages, not attachments or scheduled messages. Reduced motion keeps them still. Invisible ink is a visual cover, not encryption.' },
         { id: 'rulesprecautions', emoji: '📋', title: 'Rules, privacy and credits', text: 'Settings now has Rules & precautions just above Sign out. Read about PINs, exports, translation, outside services and credits for music, images, fonts, icons, stickers and software. Music credits are included here.' },
     ] },
     { date: '2026-11-23', label: 'Monday, 23 November', features: [

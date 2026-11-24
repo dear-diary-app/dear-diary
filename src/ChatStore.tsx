@@ -1,3 +1,4 @@
+import {cleanEffect,type MessageEffect} from './ChatEffects';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -12,16 +13,17 @@ import { cleanVoice, uploadVoice, voiceExt, type Voice } from './chatAudio';
 import { primeImage, removeImages, uploadImages } from './chatImages';
 
 export interface ChatMsg {
+    effect?:MessageEffect|null;
     id: string; sender_id: string; recipient_id: string; body: string; sticker: string | null; gif_id: string | null; reply_to: string | null;
     reactions: Record<string, string>; created_at: string; seen_at: string | null; edited_at: string | null; images: string[]; state?: 'sending' | 'failed'; scheduled?: boolean; audio?: Voice | null; song?:Song|null;weather?:ChatWeather|null;
 }
-const COLS = 'id, sender_id, recipient_id, body, sticker, gif_id, reply_to, reactions, created_at, seen_at, edited_at, images, scheduled, audio, song, weather';
+const COLS = 'id, sender_id, recipient_id, body, sticker, gif_id, reply_to, reactions, created_at, seen_at, edited_at, images, scheduled, audio, song, weather, effect';
 const PAGE = 60;
 const byTime = (a: ChatMsg, b: ChatMsg) => a.created_at < b.created_at ? -1 : a.created_at > b.created_at ? 1 : a.id < b.id ? -1 : 1;
 function clean(r: unknown): ChatMsg | null {
     const m = r as Partial<ChatMsg> | null;
     if (!m || typeof m.id !== 'string' || typeof m.sender_id !== 'string' || typeof m.created_at !== 'string') return null;
-    return { weather:cleanChatWeather(m.weather), song:cleanSong(m.song), audio:cleanVoice(m.audio), scheduled:m.scheduled===true, id: m.id, sender_id: m.sender_id, recipient_id: String(m.recipient_id ?? ''), body: typeof m.body === 'string' ? m.body : '', sticker: typeof m.sticker === 'string' ? m.sticker : null, gif_id: isGifId(m.gif_id) ? m.gif_id : null,
+    return { effect:cleanEffect(m.effect),weather:cleanChatWeather(m.weather), song:cleanSong(m.song), audio:cleanVoice(m.audio), scheduled:m.scheduled===true, id: m.id, sender_id: m.sender_id, recipient_id: String(m.recipient_id ?? ''), body: typeof m.body === 'string' ? m.body : '', sticker: typeof m.sticker === 'string' ? m.sticker : null, gif_id: isGifId(m.gif_id) ? m.gif_id : null,
         reply_to: typeof m.reply_to === 'string' ? m.reply_to : null, reactions: m.reactions && typeof m.reactions === 'object' ? m.reactions as Record<string, string> : {},
         created_at: m.created_at, seen_at: typeof m.seen_at === 'string' ? m.seen_at : null, edited_at: typeof m.edited_at === 'string' ? m.edited_at : null,
         images: Array.isArray(m.images) ? (m.images as unknown[]).filter((x): x is string => typeof x === 'string').slice(0, 3) : [] };
@@ -32,7 +34,7 @@ const dropMessage = (list: ChatMsg[], id: string) => list.filter(m => m.id !== i
 
 export interface ChatApi {
     uid: string; messages: ChatMsg[]; loaded: boolean; loadError: boolean; hasMore: boolean; live: boolean; partnerTyping: boolean; partnerOnline: boolean; unread: number;
-    send: (body: string, sticker?: string | null, replyTo?: string | null) => void;
+    send: (body: string, sticker?: string | null, replyTo?: string | null,effect?:MessageEffect|null) => void;
     sendGif: (id: string, replyTo?: string | null, messageId?: string) => Promise<boolean>;
     sendWeather:(weather:ChatWeather,replyTo?:string|null)=>void;
     sendSong: (song:Song,replyTo?:string|null)=>void;
@@ -176,11 +178,11 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     }, []);
     const insert = useCallback(async (m: ChatMsg): Promise<boolean> => {
         try {
-            let { data, error } = await supabase.from('chat_messages').insert({ id: m.id, body: m.body, sticker: m.sticker, gif_id: m.gif_id, reply_to: m.reply_to, images: m.images, audio: m.audio || null, song:m.song||null,weather:m.weather||null }).select(COLS).single();
+            let { data, error } = await supabase.from('chat_messages').insert({ id: m.id, body: m.body, sticker: m.sticker, gif_id: m.gif_id, reply_to: m.reply_to, images: m.images, audio: m.audio || null, song:m.song||null,weather:m.weather||null,effect:m.effect||null }).select(COLS).single();
             // A retry after a lost response reuses the same id, never a second message.
             if (error?.code === '23505') {
                 const existing = await supabase.from('chat_messages').select(COLS).eq('id', m.id).single();
-                if (existing.data?.sender_id === m.sender_id && existing.data?.gif_id === m.gif_id && (existing.data?.weather?.fetchedAt||null)===(m.weather?.fetchedAt||null) && (existing.data?.song?.id||null)===(m.song?.id||null) && (existing.data?.audio?.path||null)===(m.audio?.path||null)) { data = existing.data; error = existing.error; }
+                if ((existing.data?.effect||null)===(m.effect||null) && existing.data?.sender_id === m.sender_id && existing.data?.gif_id === m.gif_id && (existing.data?.weather?.fetchedAt||null)===(m.weather?.fetchedAt||null) && (existing.data?.song?.id||null)===(m.song?.id||null) && (existing.data?.audio?.path||null)===(m.audio?.path||null)) { data = existing.data; error = existing.error; }
             }
             const row = !error && data ? clean(data) : null;
             if (!row) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return false; }
@@ -192,10 +194,10 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
 
     const api = useMemo<ChatApi>(() => ({
         uid, messages, loaded, loadError, hasMore, live, partnerTyping, partnerOnline, unread: unseenIncoming, loadOlder,
-        send: (body, sticker = null, replyTo = null) => {
+        send: (body, sticker = null, replyTo = null,effect=null) => {
             const text = body.trim().slice(0, 2000);
             if (!text && !sticker) return;
-            const m: ChatMsg = { id: crypto.randomUUID(), sender_id: uid, recipient_id: partner.current ?? '', body: sticker ? '' : text, sticker, gif_id: null, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: [], state: 'sending' };
+            const m: ChatMsg = { id: crypto.randomUUID(), sender_id: uid, recipient_id: partner.current ?? '', effect:sticker?null:cleanEffect(effect),body: sticker ? '' : text, sticker, gif_id: null, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: [], state: 'sending' };
             setMessages(prev => [...prev, m].sort(byTime));
             insert(m);
         },
