@@ -1,3 +1,4 @@
+import{ConversationTopics}from'./ConversationTopics';
 import { usePageLocked } from './DesktopIdleLock';
 import { DesktopConversations, useDesktopLayout } from './DesktopLayout';
 import {parseFeedReply} from './FeedSocial';
@@ -438,6 +439,7 @@ export function ChatView({ partner }: { partner: Person }) {
             </div>}
         </header>
 
+        {!selected&&!recording&&!editing&&<ConversationTopics onUse={prompt=>{const next=text.trim()?text+'\n'+prompt:prompt;if(next.length>2000)return false;setText(next);requestAnimationFrame(()=>input.current?.focus());return true;}}/>}
         <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onTouchMove={dismissOpeningUnread} onKeyDown={dismissOpeningUnread} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{dismissOpeningUnread();jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
             {!chat.loaded && !chat.loadError && <p className="dd-chat-empty" role="status">Opening your chat...</p>}
