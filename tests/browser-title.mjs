@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const app=readFileSync('src/App.tsx','utf8'), html=readFileSync('index.html','utf8'), manifest=JSON.parse(readFileSync('public/manifest.webmanifest','utf8'));
+const titleAssignments=[...app.matchAll(/document\.title\s*=\s*([^;]+);/g)].map(m=>m[1]);
+assert.deepEqual(titleAssignments,["'Dear Diary'"]);
+assert.equal(html.match(/<title>(.*?)<\/title>/)[1],'Dear Diary');
+for(const key of ['og:title','twitter:title','apple-mobile-web-app-title']) assert.ok(html.includes(`${key}" content="Dear Diary"`));
+assert.equal(manifest.name,'Dear Diary');assert.equal(manifest.short_name,'Dear Diary');
+assert.doesNotMatch(html,/joydeep|aruba/i);assert.doesNotMatch(JSON.stringify(manifest),/joydeep|aruba/i);
+console.log('PASS neutral runtime, HTML, link previews, Apple install title and PWA names');

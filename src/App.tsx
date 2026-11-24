@@ -72,7 +72,8 @@ function Shell() {
     const auth = useAuth();
     const [live, setLive] = React.useState(false);
     React.useEffect(() => {
-        document.title = auth.session && auth.me ? 'Dear Diary - Joydeep & Aruba' : 'Dear Diary';
+        // Browser tabs, task switchers and new history entries stay anonymous.
+        document.title = 'Dear Diary';
     }, [auth.session, auth.me]);
     React.useEffect(() => setLive(true), []);
     React.useEffect(() => {
