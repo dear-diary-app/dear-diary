@@ -1,4 +1,4 @@
-import {cleanEffect,type MessageEffect} from './ChatEffects';
+import {cleanEffect,emojiTokens,type MessageEffect} from './ChatEffects';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -196,6 +196,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
         uid, messages, loaded, loadError, hasMore, live, partnerTyping, partnerOnline, unread: unseenIncoming, loadOlder,
         send: (body, sticker = null, replyTo = null,effect=null) => {
             const text = body.trim().slice(0, 2000);
+            if(effect==='bubbles'&&!emojiTokens(text).length)return;
             if (!text && !sticker) return;
             const m: ChatMsg = { id: crypto.randomUUID(), sender_id: uid, recipient_id: partner.current ?? '', effect:sticker?null:cleanEffect(effect),body: sticker ? '' : text, sticker, gif_id: null, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: [], state: 'sending' };
             setMessages(prev => [...prev, m].sort(byTime));
@@ -251,7 +252,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             const text = body.trim().slice(0, 2000);
             const old = list.current.find(m => m.id === id);
             if (!old || old.weather || old.song || old.audio || old.sticker || old.gif_id || !text || text === old.body) return;
-            setMessages(prev => prev.map(m => m.id === id ? { ...m, body: text, edited_at: new Date().toISOString() } : m));
+            setMessages(prev => prev.map(m => m.id === id ? { ...m,effect:m.effect==='bubbles'&&!emojiTokens(text).length?null:m.effect, body: text, edited_at: new Date().toISOString() } : m));
             void Promise.resolve(supabase.rpc('chat_edit', { p_id: id, p_body: text })).then(({ error }) => { if (error) merge([old]); });
         },
         react: (id, emoji) => {

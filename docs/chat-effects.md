@@ -11,3 +11,11 @@ Synthetic actual ChatView tests at 320/390/820 in paper/midnight cover tap vs ho
 ## Effect control hold fix
 
 Ink/Replay buttons now bubble pointer gestures to the ordinary row hold/swipe handlers. They are the only buttons exempted from the row's interactive-element exclusion. A capture guard suppresses the short-click action after a recognized hold or swipe, so holding ink does not reveal it and holding Replay does not animate it. Short taps still reveal/replay. Editing preserves stored effect metadata; changes to text reset ink to concealed. Actual CDP touch tests on ink/replay passed all four effects at 320/390/820 in paper/midnight: hold offers Edit/Unsend, edits retain effect, edited ink hides, unsend removes the message.
+
+## Blur and Bubbles replace the first four effects
+
+Only Blur and Bubbles are offered now. Legacy effect metadata is allowed in old database rows but cleaned to null in the renderer, preserving text. Blur uses an actual blur filter, with one tap revealing for 3 seconds; another tap during those seconds does not extend the timer. Text edits reset concealment. It is not encryption and notifications may expose text.
+
+Bubbles is enabled only for emoji-only drafts, including sequences, flags, skin tones and whitespace. The database validates the content against the installed Unicode emoji allowlist. It floats up to 24 copies of the message's own emojis across the viewport for 4.5 seconds with pointer-events disabled. A recipient first-visible marker (account/message ID only) is saved on this device; visibility resume rechecks, old unread messages can play, and Replay always remains. Reduced motion renders still bubbles. The sender can preview/replay. Text edits that cease being emoji-only remove Bubbles rather than reject the edit. Existing hold/edit/unsend gestures remain shared.
+
+Synthetic actual ChatView tests passed 320/390/820 paper/midnight: legacy normal text, exactly two options, emoji gating, three-second concealment, incoming full-screen burst/replay and no overflow. Extra test: reduced-motion static, no repeat after reload on this device, Blur hold/edit/unsend and no edit on partner messages. Database rollback clone-constraint tests accepted Blur/text and Bubbles/emoji, rejected Bubbles/words. No real user rows or pushes. New migration 0037 deployed before frontend.
