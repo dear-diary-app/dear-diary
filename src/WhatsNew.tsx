@@ -8,6 +8,9 @@ export interface Feature { id: string; title: string; text: string; emoji: strin
 export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
+    { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'rulesprecautions', emoji: '📋', title: 'Rules, privacy and credits', text: 'Settings now has Rules & precautions just above Sign out. Read about PINs, exports, translation, outside services and credits for music, images, fonts, icons, stickers and software. Music credits are included here.' },
+    ] },
     { date: '2026-11-23', label: 'Monday, 23 November', features: [
         { id: 'diaryreader', emoji: '📖', title: 'More room for your diary', text: 'Published diary pages now use a wider reading view with the song at the top. Swipe left or right across the page to turn sheets, or use the small arrows. Vertical scrolling still works. History pages have an Open full-screen reader button. Writing and sticker editing are unchanged.' },
         { id: 'songcreditsettings', emoji: '🎵', title: 'Only the song on your card', text: 'Song cards now show the artwork, title, artist and play button without a credit row. iTunes credit and its badge link are in Settings → Music credits.' },

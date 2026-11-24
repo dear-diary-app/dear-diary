@@ -1,3 +1,4 @@
+import {RulesPrecautions} from './RulesPrecautions';
 import {DiaryPages,OpenDiaryReader} from './DiaryReader';
 import { ChatNotificationSettings } from './ChatNotificationSettings';
 import { PrivacySettings } from './PrivacySettings';
@@ -945,7 +946,7 @@ export function Settings() {
                     ))}
                     <DiaryExport />
                 </section>
-                <details className="dd-music-legal"><summary>Music credits</summary><a href="https://itunes.apple.com/" target="_blank" rel="noopener noreferrer"><img src={`${import.meta.env.BASE_URL}itunes-store-badge.svg`} alt="Get it on iTunes Store" height="30" /></a><p>Previews provided courtesy of iTunes.</p><p>iTunes Store is a trademark of Apple Inc., registered in the U.S. and other countries.</p></details>
+                <RulesPrecautions />
                 <span style={{ display: 'none' }}>{now.toISOString()}</span>
                 <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>
             </div>
