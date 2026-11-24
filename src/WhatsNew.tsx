@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'voice-wave-seek-heart', emoji: '🎙️', title: 'A simpler voice player', text: 'Tap the waveform to jump forward or back, without a separate seek bar. Play and speed stay beside the wave. Double-tap a voice note to add a red heart; repeating it keeps the heart. Play and speed buttons keep their normal actions.' },
         { id: 'feed-sticky-heading', emoji: '📌', title: 'Feed controls stay within reach', text: 'Our feed, Refresh and New post stay at the top while you scroll through posts. Scroll back to the Home cards and the row returns to its normal place.' },
         { id: 'feed-edit-double-like', emoji: '❤️', title: 'Edit captions and double-tap to like', text: 'Your post menu now has Edit caption with Save and Cancel. A single photo tap does nothing. Double-tap a photo to add a heart, with a small heart animation. Double-tapping again keeps it liked; use the heart button to remove your reaction. Photo swipes still work.' },
         { id: 'feed-full-photo-loop', emoji: '🎵', title: 'Full photos and repeating songs', text: 'Feed photos now keep their original proportions, with no square crop. Swipe between portrait and landscape photos without losing their edges. When you turn song sound on, the preview repeats while that post stays in view. Muting, scrolling away or leaving the screen stops it; returning never starts sound automatically.' },

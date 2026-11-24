@@ -71,7 +71,8 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
         const now=performance.now(),scroll=(e.currentTarget.closest('.dd-chat-list') as HTMLElement)?.scrollTop??0,previous=lastTap.current;
         if(previous&&now-previous.time<=300&&Math.hypot(e.clientX-previous.x,e.clientY-previous.y)<=24&&Math.abs(scroll-previous.scroll)<3){
             lastTap.current=null;
-            const adding=m.reactions[chat.uid]!=='❤️';chat.react(m.id,'❤️');
+            if(m.audio&&voiceLiked.current)return;
+            const adding=m.reactions[chat.uid]!=='❤️';if(m.audio)voiceLiked.current=true;chat.react(m.id,'❤️');
             if(adding){setHeartPop(n=>n+1);window.clearTimeout(heartTimer.current);heartTimer.current=window.setTimeout(()=>setHeartPop(0),600);}
             else setHeartPop(0);
         } else lastTap.current={time:now,x:e.clientX,y:e.clientY,scroll};
@@ -135,6 +136,8 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
         return [...c.entries()];
     }, [m.reactions]);
     const mineReact = m.reactions[chat.uid];
+    const voiceLiked = useRef(mineReact==='❤️');
+    useEffect(()=>{voiceLiked.current=mineReact==='❤️';},[mineReact]);
     const quick = useMemo(() => quickReactions(chat.uid, mineReact), [chat.uid, mineReact, selected]);
     useLayoutEffect(() => {
         if (!selected) return;
@@ -159,7 +162,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
             {isOneYear(m.body)&&!m.images.length&&!m.song&&!m.weather&&!m.audio&&!m.sticker&&!m.gif_id&&<OneYearCard/>}
             {m.weather && <ChatWeatherCard weather={m.weather}/>}
             {m.song && <SongCard song={m.song}/>}
-            {m.audio && (m.state?<span className="dd-chat-text">🎙 Voice note · {Math.round(m.audio.duration)}s</span>:<VoicePlayer voice={m.audio}/>)}
+            {m.audio && (m.state?<span className="dd-chat-text">🎙 Voice note · {Math.round(m.audio.duration)}s</span>:<VoicePlayer voice={m.audio} onLike={()=>{if(voiceLiked.current)return;voiceLiked.current=true;chat.react(m.id,'❤️');setHeartPop(n=>n+1);window.clearTimeout(heartTimer.current);heartTimer.current=window.setTimeout(()=>setHeartPop(0),600);}}/>)}
             {parseFeedReply(m.body)&&<Link className="dd-chat-feed-link" to={`/?post=${parseFeedReply(m.body)!.id}`}>📷 Shared moment<small>Open private feed post</small></Link>}
             {m.images.length > 0 && <div className={`dd-chat-photos n${m.images.length}`}>{m.images.map((p, i) => <Thumb key={p} path={p} index={i} total={m.images.length} sending={m.state === 'sending'} onOpen={k => { if (Date.now() - noClick.current > 600) onPhoto(m.images, k); }} />)}{m.body.startsWith(IMAGE_CREDIT)&&imageNeedsCredit(m.body)&&<ImageCreditInfo body={m.body}/>}</div>}
             {m.gif_id && <div className="dd-chat-gif">{gif ? <><GifMedia gif={gif}/><GifCredit gif={gif}/></> : <div className="dd-gif-placeholder">{gif === null ? 'GIF is unavailable.' : gifError || 'Loading GIF...'}{gifError && <button type="button" onPointerDown={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();retryGif();}}>Retry GIF</button>}</div>}</div>}
