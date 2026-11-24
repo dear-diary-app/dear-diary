@@ -1,3 +1,4 @@
+import {listenForForegroundChatPush} from './foregroundChatPush';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
@@ -31,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [attempt, setAttempt] = useState(0);
     const me = profile?.uid === session?.user.id ? profile?.me ?? null : null;
     useEffect(() => { setPrivacyAccount(session?.user.id ?? null); }, [session?.user.id]);
+    useEffect(()=>listenForForegroundChatPush(session?.user.id??null),[session?.user.id]);
     const ready = sessionReady && (!session || profile?.uid === session.user.id);
 
     useEffect(() => {

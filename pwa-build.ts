@@ -56,6 +56,23 @@ function storeInbox(notice) {
   };
  });
 }
+// Re-check the recipient account and foreground state in each live app window.
+// Never suppress from a server presence lease, which can outlive a closed window.
+async function chatIsInForeground(accountId) {
+ if(typeof accountId!=='string')return false;
+ const windows=await clients.matchAll({type:'window',includeUncontrolled:true});
+ const visible=windows.filter(client=>{
+  try{const url=new URL(client.url);return url.origin===self.location.origin&&url.pathname.startsWith(BASE)&&client.visibilityState==='visible'&&client.focused;}catch{return false;}
+ });
+ const answers=await Promise.all(visible.map(client=>new Promise(resolve=>{
+  const channel=new MessageChannel();let done=false;
+  const finish=value=>{if(done)return;done=true;clearTimeout(timer);channel.port1.close();resolve(value);};
+  const timer=setTimeout(()=>finish(false),500);
+  channel.port1.onmessage=event=>finish(event.data?.account_id===accountId&&event.data?.foreground===true);
+  try{client.postMessage({type:'diary-check-chat-foreground'},[channel.port2]);}catch{finish(false);}
+ })));
+ return answers.some(Boolean);
+}
 self.addEventListener('push', event => {
  let data={};try{data=event.data?event.data.json():{};}catch{}
  const body=typeof data.body==='string'?data.body.slice(0,500):'Open Dear Diary for your reminder.';
@@ -63,6 +80,7 @@ self.addEventListener('push', event => {
  event.waitUntil((async()=>{
   // Old payloads without an account remain generic OS alerts, never mixed into an inbox.
   if(data.type==='chat'){
+   if(await chatIsInForeground(data.account_id).catch(()=>false))return;
    const who=typeof data.title==='string'?data.title.slice(0,40):'Dear Diary';
    await self.registration.showNotification(who,{body,icon:BASE+'icons/diary-192.png',badge:BASE+'icons/diary-192.png',tag,data:{chat:true,account_id:data.account_id},actions:data.reply_action===true?[{action:'reply',title:'Open to reply'}]:[],renotify:true});
    return;
