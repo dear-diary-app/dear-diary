@@ -7,3 +7,7 @@ Optional chat_messages.effect is stored with the message and fetched/realtime-cl
 Reference reel was inspected only, not embedded or published, then deleted. All visuals/code are app-specific, not Apple assets or native iMessage effects.
 
 Synthetic actual ChatView tests at 320/390/820 in paper/midnight cover tap vs hold, no send on hold, preview selection, double-submit guard, effect metadata passed to send, incoming ink/replay, Escape/Back, Schedule handoff and no overflow. Extra tests verify reduced-motion CSS, keyboard shortcut, popup above Send and eight-second re-hide. Database tests cloned the table's constraints into a temporary table inside a rolled-back transaction: all four effects accepted, unknown/empty/attachment effects rejected. No real rows/accounts/PINs/push subscriptions or pushes used. TypeScript and production build checked. Physical phone and real partner-device playback not tested.
+
+## Effect control hold fix
+
+Ink/Replay buttons now bubble pointer gestures to the ordinary row hold/swipe handlers. They are the only buttons exempted from the row's interactive-element exclusion. A capture guard suppresses the short-click action after a recognized hold or swipe, so holding ink does not reveal it and holding Replay does not animate it. Short taps still reveal/replay. Editing preserves stored effect metadata; changes to text reset ink to concealed. Actual CDP touch tests on ink/replay passed all four effects at 320/390/820 in paper/midnight: hold offers Edit/Unsend, edits retain effect, edited ink hides, unsend removes the message.

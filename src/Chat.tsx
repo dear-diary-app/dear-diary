@@ -79,7 +79,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
     const dir = mine ? -1 : 1;
     const setX = (v: number) => { dxRef.current = v; setDx(v); };
     const arrival = useRef<Animation>();
-    const down = (e: React.PointerEvent) => { arrival.current?.cancel(); if(interactive(e.target))lastTap.current=null; if (e.button > 0 || !e.isPrimary || (e.target instanceof Element&&!!e.target.closest('button,a,input,textarea'))) { lastTap.current=null;clearHold();drag.current=null;return; } drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false, long: false }; armed.current = false;
+    const down = (e: React.PointerEvent) => { arrival.current?.cancel(); if(interactive(e.target))lastTap.current=null; if (e.button > 0 || !e.isPrimary || (e.target instanceof Element&&!!e.target.closest('button:not([data-effect-control]),a,input,textarea'))) { lastTap.current=null;clearHold();drag.current=null;return; } drag.current = { x: e.clientX, y: e.clientY, id: e.pointerId, on: false, moved: false, long: false }; armed.current = false;
         clearHold();
         // Press and hold opens the reactions and actions, like Instagram.
         hold.current = window.setTimeout(() => { const d = drag.current; if (!d || d.on) return; d.long = true;lastTap.current=null; noClick.current = Date.now(); try { navigator.vibrate?.(12); } catch { /* ignore */ } onOpen(); }, 450); };
@@ -143,7 +143,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
         <span className={`dd-chat-swipe-icon${mine ? ' is-right' : ''}${dx >= REPLY_AT ? ' is-armed' : ''}`} aria-hidden="true" style={{ opacity: Math.min(1, dx / 36), transform: `translateX(${Math.min(dx, REPLY_AT) * 0.35 * dir}px) scale(${0.5 + Math.min(1, dx / REPLY_AT) * 0.5})` }}><Reply /></span>
         <div className={`dd-chat-msg${sticker ? ' is-sticker' : ''}${m.images.length ? ' has-photos' : ''}${m.state === 'failed' ? ' is-failed' : ''}${m.state === 'sending' ? ' is-sending' : ''}`}
             style={{ transform: dx ? `translateX(${dx * dir}px)` : undefined, transition: rest ? 'transform .26s cubic-bezier(.2,.8,.25,1)' : 'none' }}
-            onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}
+            onClickCapture={e=>{if(e.target instanceof Element&&e.target.closest('[data-effect-control]')&&Date.now()-noClick.current<600){e.preventDefault();e.stopPropagation();}}} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}
             role="button" tabIndex={0} aria-label={`${mine ? 'Your' : `${partner.name}'s`} message: ${snippet(m)}. Press Enter for actions.`}
             onKeyDown={e => { if(e.target!==e.currentTarget)return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } else if (e.key === 'r') { e.preventDefault(); onReply(); } }}>
             {heartPop>0&&<span key={heartPop} className="dd-heart-pop" aria-hidden="true"><Heart/></span>}
