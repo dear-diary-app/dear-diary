@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'private-feed', emoji: '📷', title: 'Our private feed', text: 'Share up to 3 photos below Home, with an optional song chosen in the app. Swipe through photos, tap to open, and delete your own posts. Posts stay until deleted. Only the two linked accounts can view them after signing in and opening the app.' },
         { id: 'chat-song-row-send', emoji: '🎵', title: 'Preview and send from the song list', text: 'Chat song search now has cover-art preview buttons and a Send button on each row, like the profile picker. Tap the cover to listen, then Send to share immediately. Profile song settings are unchanged.' },
         { id: 'story-social-layout', emoji: '📷', title: 'A more familiar story view', text: 'Progress now sits at the top above the profile photo, name and story age. Your bottom row has Activity, Share, Copy link and More for Replace/Delete. Activity shows your partner’s view and reaction. Say something opens your private chat composer; nothing sends until you press Send. Hold to pause still works.' },
         { id: 'story-hold-pause', emoji: '⏸️', title: 'Hold a story to pause', text: 'Press and hold the story video to pause it and its progress bar. Release to continue. Back, Share, Copy link and emoji reactions still work with a normal tap.' },

@@ -1,3 +1,4 @@
+import {Feed} from './Feed';
 import {Stories} from './Stories';
 import {VoiceLockProvider,VoiceLockSettings} from './VoiceLock';
 import {flushSync} from 'react-dom';
@@ -138,6 +139,7 @@ export function Home() {
                     </div>
                 </section>
 
+                <Feed/>
                 <footer className="dd-foot">
                     <p className="dd-foot-heart">Dear Diary <Heart size={12} /> Joydeep &amp; Aruba</p>
                 </footer>
