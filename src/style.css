@@ -1919,3 +1919,10 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-desktop .dd-home-page > .dd-topbar { display:flex; margin-bottom:20px; }
 .dd-desktop .dd-chat-head:has(.dd-chat-selection) .dd-chat-back { display:inline-flex; }
 .dd-idle-notice { max-width:520px; margin:0 auto; padding:22px 24px 0; text-align:center; font-size:13px; line-height:1.6; }
+/* Banner reply action and timer share the existing ten-second dismissal. */
+.dd-chat-banner { overflow:hidden; }
+.dd-chat-banner-top { align-items:center; }
+.dd-chat-banner .dd-chat-banner-reply { flex:none; align-self:center; min-height:36px; padding:6px 13px; border:1px solid var(--lg-edge,#d9ccd2); border-radius:11px; background:var(--lg-accent,#e1b4ca); font-size:12px; font-weight:600; }
+.dd-chat-banner-duration { position:absolute; left:0; right:0; bottom:0; height:3px; background:var(--lg-edge,#d9ccd2); pointer-events:none; }
+.dd-chat-banner-duration span { display:block; width:100%; height:100%; background:var(--lg-ink,#594553); opacity:.7; transform-origin:left; }
+.dd-chat-banner:has(.dd-chat-banner-duration) { padding-bottom:13px; }

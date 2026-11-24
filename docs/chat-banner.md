@@ -7,3 +7,16 @@ ChatBanner is mounted inside ChatProvider and the app entry gate. New incoming, 
 The banner dismisses after 10 seconds, by ×, when entering Chat, or on hiding the app. Tapping opens an inline reply, without navigation or marking the conversation read. The reply stays open until sent/cancelled. New arrivals while replying are queued as the latest next banner. Only explicit Send submits. The existing insert path handles the reply's message ID, reply_to and failure state. Failed attempts remain in Chat for Retry/Delete; the banner disables resending to avoid creating duplicates. No automatic send or external browser notification added.
 
 QA: synthetic component data and mocked callbacks at 320/390/820px in paper and midnight. Verified actual computed fixed placement at the top, readable theme background, arrival/dismiss, tap-to-reply, Send-only, draft preservation, new-message queue, Chat/own/old/settings suppression, unsend, failure and no horizontal overflow. Existing service-worker foreground push test passes. No real accounts/messages/pushes touched. Physical-phone push delivery not tested. Theme-color and safe-area colours unchanged.
+
+## Reply action and countdown
+
+Collapsed banners have an explicit right-side Reply button; the message body
+still opens the same inline reply. A three-pixel bottom bar shrinks over the
+same ten-second deadline that dismisses the banner, using elapsed wall time.
+It is hidden while reply/send is open, without timing out the draft. Queued
+messages get a fresh ten seconds after a successful reply. No automatic sends,
+notification-permission changes or system/safe-area colour changes.
+
+Synthetic checks: 320/390/820/1440 widths, bar at half-time, exact expiry,
+button/body tap, reply surviving 25 seconds, queue/reset, failure, settings,
+old/own messages, hidden app, unsend and preserved diary draft.
