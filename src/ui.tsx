@@ -1,3 +1,4 @@
+import {VoiceLockContext} from './VoiceLockContext';
 import {ZoomPhoto} from './ZoomPhoto';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -36,15 +37,27 @@ export function useGo() {
 
 export function TopBar({ back, backLabel, alert }: { back?: string; backLabel?: string; alert?: boolean }) {
     const { pathname } = useLocation();
+    const voiceLock=useContext(VoiceLockContext);
+    const shortcut=pathname==='/'&&!!voiceLock;
+    const lastTap=React.useRef<{time:number;x:number;y:number}|null>(null);
+    const down=React.useRef<{x:number;y:number}|null>(null);
+    const doubleTap=(e:React.MouseEvent<HTMLButtonElement>)=>{
+        if(!voiceLock?.supported)return;
+        if(down.current&&Math.hypot(e.clientX-down.current.x,e.clientY-down.current.y)>12){lastTap.current=null;return;}
+        const now=performance.now(),last=lastTap.current;
+        if(last&&now-last.time<=350&&Math.hypot(e.clientX-last.x,e.clientY-last.y)<=24){lastTap.current=null;voiceLock.setEnabled(!voiceLock.enabled);}
+        else lastTap.current={time:now,x:e.clientX,y:e.clientY};
+    };
     const options = pathname.startsWith('/settings') || pathname === '/notifications';
     return (
-        <header className={`dd-topbar${back ? ' has-back' : ''}`}>
+        <header className={`dd-topbar${back ? ' has-back' : ''}${shortcut ? ' has-voice-shortcut' : ''}`}>
             <div className="dd-topbar-side">
                 {back
                     ? <Link className="dd-iconbtn" to={back} aria-label={backLabel ?? 'Back'}><ArrowLeft /></Link>
                     : <span className="dd-iconbtn is-placeholder" />}
             </div>
             <Link to="/" className="dd-wordmark"><img src={`${import.meta.env.BASE_URL}icons/diary-192.png`} width="32" height="32" alt="" /> <span>Dear Diary</span></Link>
+            {shortcut&&<button type="button" className="dd-voice-shortcut" aria-label="Double tap to toggle voice lock" disabled={!voiceLock?.supported} onPointerDown={e=>{down.current={x:e.clientX,y:e.clientY};}} onPointerCancel={()=>{down.current=null;lastTap.current=null;}} onClick={doubleTap}/>}
             <div className="dd-topbar-side is-right">
                 <Link className="dd-iconbtn" to={options ? "/notifications" : "/inbox"} aria-label={options ? "Notification preferences" : "Notification inbox"}>
                     <Bell />
