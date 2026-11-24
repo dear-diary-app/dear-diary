@@ -1918,3 +1918,4 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 /* Keep Home's existing top-bar controls and its private shortcut available. */
 .dd-desktop .dd-home-page > .dd-topbar { display:flex; margin-bottom:20px; }
 .dd-desktop .dd-chat-head:has(.dd-chat-selection) .dd-chat-back { display:inline-flex; }
+.dd-idle-notice { max-width:520px; margin:0 auto; padding:22px 24px 0; text-align:center; font-size:13px; line-height:1.6; }

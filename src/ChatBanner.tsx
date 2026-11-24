@@ -1,3 +1,4 @@
+import {usePageLocked} from './DesktopIdleLock';
 import React,{useEffect,useRef,useState}from'react';
 import{useLocation}from'react-router-dom';
 import{useChat,type ChatMsg}from'./ChatStore';
@@ -12,7 +13,7 @@ export function bannerPreview(m:ChatMsg){
  const body=parseFeedReply(m.body)?.text??(m.body.startsWith(IMAGE_CREDIT)?imageUserCaption(m.body):m.body);
  return (m.images.length?`${m.images.length===1?'Photo':'Photos'}${body?': ':''}`:'')+body||'New message';
 }
-export function ChatBanner(){const chat=useChat(),store=useStore(),auth=useAuth(),loc=useLocation();return <IncomingChatBanner chat={chat} enabled={store.notifPrefs.chat!==false} sender={personById(otherId(auth.me!)).name} path={loc.pathname}/>;}
+export function ChatBanner(){const locked=usePageLocked();const chat=useChat(),store=useStore(),auth=useAuth(),loc=useLocation();return <IncomingChatBanner chat={chat} enabled={!locked&&store.notifPrefs.chat!==false} sender={personById(otherId(auth.me!)).name} path={loc.pathname}/>;}
 export function IncomingChatBanner({chat,enabled,sender,path}:{chat:ReturnType<typeof useChat>;enabled:boolean;sender:string;path:string}){
  const[message,setMessage]=useState<ChatMsg|null>(null),[reply,setReply]=useState(false),[text,setText]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const started=useRef(Date.now());

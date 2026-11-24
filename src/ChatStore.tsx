@@ -1,3 +1,4 @@
+import { usePageLocked } from './DesktopIdleLock';
 import {cleanEffect,emojiTokens,type MessageEffect} from './ChatEffects';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -67,6 +68,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     const [hasMore, setHasMore] = useState(false);
     const [live, setLive] = useState(false);
     const [viewing, setViewing] = useState(false);
+    const pageLocked = usePageLocked();
     const [visible, setVisible] = useState(() => !document.hidden);
     const channel = useRef<RealtimeChannel | null>(null);
     const joined = useRef(false);
@@ -158,14 +160,14 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     const unseenIncoming = useMemo(() => messages.filter(m => m.sender_id !== uid && !m.seen_at).length, [messages, uid]);
     const marking = useRef(false);
     useEffect(() => {
-        if (!viewing || !visible || !unseenIncoming || marking.current) return;
+        if (pageLocked || !viewing || !visible || !unseenIncoming || marking.current) return;
         marking.current = true;
         const stamp = new Date().toISOString();
         void Promise.resolve(supabase.rpc('chat_mark_seen')).then(({ error }) => {
             marking.current = false;
             if (!error) setMessages(prev => prev.map(m => m.sender_id !== uid && !m.seen_at ? { ...m, seen_at: stamp } : m));
         });
-    }, [viewing, visible, unseenIncoming, uid]);
+    }, [pageLocked, viewing, visible, unseenIncoming, uid]);
 
     const pendingAudio = useRef(new Map<string, Blob>());
     const sendWithVoice = async (m: ChatMsg, blob: Blob) => { try { if (!m.audio || !await uploadVoice(m.audio, blob)) throw Error(); await insert(m); } catch { setMessages(prev=>prev.map(x=>x.id===m.id?{...x,state:'failed'}:x)); } };

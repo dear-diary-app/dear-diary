@@ -1,3 +1,4 @@
+import { usePageLocked } from './DesktopIdleLock';
 import { DesktopConversations, useDesktopLayout } from './DesktopLayout';
 import {parseFeedReply} from './FeedSocial';
 import {useChatStyle,chatStyleProps} from './ChatStyle';
@@ -186,6 +187,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
 
 export function ChatView({ partner }: { partner: Person }) {
     const desktop = useDesktopLayout();
+    const pageLocked = usePageLocked();
     const weatherContext=useContext(WeatherContext),weatherSending=useRef(false),weatherController=useRef<AbortController>();
     const [weatherBusy,setWeatherBusy]=useState(false);
     useEffect(()=>()=>weatherController.current?.abort(),[]);
@@ -281,7 +283,7 @@ export function ChatView({ partner }: { partner: Person }) {
     const prevLen = useRef(0);
     const prevLastId=useRef<string>();
     const { setViewing } = chat;
-    useEffect(() => { setViewing(!profileOpen&&unreadReady); return () => setViewing(false); }, [setViewing, profileOpen,unreadReady]);
+    useEffect(() => { setViewing(!pageLocked&&!profileOpen&&unreadReady); return () => setViewing(false); }, [setViewing, pageLocked, profileOpen,unreadReady]);
 
     // Keep the layout above the phone keyboard and hide the dock while typing.
     const [vh, setVh] = useState<number | null>(null);

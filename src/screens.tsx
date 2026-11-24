@@ -1,3 +1,4 @@
+import { PageLockedContext, useComputerBrowser, useDesktopIdle, usePageLocked } from './DesktopIdleLock';
 import {Feed} from './Feed';
 import {Stories} from './Stories';
 import {VoiceLockProvider,VoiceLockSettings} from './VoiceLock';
@@ -103,8 +104,38 @@ export function Login() {
 export function AppEntryGate({ children }: { children: React.ReactNode }) {
     const auth = useAuth();
     const [stage, setStage] = useState<'pin' | 'open'>('pin');
-    const lock=()=>{for(const person of ['joydeep','aruba']){try{sessionStorage.removeItem('dd_unlocked_'+person);}catch{}}document.querySelectorAll('dialog[open]').forEach(d=>(d as HTMLDialogElement).close());flushSync(()=>setStage('pin'));};
-    return <VoiceLockProvider person={auth.me!} uid={auth.session!.user.id} active={stage==='open'} onLock={lock}>{stage==='pin'?<Pin person={auth.me!} appEntry onEntryUnlock={()=>setStage('open')}/>:children}</VoiceLockProvider>;
+    const computer = useComputerBrowser();
+    const [idleLocked, setIdleLocked] = useState(false);
+    const dialogs = useRef<HTMLDialogElement[]>([]);
+    const clearUnlocks = () => { for (const person of ['joydeep','aruba']) { try { sessionStorage.removeItem('dd_unlocked_'+person); } catch {} } };
+    const pauseMedia = () => { window.dispatchEvent(new Event('dd-page-lock')); document.querySelectorAll('audio,video').forEach(el => (el as HTMLMediaElement).pause()); };
+    const lock=()=>{clearUnlocks();document.querySelectorAll('dialog[open]').forEach(d=>(d as HTMLDialogElement).close());setIdleLocked(false);flushSync(()=>setStage('pin'));};
+    const idleLock = () => {
+        clearUnlocks(); pauseMedia();
+        dialogs.current = Array.from(document.querySelectorAll<HTMLDialogElement>('dialog[open]'));
+        dialogs.current.forEach(d => d.close());
+        (document.activeElement as HTMLElement|null)?.blur();
+        flushSync(() => setIdleLocked(true));
+    };
+    useDesktopIdle(computer && stage === 'open' && !idleLocked, idleLock);
+    useEffect(() => {
+        if (!idleLocked) return;
+        const pause = (e: Event) => { if(e.target instanceof HTMLMediaElement)e.target.pause(); };
+        const coverDialogs=()=>{document.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach(d=>{if(!dialogs.current.includes(d))dialogs.current.push(d);d.close();});};
+        const observer=new MutationObserver(coverDialogs);observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['open'],childList:true});
+        document.addEventListener('play',pause,true);
+        return () => { observer.disconnect();document.removeEventListener('play',pause,true); };
+    },[idleLocked]);
+    const resume = () => {
+        setIdleLocked(false);
+        requestAnimationFrame(() => { dialogs.current.forEach(d => { if(d.isConnected)try{d.showModal();}catch{} }); dialogs.current=[]; });
+    };
+    return <PageLockedContext.Provider value={idleLocked}><VoiceLockProvider person={auth.me!} uid={auth.session!.user.id} active={stage==='open'&&!idleLocked} onLock={lock}>
+        {stage==='pin'?<Pin person={auth.me!} appEntry onEntryUnlock={()=>setStage('open')}/>:<>
+            {idleLocked&&<><p className="dd-idle-notice" role="status">Locked after 2 minutes of inactivity. Enter your PIN to return. Unsent drafts stay on this page.</p><Pin person={auth.me!} appEntry onEntryUnlock={resume}/></>}
+            <div hidden={idleLocked} {...(idleLocked?{inert:''}:{})} aria-hidden={idleLocked||undefined}>{children}</div>
+        </>}
+    </VoiceLockProvider></PageLockedContext.Provider>;
 }
 
 export function Home() {
@@ -157,6 +188,7 @@ export function Home() {
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
 
 export function Pin({ person, appEntry = false, onEntryUnlock }: { person: PersonId; appEntry?: boolean; onEntryUnlock?: () => void }) {
+    const coveredByIdleLock = usePageLocked() && !appEntry;
     const p = personById(person);
     const now = useNow(1000);
     const waitMs = publishWaitMs(now);
@@ -234,14 +266,14 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
 
     useEffect(()=>{
         const key=(e:KeyboardEvent)=>{
-            if(e.defaultPrevented||e.ctrlKey||e.metaKey||e.altKey||e.repeat||waitingForPublish||readingOpen||busy||ok)return;
+            if(coveredByIdleLock||e.defaultPrevented||e.ctrlKey||e.metaKey||e.altKey||e.repeat||waitingForPublish||readingOpen||busy||ok)return;
             const target=e.target as HTMLElement|null;if(target?.closest('input,textarea,select,[contenteditable=true]'))return;
             if(/^\d$/.test(e.key)){e.preventDefault();press(e.key);}
             else if(e.key==='Backspace'||e.key==='Delete'){e.preventDefault();press('del');}
             else if(e.key==='Enter'&&pin.length===4&&(stage==='create'||stage==='confirm')&&!target?.closest('button')){e.preventDefault();void submitPin();}
         };
         window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
-    },[pin,stage,busy,ok,waitingForPublish,readingOpen]);
+    },[coveredByIdleLock,pin,stage,busy,ok,waitingForPublish,readingOpen]);
 
     if (readingOpen) return <Navigate to={appEntry ? '/?nowelcome' : person === auth.me ? `/hub/${person}` : `/published/${person}`} replace />;
 

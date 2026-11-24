@@ -1,3 +1,4 @@
+import { usePageLocked } from './DesktopIdleLock';
 import React from 'react';
 import { DesktopFrame } from './DesktopLayout';
 import { Navigate, Route, Routes, useParams } from 'react-router-dom';
@@ -23,6 +24,9 @@ import { finishLaunch } from './launch';
 function Guarded({ person, children }: { person: PersonId; children: React.ReactNode }) {
     const auth = useAuth();
     const now = useNow(1000);
+    const pageLocked = usePageLocked();
+    // The idle PIN covers this mounted route. Do not redirect and discard its draft.
+    if (pageLocked) return <>{children}</>;
     if (person === auth.me && schedule(now).phase !== 'writing') return <>{children}</>;
     if ((person !== auth.me && publishWaitMs(now) !== null) || !isUnlocked(person)) return <Navigate to={`/pin/${person}`} replace />;
     return <>{children}</>;

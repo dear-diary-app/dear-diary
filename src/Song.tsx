@@ -89,7 +89,7 @@ if (typeof document !== "undefined")
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) active?.stop();
   });
-if(typeof window!=='undefined'){window.addEventListener('dd-voice-play',()=>active?.stop());window.addEventListener('dd-voice-record',()=>active?.stop());}
+if(typeof window!=='undefined'){window.addEventListener('dd-voice-play',()=>active?.stop());window.addEventListener('dd-voice-record',()=>active?.stop());window.addEventListener('dd-page-lock',()=>active?.stop());}
 function usePreview(url: string) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
