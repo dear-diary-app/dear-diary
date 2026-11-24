@@ -1977,3 +1977,67 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-profile-more{display:block;margin:20px auto}
 @media(min-width:700px){.dd-profile-identity{padding:20px 30px 30px}.dd-profile-overview{gap:50px}.dd-profile-overview .dd-avatar-lg{width:130px;height:130px;font-size:48px}.dd-profile-intro{margin-left:190px;margin-top:-30px;position:relative}.dd-profile-overview{align-items:flex-start}.dd-profile-stats{max-width:420px;padding-top:10px}.dd-profile-stats span{font-size:14px}.dd-profile-actions{margin-left:190px;max-width:360px}.dd-profile-tabs{margin-top:10px}.dd-profile-instabar{padding:0 28px}}
 @media(max-width:430px){.dd-profile-page.dd-profile-page{padding-left:16px;padding-right:16px}.dd-profile-overview{gap:16px}.dd-profile-overview .dd-avatar-lg{width:76px;height:76px}.dd-profile-stats{gap:6px}.dd-profile-stats strong{font-size:19px}.dd-profile-stats span{font-size:11px}.dd-profile-tabs>button span{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}.dd-profile-grid{margin-left:-14px;margin-right:-14px}.dd-profile-instabar{margin-bottom:9px}.dd-profile-instabar h1{font-size:21px}}
+
+/* Feed-first Home. Keep colors and system safe-area treatment unchanged. */
+.dd-home-page.dd-home-page{max-width:640px;padding-top:0}
+.dd-app .dd-home-socialbar.dd-home-socialbar{display:flex;align-items:center;position:relative;min-height:64px;margin:0;padding:2px 0;border:0;gap:8px}
+.dd-home-socialbar>.dd-topbar-side:first-child{display:none}
+.dd-home-socialbar .dd-wordmark{visibility:visible!important;justify-content:flex-start;margin-right:auto;font-size:28px;letter-spacing:-1px;white-space:nowrap}
+.dd-home-socialbar .dd-wordmark img{display:none}
+.dd-home-socialbar .dd-topbar-side.is-right{gap:7px;min-width:0}
+.dd-app.dd-app .dd-home-socialbar .dd-iconbtn{width:36px;height:40px;min-width:36px;border:0;background:transparent;box-shadow:none;border-radius:0;padding:0;color:inherit}
+.dd-home-socialbar .dd-voice-shortcut{left:0;transform:none;width:150px}
+.dd-home-page .dd-stories{margin:0;padding:12px 0 14px;border-bottom:1px solid rgba(150,130,140,.2)}
+.dd-home-page .dd-story-row{justify-content:flex-start;gap:22px;padding:0 4px;overflow-x:auto;align-items:flex-start}
+.dd-home-page .dd-story-item{width:76px;flex:0 0 76px;gap:7px;font-size:12px}
+.dd-home-page .dd-story-circle{width:74px;height:74px;padding:4px;box-shadow:none;border:1px solid rgba(150,130,140,.3);background:transparent}
+.dd-home-page .dd-story-circle .dd-avatar{width:62px;height:62px;font-size:25px;border:2px solid var(--dd-bg-top,#fdf9f4);box-sizing:border-box}
+.dd-home-page .dd-story-circle.has-story{background:linear-gradient(35deg,#f6bd5a 3%,#ed6d56 30%,#d14b98 65%,#8e55b2 95%);border:0}
+.dd-home-page .dd-story-circle .dd-story-plus{width:22px;height:22px;right:0;bottom:0;background:#4296ed;color:white;border:2px solid var(--dd-bg-top,#fdf9f4);font-size:20px;line-height:18px}
+.dd-home-page .dd-story-manage{display:flex;gap:8px;margin-top:0}
+.dd-home-page .dd-story-manage button{width:27px;height:27px;min-height:27px;box-shadow:none;border:1px solid rgba(150,130,140,.23);font-size:17px;background:transparent}
+.dd-home-page .dd-story-note{font-size:11px;margin:9px 4px 0;line-height:1.5}
+.dd-home-diary-area{margin:0;padding:12px 0 4px}
+.dd-home-diary-shortcuts{display:flex;gap:10px}
+.dd-home-diary-link{display:flex;align-items:center;gap:8px;flex:1;min-width:0;padding:9px 10px;border:1px solid rgba(150,130,140,.2);border-radius:9px;text-decoration:none;color:inherit}
+.dd-home-diary-link>.dd-avatar{width:31px;height:31px;font-size:14px;flex-shrink:0}
+.dd-home-diary-link>span:not(.dd-avatar){display:flex;flex-direction:column;min-width:0;flex:1;gap:3px}
+.dd-home-diary-link strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-home-diary-link small{font-size:10px;opacity:.6}
+.dd-home-diary-link>svg{opacity:.6;flex-shrink:0}
+.dd-home-schedule{margin-top:9px;border-bottom:1px solid rgba(150,130,140,.2);font-size:11px}
+.dd-home-schedule summary{display:flex;align-items:center;gap:6px;cursor:pointer;min-height:31px;list-style:none}
+.dd-home-schedule summary::-webkit-details-marker{display:none}
+.dd-home-schedule summary>span{white-space:nowrap;font-weight:650}
+.dd-home-schedule summary small{font-size:10px;opacity:.65;flex:1;text-align:right;line-height:1.4}
+.dd-home-schedule[open] summary>svg:last-child{transform:rotate(90deg)}
+.dd-home-schedule>div{padding:0 2px 10px;opacity:.8;line-height:1.6}
+.dd-home-schedule p{display:flex;align-items:center;gap:6px;margin:6px 0}
+.dd-home-page .dd-feed{margin-top:0;max-width:none}
+.dd-home-page .dd-feed>.dd-feed-heading{position:sticky;top:0;z-index:8;min-height:44px;padding:5px 0;border:0;background:var(--dd-bg-top,#fdf9f4)!important;backdrop-filter:blur(18px);box-shadow:none}
+.dd-home-page .dd-feed-heading h2{font-family:inherit;font-size:14px;letter-spacing:0;font-weight:700}
+.dd-home-page .dd-feed-heading-actions{gap:6px}
+.dd-home-page .dd-feed-heading-actions button{width:34px;min-height:34px}
+.dd-app.dd-app.dd-app .dd-home-page .dd-feed-post{background:transparent;border:0;border-bottom:1px solid rgba(150,130,140,.2);box-shadow:none;border-radius:0;margin:0 0 18px;padding-bottom:14px}
+.dd-home-page .dd-feed-post>header{padding:12px 0}
+.dd-home-page .dd-feed-media{border-radius:0}
+.dd-home-page .dd-foot{padding:20px 0;font-size:11px;opacity:.55}
+.dd-desktop .dd-home-page.dd-home-page{max-width:1040px;padding-top:20px}
+.dd-desktop .dd-home-page>.dd-anim{grid-template-columns:minmax(0,560px) 260px;gap:18px 38px}
+.dd-desktop .dd-home-page .dd-stories{grid-column:1;grid-row:1;padding:8px 0 16px}
+.dd-desktop .dd-home-page .dd-feed{grid-column:1;grid-row:2 / span 4}
+.dd-desktop .dd-home-diary-area{grid-column:2;grid-row:1 / span 2;padding-top:8px}
+.dd-desktop .dd-home-diary-shortcuts{flex-direction:column}
+.dd-desktop .dd-home-diary-link{padding:13px 6px;border:0}
+.dd-desktop .dd-home-diary-link>.dd-avatar{width:42px;height:42px;font-size:18px}
+.dd-desktop .dd-home-diary-link strong{font-size:13px}
+.dd-desktop .dd-home-schedule{margin-top:20px}
+.dd-desktop .dd-home-schedule summary{flex-wrap:wrap;padding-bottom:10px}
+.dd-desktop .dd-home-schedule summary small{flex-basis:100%;text-align:left;order:2;padding-left:20px}
+.dd-desktop .dd-home-page .dd-foot{grid-column:2;grid-row:3}
+.dd-desktop .dd-home-socialbar.dd-home-socialbar{max-width:560px;margin-bottom:12px}
+@media(max-width:699px){.dd-home-page.dd-home-page{padding-left:14px;padding-right:14px}.dd-home-page .dd-feed-post>.dd-feed-media{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}.dd-home-page .dd-feed-post>header{padding-left:0;padding-right:0}.dd-home-page .dd-feed-social{padding-left:0;padding-right:0}}
+@media(max-width:370px){.dd-home-socialbar .dd-wordmark{font-size:25px}.dd-home-socialbar .dd-topbar-side.is-right{gap:2px}.dd-home-diary-link{padding:8px 7px;gap:6px}.dd-home-diary-link>svg{display:none}.dd-home-schedule summary{gap:4px}.dd-home-schedule summary small{font-size:9px}}
+.dd-app.dd-app.dd-app .dd-home-socialbar .dd-iconbtn{background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important}
+.dd-home-socialbar .dd-iconbtn>svg{fill:none;stroke:currentColor}
+.dd-home-diary-link strong{font-size:11px}

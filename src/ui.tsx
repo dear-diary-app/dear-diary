@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Person, PersonId } from './model';
 import { useStore } from './store';
-import { Bell, Gear, ArrowLeft, Heart, ChevronLeft, ChevronRight, XIcon } from './icons';
+import { Bell, Gear, ArrowLeft, Heart, ChevronLeft, ChevronRight, XIcon, MessageCircle, ImagePlus } from './icons';
 
 // ticking clock
 export function useNow(stepMs = 1000): Date {
@@ -35,7 +35,7 @@ export function useGo() {
 
 // ---------- shared UI ----------
 
-export function TopBar({ back, backLabel, alert }: { back?: string; backLabel?: string; alert?: boolean }) {
+export function TopBar({ back, backLabel, alert, social = false }: { back?: string; backLabel?: string; alert?: boolean; social?: boolean }) {
     const { pathname } = useLocation();
     const voiceLock=useContext(VoiceLockContext);
     const shortcut=pathname==='/'&&!!voiceLock;
@@ -50,7 +50,7 @@ export function TopBar({ back, backLabel, alert }: { back?: string; backLabel?: 
     };
     const options = pathname.startsWith('/settings') || pathname === '/notifications';
     return (
-        <header className={`dd-topbar${back ? ' has-back' : ''}${shortcut ? ' has-voice-shortcut' : ''}`}>
+        <header className={`dd-topbar${social ? ' dd-home-socialbar' : ''}${back ? ' has-back' : ''}${shortcut ? ' has-voice-shortcut' : ''}`}>
             <div className="dd-topbar-side">
                 {back
                     ? <Link className="dd-iconbtn" to={back} aria-label={backLabel ?? 'Back'}><ArrowLeft /></Link>
@@ -59,10 +59,11 @@ export function TopBar({ back, backLabel, alert }: { back?: string; backLabel?: 
             <Link to="/" className="dd-wordmark"><img src={`${import.meta.env.BASE_URL}icons/diary-192.png`} width="32" height="32" alt="" /> <span>Dear Diary</span></Link>
             {shortcut&&<button type="button" className="dd-voice-shortcut" aria-label="Double tap to toggle voice lock" disabled={!voiceLock?.supported} onPointerDown={e=>{down.current={x:e.clientX,y:e.clientY};}} onPointerCancel={()=>{down.current=null;lastTap.current=null;}} onClick={doubleTap}/>}
             <div className="dd-topbar-side is-right">
+                {social && <button type="button" className="dd-iconbtn" aria-label="Create a post" onClick={() => window.dispatchEvent(new Event("dd-create-feed-post"))}><ImagePlus size={24}/></button>}
                 <Link className="dd-iconbtn" to={options ? "/notifications" : "/inbox"} aria-label={options ? "Notification preferences" : "Notification inbox"}>
-                    <Bell />
+                    {social ? <Heart size={25}/> : <Bell />}
                 </Link>
-                <Link className="dd-iconbtn" to="/settings" aria-label="Profile and settings"><Gear /></Link>
+                {social ? <Link className="dd-iconbtn" to="/chat" aria-label="Messages"><MessageCircle size={25}/></Link> : <Link className="dd-iconbtn" to="/settings" aria-label="Profile and settings"><Gear /></Link>}
             </div>
         </header>
     );

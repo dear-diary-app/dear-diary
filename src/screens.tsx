@@ -149,30 +149,15 @@ export function Home() {
 
     return (
         <main className="dd-shell dd-home-page">
-            <TopBar alert={store.unreadAny(now)} />
+            <TopBar alert={store.unreadAny(now)} social />
             <div className="dd-anim" key="home">
                 <Stories/>
-                <section className="dd-books" aria-label="Your two diary books">
-                    {peopleOwnFirst(auth.me).map(p => (
-                        <div key={p.id} className="dd-book-col">
-                            <Book person={p} avatar={store.avatars[p.id]}
-                                unread={store.unreadLatest(otherId(p.id), now)}
-                                onOpen={go} />
-                            <p className="dd-book-name">{p.name}&rsquo;s Diary</p>
-                        </div>
-                    ))}
-                </section>
-
-                <section className="dd-status" aria-label="Today">
-                    <div className="dd-status-row">
-                        <span className="dd-status-item"><CalendarDays size={17} /> {fmtDateLong(todayKey(now))}</span>
-                        <span className="dd-status-item"><Clock size={17} /> {istClock(now)} IST</span>
-                    </div>
-                    <div className="dd-status-row">
-                        <span className="dd-status-item"><PhaseIcon size={17} /> {sched.label}</span>
-                        <span className="dd-status-item">{fmtCountdown(sched.countdownMs)} until {sched.next}</span>
-                    </div>
-                </section>
+                <aside className="dd-home-diary-area" aria-label="Diary shortcuts and schedule">
+                  <section className="dd-home-diary-shortcuts" aria-label="Your two diaries">
+                    {peopleOwnFirst(auth.me).map(p => <Link key={p.id} to={`/pin/${p.id}`} className="dd-home-diary-link"><Avatar person={p} size="sm"/><span><strong>{p.id === auth.me ? "Your diary" : `${p.name}'s diary`}</strong><small>{store.unreadLatest(otherId(p.id), now) ? "New page" : "Open diary"}</small></span><BookOpen size={18}/></Link>)}
+                  </section>
+                  <details className="dd-home-schedule"><summary><PhaseIcon size={14}/><span>{sched.phase === 'writing' ? 'Writing time' : sched.phase === 'quiet' ? 'Quiet time' : 'Reading time'}</span><small>{fmtCountdown(sched.countdownMs)} until {sched.next}</small><ChevronRight size={14}/></summary><div><p><CalendarDays size={14}/> {fmtDateLong(todayKey(now))}</p><p><Clock size={14}/> {istClock(now)} IST</p><p>{sched.label}</p><p>{fmtCountdown(sched.countdownMs)} until {sched.next}</p></div></details>
+                </aside>
 
                 <Feed/>
                 <footer className="dd-foot">
