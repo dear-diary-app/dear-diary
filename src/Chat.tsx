@@ -168,7 +168,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
             {m.gif_id && <div className="dd-chat-gif">{gif ? <><GifMedia gif={gif}/><GifCredit gif={gif}/></> : <div className="dd-gif-placeholder">{gif === null ? 'GIF is unavailable.' : gifError || 'Loading GIF...'}{gifError && <button type="button" onPointerDown={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();retryGif();}}>Retry GIF</button>}</div>}</div>}
             {sticker ? <img className="dd-chat-sticker" src={art(m.sticker!)} alt={stickerName(m.sticker!)} width="128" height="128" draggable={false} />
                 : m.sticker ? <span className="dd-chat-text">Sticker</span> : m.body ? ((isOneYear(m.body)||askQuery(m.body)!==null)&&!m.images.length?null:m.images.length>0&&m.body.startsWith(IMAGE_CREDIT)?(imageUserCaption(m.body)?<span className="dd-chat-text">{imageUserCaption(m.body)}</span>:null):<EffectText text={parseFeedReply(m.body)?.text??m.body} effect={m.effect} id={m.id} createdAt={m.created_at} recipient={!mine} account={chat.uid}/>) : null}
-            <span className="dd-chat-time">{m.scheduled?'Scheduled · ':''}{m.edited_at && !sticker ? 'edited · ' : ''}{timeFmt.format(new Date(m.created_at))}</span>
+            <span className="dd-chat-time">{lastMine&&mine&&<span className="dd-chat-inline-status" role="status">{m.state==='failed'?'Not sent':m.state==='sending'?'Sending...':m.seen_at?'Seen':'Sent'}</span>}{m.scheduled?'Scheduled · ':''}{m.edited_at && !sticker ? 'edited · ' : ''}{timeFmt.format(new Date(m.created_at))}</span>
         </div>
         {groups.length > 0 && <div className="dd-chat-reacts">{groups.map(([e, n]) => <button key={`${e}:${n}`} type="button" className={mineReact === e ? 'is-mine' : ''} onClick={() => chat.react(m.id, e)} aria-label={`${e} ${n}. Tap to ${mineReact === e ? 'remove' : 'add'} your reaction`}>{e}{n > 1 ? ` ${n}` : ''}</button>)}</div>}
         {selected && <div className={`dd-chat-actions${below ? ' is-below' : ''}`} role="group" aria-label="Message actions">
@@ -177,9 +177,8 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
                 <button type="button" className="dd-reaction-plus" aria-label="More reactions" onClick={onMore}>+</button>
             </div>
         </div>}
-        {lastMine && mine && <p className="dd-chat-status" role="status">
-            {m.state === 'failed' ? <>Not sent. <button type="button" onClick={() => chat.retry(m.id)}>Retry</button> <button type="button" onClick={() => chat.discard(m.id)}>Delete</button></>
-                : m.state === 'sending' ? 'Sending...' : m.seen_at ? `Seen ${timeFmt.format(new Date(m.seen_at))}` : 'Sent'}
+        {lastMine && mine && m.state==='failed' && <p className="dd-chat-status" aria-label="Failed message actions">
+            <button type="button" onClick={() => chat.retry(m.id)}>Retry</button> <button type="button" onClick={() => chat.discard(m.id)}>Delete</button>
         </p>}
     </div>;
 }
