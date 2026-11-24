@@ -1743,3 +1743,7 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-unread-divider { display:flex;align-items:center;justify-content:center;gap:14px;padding:15px 0;margin:3px 0 10px;flex:none; }
 .dd-unread-divider::before,.dd-unread-divider::after { content:'';height:1px;flex:1;background:var(--lg-rule,#e0d2d8); }
 .dd-unread-divider span { display:inline-block;padding:8px 17px;border:1px solid var(--lg-edge,#f4e7ed);border-radius:999px;background:var(--lg-fallback,#fffaf5);box-shadow:0 3px 12px var(--lg-shadow,#0001);color:var(--lg-ink,#594553);font:12px/1.4 var(--ds-font-text);white-space:nowrap; }
+/* One paint at the bottom: no separate composer tint over the theme edge. */
+.dd-app.dd-app.dd-app .dd-chat { background:linear-gradient(to bottom,var(--dd-bg-top,#fdf9f4),var(--dd-bg-bottom,#f7efe9) calc(100% - 110px - env(safe-area-inset-bottom,0px)),var(--dd-bg-bottom,#f7efe9)); }
+.dd-app.dd-app.dd-app .dd-chat-compose { background:var(--dd-bg-bottom,#f7efe9); }
+.dd-chat>.dd-weather-scene { mask-image:linear-gradient(to bottom,#000 calc(100% - 160px - env(safe-area-inset-bottom,0px)),transparent calc(100% - 110px - env(safe-area-inset-bottom,0px)));-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 160px - env(safe-area-inset-bottom,0px)),transparent calc(100% - 110px - env(safe-area-inset-bottom,0px))); }
