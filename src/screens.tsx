@@ -99,7 +99,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
     const auth = useAuth();
     const [stage, setStage] = useState<'pin' | 'open'>('pin');
     const lock=()=>{for(const person of ['joydeep','aruba']){try{sessionStorage.removeItem('dd_unlocked_'+person);}catch{}}document.querySelectorAll('dialog[open]').forEach(d=>(d as HTMLDialogElement).close());flushSync(()=>setStage('pin'));};
-    return <VoiceLockProvider uid={auth.session!.user.id} active={stage==='open'} onLock={lock}>{stage==='pin'?<Pin person={auth.me!} appEntry onEntryUnlock={()=>setStage('open')}/>:children}</VoiceLockProvider>;
+    return <VoiceLockProvider person={auth.me!} uid={auth.session!.user.id} active={stage==='open'} onLock={lock}>{stage==='pin'?<Pin person={auth.me!} appEntry onEntryUnlock={()=>setStage('open')}/>:children}</VoiceLockProvider>;
 }
 
 export function Home() {
