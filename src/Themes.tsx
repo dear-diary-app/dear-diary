@@ -60,21 +60,20 @@ export function ThemeFrame({ className, children }: { className: string; childre
     useEffect(() => {
         const meta = document.querySelector('meta[name="theme-color"]');
         // Android may use this for its bottom system bar as well as browser chrome.
-        meta?.setAttribute('content', palette.bottom);
+        meta?.setAttribute('content', palette.top);
         const html = document.documentElement;
-        html.style.setProperty('--dd-canvas', palette.bottom);
-        html.style.backgroundColor=palette.bottom;
-        document.body.style.backgroundColor=palette.bottom;
+        html.style.setProperty('--dd-canvas', palette.top);
+        document.body.style.backgroundColor=palette.top;
         document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.setAttribute('content',renderTheme==='midnight'?'black-translucent':'default');
         html.style.setProperty('--dd-colour-scheme', renderTheme === 'midnight' ? 'dark' : 'light');
         html.dataset.diaryTheme = renderTheme;
         return () => {
             meta?.setAttribute('content', '#fdf9f4');
-            html.style.removeProperty('--dd-canvas');html.style.removeProperty('background-color');
+            html.style.removeProperty('--dd-canvas');
             html.style.removeProperty('--dd-colour-scheme');
             delete html.dataset.diaryTheme;document.body.style.removeProperty('background-color');
         };
-    }, [palette.bottom,renderTheme]);
+    }, [palette.top,renderTheme]);
     const choose = async (id: ThemeId) => {
         if (busy) return;
         setMode('fixed');

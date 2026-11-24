@@ -9,7 +9,6 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
-        { id: 'bottomedge', emoji: '🎨', title: 'A matching bottom edge', text: 'The chat composer, safe-area edge and browser colour hint now use the same theme bottom colour, without the extra gradient band. Some phones control their own gesture bar colour.' },
         { id: 'unreaddivider', emoji: '💬', title: 'Pick up at your unread messages', text: 'Open chat with unread messages to see a count above the first new message. Once they are marked seen, your next tap, scroll gesture or typing clears the divider. It is not saved for your next visit.' },
         { id: 'slashshortcuts', emoji: '⌨️', title: 'Find chat shortcuts with /', text: 'Type / at the start of a message to see all six slash shortcuts. Keep typing to filter, then tap one to fill it in. Nothing sends automatically. DDAI is marked off when disabled in Settings. Escape or × closes the list.' },
         { id: 'privateddai', emoji: '💭', title: 'DDAI, just for you', text: 'Enable DDAI in Settings → AI features, then type /ddai- and your question in chat. Send opens a private window; Ask privately contacts Cloudflare. Answers are temporary and never shared with your partner. Translate AI has its own switch. Both share 5 requests/minute and 30/UTC day per person, with provider limits too. AI can be wrong and has no live web.' },
