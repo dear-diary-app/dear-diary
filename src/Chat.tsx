@@ -1,3 +1,4 @@
+import {ChatDDAI,ddaiQuery} from './ChatDDAI';
 import {SendOptions,EffectText,BubblesLayer,type MessageEffect} from './ChatEffects';
 import {ChatTranslate,type TranslationDraft} from './ChatTranslate';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -203,7 +204,8 @@ export function ChatView({ partner }: { partner: Person }) {
     const [note, setNote] = useState('');
     const [scheduleRequest,setScheduleRequest]=useState(0);
     const [sendOptions,setSendOptions]=useState(false);
-    const effectsAllowed=!!text.trim()&&!editing&&!staged.length&&askQuery(text)===null&&!isOneYear(text)&&imageQuery(text)===null&&musicQuery(text)===null&&text.trim().toLowerCase()!=='/weather';
+    const [ddai,setDDAI]=useState<string|null>(null);
+    const effectsAllowed=ddaiQuery(text)===null&&!!text.trim()&&!editing&&!staged.length&&askQuery(text)===null&&!isOneYear(text)&&imageQuery(text)===null&&musicQuery(text)===null&&text.trim().toLowerCase()!=='/weather';
     const sendHold=useRef<number>();const sendHeld=useRef(false);const sendOrigin=useRef({x:0,y:0});
     useEffect(()=>()=>window.clearTimeout(sendHold.current),[]);
     const fileInput = useRef<HTMLInputElement>(null);
@@ -343,6 +345,7 @@ export function ChatView({ partner }: { partner: Person }) {
     const grow = () => { const el = input.current; if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; el.style.overflowY = el.scrollHeight > 120 ? 'auto' : 'hidden'; if (stick.current) toBottom(); };
     const [askBusy,setAskBusy]=useState(false);const askLock=useRef(false);
     const submit = () => {
+        if(ddaiQuery(text)!==null){if(editing||staged.length){say('Remove photos or finish editing before using DDAI.');return;}chat.typing(false);input.current?.blur();setDDAI(ddaiQuery(text));return;}
         if (!text.trim() && !staged.length) return;
         if(!editing&&!staged.length&&askQuery(text)!==null){const question=askQuery(text)!;if(!question||question.length>300){say('Write /ask followed by a question, up to 300 characters.');return;}if(askLock.current)return;askLock.current=true;setAskBusy(true);const reply=replyTo;void Promise.resolve(supabase.rpc('ask_chat_question',{p_id:crypto.randomUUID(),p_question:question,p_reply:reply})).then(({error})=>{if(error){say(error.message.includes('daily question')?'You already asked today. Your next question opens at midnight IST.':'Could not send the question. Try again.');return;}chat.reload();chat.typing(false);setText('');setReplyTo(null);setNote('');stick.current=true;requestAnimationFrame(grow);}).catch(()=>say('Could not send the question. Check your connection.')).finally(()=>{askLock.current=false;setAskBusy(false);});return;}
         if(!editing&&!staged.length&&imageQuery(text)!==null){say('Tap an image in the suggestions to send it.');return;}
@@ -420,9 +423,10 @@ export function ChatView({ partner }: { partner: Person }) {
         {emojiFor && byId.has(emojiFor) && <EmojiPicker uid={chat.uid} selected={byId.get(emojiFor)?.reactions[chat.uid]} onPick={e => chat.react(emojiFor, e)} onClose={() => { setEmojiFor(null); setSelected(null); }} />}
         <BubblesLayer/><div className="dd-chat-compose">
             <button type="button" className={`dd-chat-bottom${awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?' is-visible':''}`} aria-label={newBelowCount?`Scroll to latest message, ${newBelowCount} new ${newBelowCount===1?'message':'messages'}`:'Scroll to latest message'} tabIndex={awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?0:-1} aria-hidden={!(awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen)||undefined} onPointerDown={e=>e.preventDefault()} onClick={()=>{jumpingToBottom.current=true;setNewBelow(false);stick.current=true;toBottom(true);}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>{newBelowCount>0&&<span className="dd-chat-bottom-count" aria-hidden="true">{newBelowCount>99?'99+':newBelowCount}</span>}</button>
+            {ddai!==null&&<ChatDDAI uid={chat.uid} text={ddai} onClose={()=>setDDAI(null)}/>}
             {translation&&<ChatTranslate uid={chat.uid} draft={translation} onClose={()=>setTranslation(null)} onUse={result=>{if(text!==translation.full)return false;const next=translation.full.slice(0,translation.start)+result+translation.full.slice(translation.end);if(next.length>2000)return false;setTranslationUndo({before:text,after:next});setText(next);requestAnimationFrame(()=>{grow();input.current?.focus();});return true;}}/>}
             {sendOptions&&<SendOptions text={text} allowed={effectsAllowed} scheduleAllowed={effectsAllowed&&!replyTo} onClose={()=>setSendOptions(false)} onSchedule={()=>setScheduleRequest(n=>n+1)} onSend={(effect:MessageEffect)=>{if(!effectsAllowed)return;chat.send(text,null,replyTo,effect);chat.typing(false);setText('');setReplyTo(null);setNote('');stick.current=true;requestAnimationFrame(grow);}}/>}
-            <ScheduledChat draft={text} blocked={!!replyTo||!!editing||staged.length>0||(askQuery(text)!==null||isOneYear(text)||imageQuery(text)!==null||musicQuery(text)!==null||text.trim().toLowerCase()==='/weather')} request={scheduleRequest} onSaved={()=>{setText('');chat.typing(false);requestAnimationFrame(grow);}}/>
+            <ScheduledChat draft={text} blocked={ddaiQuery(text)!==null||!!replyTo||!!editing||staged.length>0||(askQuery(text)!==null||isOneYear(text)||imageQuery(text)!==null||musicQuery(text)!==null||text.trim().toLowerCase()==='/weather')} request={scheduleRequest} onSaved={()=>{setText('');chat.typing(false);requestAnimationFrame(grow);}}/>
             {editing && <div className="dd-chat-replybar"><Pencil /><div><strong>Editing message</strong><span>Change the text, then tap send</span></div>
                 <button type="button" onPointerDown={e => e.preventDefault()} onClick={stopEdit} aria-label="Cancel edit"><XIcon size={16} /></button></div>}
             {replyTo && <div className="dd-chat-replybar"><Reply /><div><strong>Replying to {original ? (original.sender_id === chat.uid ? 'yourself' : partner.name) : 'message'}</strong><span>{original ? snippet(original) : 'Original message is not available'}</span></div>
@@ -438,7 +442,7 @@ export function ChatView({ partner }: { partner: Person }) {
                 <ChatAttachments compact={text.length>0} gifDisabled={gifSending||!!editing||staged.length>0} disabled={gifSending||!!editing} trayOpen={trayOpen} onGif={()=>{input.current?.blur();setTrayOpen(o=>!o);}} onPhoto={()=>fileInput.current?.click()} onTranslate={()=>{const el=input.current;const start=el?.selectionStart??0,end=el?.selectionEnd??0;const selected=start!==end;setTrayOpen(false);chat.typing(false);setTranslation({full:text,selected,start:selected?start:0,end:selected?end:text.length,text:selected?text.slice(start,end):text});}}/>
                 <input ref={fileInput} type="file" accept="image/*" multiple hidden onChange={e => { void pick(e.target.files); }} />
                 <textarea ref={input} rows={1} disabled={askBusy} value={text} maxLength={2000} placeholder="Message" aria-label={`Message ${partner.name}`} enterKeyHint="enter"
-                    onChange={e => { setText(e.target.value); grow(); chat.typing(!!e.target.value.trim()); }}
+                    onChange={e => { setText(e.target.value); grow(); chat.typing(ddaiQuery(e.target.value)===null&&!!e.target.value.trim()); }}
                     onFocus={() => { document.documentElement.classList.add('dd-chat-typing'); if(!gifSending)setTrayOpen(false); }}
                     onBlur={() => { document.documentElement.classList.remove('dd-chat-typing'); chat.typing(false); }}
                     />

@@ -1,3 +1,4 @@
+import {AISettings} from './AISettings';
 import {RulesPrecautions} from './RulesPrecautions';
 import {DiaryPages,OpenDiaryReader} from './DiaryReader';
 import { ChatNotificationSettings } from './ChatNotificationSettings';
@@ -929,6 +930,7 @@ export function Settings() {
 
                 <section className="dd-settings-dropdowns" aria-label="More settings">
                     <PrivacySettings />
+                    <AISettings />
                     <ThemePicker />
                     {peopleOwnFirst(auth.me).filter(p => p.id === auth.me && !store.avatarPhotos[p.id]).map(p => (
                         <section key={p.id} className="dd-card" aria-labelledby="avatar-colour-heading">
