@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'songbeforesend', emoji: '🎵', title: 'Listen before sending', text: 'Tap a /music- result to open its preview, then choose Send song. Listen to an available sample first, or go back and pick another. Clips stream from iTunes, up to 30 seconds; availability varies.' },
         { id: 'quietforeground', emoji: '🔕', title: 'Quiet while you are here', text: 'New chat system alerts are skipped when this account is open in a visible, focused app window. Background or closed windows can still receive alerts. Reopen once after updating to activate the change.' },
         { id: 'weather10', emoji: '🌤️', title: 'Weather every 10 minutes', text: 'Local weather now refreshes about every 10 minutes while the app is open and visible. Hidden tabs wait until you return. Manual refresh is still available.' },
         { id: 'chatstyle', emoji: '🎨', title: 'Chat style, just for your view', text: 'Settings → Chat style has fonts, text size and weight, accent colours, chat backgrounds and a composer-side swap. Your optional photo stays on this device. Defaults are unchanged; Reset / Default removes all custom choices and the photo.' },

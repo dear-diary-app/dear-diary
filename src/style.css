@@ -1769,3 +1769,5 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 
 @font-face { font-family:ChatSerif;src:url('../public/fonts/NotoSerif.woff') format('woff');font-display:swap; }
 @font-face { font-family:ChatBengali;src:url('../public/fonts/NotoSerifBengali.woff') format('woff');font-display:swap; }
+.dd-chat-song-confirm { padding:8px 14px 12px; }.dd-chat-song-confirm .dd-chat-song-card { width:100%;box-sizing:border-box; }.dd-chat-song-confirm-actions { display:flex;gap:10px;margin-top:12px; }.dd-chat-song-confirm-actions>button { flex:1;min-height:42px; }
+.dd-chat-song-search.has-preview .dd-chat-song-results { max-height:min(340px,44dvh); }.dd-chat-song-search.has-preview .dd-chat-song-confirm { padding-bottom:6px; }.dd-chat-song-confirm .dd-chat-song-info { margin-bottom:8px; }.dd-chat-song-confirm-actions { padding-top:6px; }.dd-chat-song-confirm .dd-chat-song-credit { margin-top:3px; }.dd-chat-song-confirm .dd-chat-song-player { margin-bottom:5px; }
