@@ -1,3 +1,4 @@
+import {SlashCommands} from './SlashCommands';
 import {ChatDDAI,ddaiQuery} from './ChatDDAI';
 import {SendOptions,EffectText,BubblesLayer,type MessageEffect} from './ChatEffects';
 import {ChatTranslate,type TranslationDraft} from './ChatTranslate';
@@ -434,6 +435,7 @@ export function ChatView({ partner }: { partner: Person }) {
             {staged.length > 0 && <div className="dd-chat-staged" aria-label="Photos to send">{staged.map((x, i) => <div key={x.id} className="dd-chat-staged-item"><img src={x.url} alt={`Photo ${i + 1} to send`} draggable={false} /><button type="button" onPointerDown={e => e.preventDefault()} onClick={() => setStaged(prev => { URL.revokeObjectURL(x.url); return prev.filter(y => y.id !== x.id); })} aria-label={`Remove photo ${i + 1}`}><XIcon size={14} /></button></div>)}<span>{staged.length}/{MAX_PHOTOS}</span></div>}
             {!editing&&!staged.length&&askQuery(text)!==null&&<p className="dd-chat-note">Daily question · Type /ask your question (max 300 characters). One per person per IST day. Answers are final.</p>}
             {translationUndo&&text===translationUndo.after&&<div className="dd-translate-undo" role="status"><span>Translated & polished · Check before sending</span><button type="button" onClick={()=>{setText(translationUndo.before);setTranslationUndo(null);requestAnimationFrame(()=>{grow();input.current?.focus();});}}>Undo translation</button></div>}
+            {!editing&&!staged.length&&!recording&&!profileOpen&&!trayOpen&&!sendOptions&&ddai===null&&!translation&&text.startsWith('/')&&<SlashCommands uid={chat.uid} value={text} onPick={value=>{setText(value);chat.typing(ddaiQuery(value)===null);requestAnimationFrame(()=>{grow();input.current?.focus();input.current?.setSelectionRange(value.length,value.length);});}}/>}
             {note && <p className="dd-chat-note" role="status">{note}</p>}
             {!editing&&!staged.length&&!recording&&!profileOpen&&imageQuery(text)!==null&&<ImageSuggestions query={imageQuery(text)!} onSend={(blob,caption)=>{chat.sendImages([blob],caption,replyTo);chat.typing(false);setText('');setReplyTo(null);setNote('');stick.current=true;requestAnimationFrame(()=>{grow();input.current?.focus();});}}/>}
             {!editing&&!staged.length&&!recording&&!profileOpen&&musicQuery(text)!==null&&<SongSuggestions query={musicQuery(text)!} onSend={song=>{chat.sendSong(song,replyTo);chat.typing(false);setText('');setReplyTo(null);setNote('');stick.current=true;requestAnimationFrame(()=>{grow();input.current?.focus();});}}/>}

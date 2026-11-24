@@ -1731,3 +1731,12 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-ddai { box-sizing:border-box;width:min(460px,calc(100vw - 28px));max-height:85dvh;overflow:auto;border:1px solid var(--lg-edge);border-radius:24px;background:var(--lg-fallback,#fffaf5);color:var(--lg-ink,#594553);padding:22px;box-shadow:0 20px 70px #0005; }
 .dd-ddai::backdrop {background:#17121b88;backdrop-filter:blur(4px)}
 .dd-ddai header {display:flex;justify-content:space-between;align-items:center;gap:20px}.dd-ddai h2{margin:4px 0 0;font:500 23px var(--ds-font-display)}.dd-ddai header small{font-size:9px;letter-spacing:.14em;opacity:.65}.dd-ddai header button{border:0;background:none;color:inherit;font-size:26px;padding:3px 6px}.dd-ddai p{font:12px/1.6 var(--ds-font-text)}.dd-ddai-question{white-space:pre-wrap;overflow-wrap:anywhere;padding:14px;border-radius:14px;background:var(--lg-control);max-height:120px;overflow:auto}.dd-ddai-answer{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.65 var(--ds-font-text);padding:17px 0}.dd-ddai .dd-ddai-note{font-size:10px;opacity:.65;margin-top:18px}.dd-ddai>.dd-btn{margin:6px 6px 0 0}
+.dd-slash-commands { flex:none;margin:0 10px 8px;border:1px solid var(--lg-edge,#e4d6db);border-radius:18px;background:var(--lg-fallback,#fffaf5);color:var(--lg-ink,#594553);overflow:hidden;box-shadow:0 5px 20px var(--lg-shadow,#0001); }
+.dd-slash-commands header { display:flex;justify-content:space-between;align-items:center;padding:7px 12px 3px;font:10px var(--ds-font-text);color:var(--lg-muted); }
+.dd-slash-commands header button { border:0;background:none;color:inherit;font:20px/1 var(--ds-font-text);padding:0 3px;min-width:28px;min-height:28px; }
+.dd-slash-commands>div { max-height:min(290px,34dvh);overflow-y:auto;overscroll-behavior:contain; }
+.dd-slash-commands>div>button { display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:41px;padding:9px 13px;border:0;background:transparent;color:inherit;text-align:left;box-shadow:none;font:12px var(--ds-font-text);border-radius:0; }
+.dd-slash-commands>div>button strong { font-weight:600;white-space:nowrap; }
+.dd-slash-commands>div>button span { font-size:11px;opacity:.65;text-align:right; }
+.dd-slash-commands>div>button:disabled { opacity:.45;cursor:not-allowed; }
+.dd-slash-commands>div>button:not(:disabled):hover,.dd-slash-commands>div>button:focus-visible { background:var(--lg-control,#f2e7ec); }
