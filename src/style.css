@@ -2047,3 +2047,10 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-story-header button.dd-story-header-avatar:focus-visible{outline:2px solid white;outline-offset:4px}
 .dd-story-replace-note{font-size:12px;line-height:1.5;opacity:.65;padding:0 16px;margin:0 0 14px}
 .dd-story-header button.dd-story-header-avatar{pointer-events:auto}
+/* Live mic levels, measured locally and shown only during recording. */
+.dd-voice-live-wave{height:43px;display:flex;align-items:center;overflow:hidden;margin:4px 0 13px;padding:0 2px;color:var(--lg-ink,#a0506d)}
+.dd-voice-live-wave>.dd-voice-wave{display:flex;align-items:center;justify-content:space-between;gap:3px;width:100%;height:38px;flex:1;min-width:0;overflow:hidden}
+.dd-voice-live-wave .dd-voice-wave i{display:block;width:auto;flex:1;max-width:7px;min-width:2px;background:currentColor;border-radius:4px;opacity:.8;transition:height 100ms linear}
+.dd-voice-live-wave.is-unavailable{opacity:.3}
+.dd-voice-meter-note{font-size:11px!important;line-height:1.5;opacity:.65}
+@media(prefers-reduced-motion:reduce){.dd-voice-live-wave .dd-voice-wave i{transition:none}}
