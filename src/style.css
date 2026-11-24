@@ -1927,3 +1927,53 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-chat-banner-duration span { display:block; width:100%; height:100%; background:var(--lg-ink,#594553); opacity:.7; transform-origin:left; }
 .dd-chat-banner:has(.dd-chat-banner-duration) { padding-bottom:13px; }
 .dd-song-taste-toggle{display:flex;align-items:flex-start;gap:10px;font-size:13px;margin:18px 0;line-height:1.5}.dd-song-taste-toggle input{margin-top:3px;flex:none}.dd-song-taste-preview{margin-top:18px}.dd-song-taste-preview>summary{cursor:pointer;font-size:13px}
+
+/* Profile: familiar social layout, scoped away from theme and safe areas. */
+.dd-profile-page.dd-profile-page{max-width:850px}
+.dd-profile-instabar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:62px;margin-bottom:18px}
+.dd-profile-instabar>div,.dd-profile-instabar nav{display:flex;align-items:center;gap:10px}
+.dd-profile-instabar h1{font-family:inherit;font-size:23px;letter-spacing:-.6px;margin:0;font-weight:750}
+.dd-profile-instabar a{color:inherit;display:grid;place-items:center;min-height:44px;min-width:38px;text-decoration:none}
+.dd-profile-instabar nav{gap:10px}
+.dd-profile-identity{padding:8px 0 22px}
+.dd-profile-overview{display:flex;align-items:center;gap:24px}
+.dd-profile-overview .dd-profile-photo-open{flex-shrink:0;padding:4px;border:1px solid rgba(150,130,140,.3)}
+.dd-profile-overview .dd-avatar-lg{width:88px;height:88px;font-size:32px}
+.dd-profile-stats{display:flex;flex:1;justify-content:space-around;gap:10px;min-width:0}
+.dd-profile-stats>a,.dd-profile-stats>button{color:inherit;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0;border:0;background:none;box-shadow:none;min-height:56px;cursor:pointer;font:inherit;line-height:1.4;min-width:0}
+.dd-profile-stats strong{font-size:20px;font-weight:750;font-variant-numeric:tabular-nums}
+.dd-profile-stats span{font-size:13px;white-space:nowrap}
+.dd-profile-intro{margin-top:17px}
+.dd-profile-intro h2{font-size:15px;line-height:1.5;margin:0;font-weight:750}
+.dd-profile-page .dd-profile-bio{max-width:none;margin:3px 0 5px;line-height:1.55;font-size:14px;text-align:left}
+.dd-profile-muted{font-size:14px;opacity:.65;margin:4px 0}
+.dd-profile-private{display:flex;align-items:center;gap:5px;font-size:11px;opacity:.6;margin:9px 0 0}
+.dd-profile-music-link{display:flex;align-items:center;gap:7px;border:0;background:none;box-shadow:none;color:inherit;padding:3px 0;font:inherit;font-size:13px;text-align:left;max-width:100%;cursor:pointer}
+.dd-profile-music-link>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-profile-music-link small{font:inherit;opacity:.7}
+.dd-profile-actions{display:flex;gap:8px;margin-top:16px}
+.dd-profile-actions>button,.dd-profile-actions>a{flex:1;display:flex;align-items:center;justify-content:center;min-height:36px;background:rgba(var(--dd-glass,255,250,247),.5);border:1px solid rgba(150,130,140,.22);border-radius:8px;box-shadow:none;padding:7px 10px;font:inherit;font-size:13px;font-weight:650;color:inherit;text-decoration:none;cursor:pointer}
+.dd-profile-actions>button:disabled{opacity:.5;cursor:default}
+.dd-profile-tabs{display:flex;border-bottom:1px solid rgba(150,130,140,.25);margin:0 0 2px}
+.dd-profile-tabs>button{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;flex:1;min-height:52px;padding:12px 4px;background:none;border:0;box-shadow:none;color:inherit;opacity:.5;cursor:pointer;border-radius:0;font:inherit;font-size:12px;font-weight:650}
+.dd-profile-tabs>button[aria-selected=true]{opacity:1}
+.dd-profile-tabs>button[aria-selected=true]:after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:currentColor}
+.dd-profile-page [hidden]{display:none!important}
+.dd-profile-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+.dd-profile-tile{position:relative;aspect-ratio:3/4;display:block;overflow:hidden;background:rgba(150,130,140,.1);color:inherit;text-decoration:none}
+.dd-profile-tile .dd-feed-photo{width:100%;height:100%;aspect-ratio:auto;border-radius:0}
+.dd-profile-tile .dd-feed-photo img{width:100%;height:100%;object-fit:cover}
+.dd-profile-tile .dd-feed-photo-loading{font-size:11px;text-align:center;padding:8px;box-sizing:border-box}
+.dd-profile-multiple{position:absolute;right:8px;top:6px;color:white;text-shadow:0 1px 5px #000;font-size:23px;pointer-events:none}
+.dd-profile-state{text-align:center;padding:28px 16px;font-size:13px;opacity:.75}
+.dd-profile-empty{text-align:center;padding:52px 16px 44px}
+.dd-profile-empty>span{display:grid;place-items:center;width:60px;height:60px;border:2px solid currentColor;border-radius:50%;font-size:38px;margin:0 auto 16px;line-height:1}
+.dd-profile-empty h2{font-size:25px;letter-spacing:-.6px;margin:0 0 8px}
+.dd-profile-empty p{font-size:13px;opacity:.65;line-height:1.6;max-width:270px;margin:0 auto 14px}
+.dd-profile-empty a{font-size:13px;font-weight:650;color:inherit}
+.dd-profile-content{padding-top:20px}
+.dd-profile-content>.dd-streak{margin-bottom:20px}
+.dd-profile-page .dd-profile-song-panel{margin-top:18px}
+.dd-profile-more{display:block;margin:20px auto}
+@media(min-width:700px){.dd-profile-identity{padding:20px 30px 30px}.dd-profile-overview{gap:50px}.dd-profile-overview .dd-avatar-lg{width:130px;height:130px;font-size:48px}.dd-profile-intro{margin-left:190px;margin-top:-30px;position:relative}.dd-profile-overview{align-items:flex-start}.dd-profile-stats{max-width:420px;padding-top:10px}.dd-profile-stats span{font-size:14px}.dd-profile-actions{margin-left:190px;max-width:360px}.dd-profile-tabs{margin-top:10px}.dd-profile-instabar{padding:0 28px}}
+@media(max-width:430px){.dd-profile-page.dd-profile-page{padding-left:16px;padding-right:16px}.dd-profile-overview{gap:16px}.dd-profile-overview .dd-avatar-lg{width:76px;height:76px}.dd-profile-stats{gap:6px}.dd-profile-stats strong{font-size:19px}.dd-profile-stats span{font-size:11px}.dd-profile-tabs>button span{position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}.dd-profile-grid{margin-left:-14px;margin-right:-14px}.dd-profile-instabar{margin-bottom:9px}.dd-profile-instabar h1{font-size:21px}}

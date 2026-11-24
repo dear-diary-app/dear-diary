@@ -1,15 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth, useStore } from "./store";
 import { personById, otherId, todayKey, PersonId } from "./model";
-import { Avatar, TopBar, useNow } from "./ui";
+import { useNow } from "./ui";
 import { ProfileSongReactions } from "./ProfileSongReactions";
 import { ProfilePhoto } from "./ProfilePhoto";
 import { ProfileCrop } from "./ProfileCrop";
 import { ProfileStreak, useProfileStreaks } from "./ProfileStreak";
 import { supabase } from "./lib/supabase";
 import { Song, SongPicker, SongPill, cleanSong } from "./Song";
-import { ChevronRight } from "./icons";
+import { Bell, Gear, Lock, ChevronLeft } from "./icons";
+import { ProfilePosts } from "./ProfilePosts";
 const MOODS = ["", "😊", "💛", "🌧️", "🌙", "📚", "☕", "🎵", "🌿"];
 export function ProfilePage() {
   const { me } = useAuth(),
@@ -24,6 +25,10 @@ function ProfileBody({ who }: { who: PersonId }) {
   const own = who === me,
     p = personById(who),
     partner = personById(otherId(me!));
+  const [tab, setTab] = useState<"posts" | "music" | "about">("posts");
+  const [postCount, setPostCount] = useState<number | null>(null);
+  const [friendCount, setFriendCount] = useState<number | null>(null);
+  const countPosts = useCallback((n: number | null) => setPostCount(n), []);
   const [bio, setBio] = useState(""),
     [mood, setMood] = useState(""),
     [saved, setSaved] = useState({ bio: "", mood: "" }),
@@ -87,6 +92,13 @@ function ProfileBody({ who }: { who: PersonId }) {
       live = false;
     };
   }, [who, retry]);
+  useEffect(() => {
+    let active = true;
+    void supabase.from("friendship").select("user1_id,user2_id").maybeSingle().then(r => {
+      if (active) setFriendCount(r.error ? null : r.data ? 1 : 0);
+    });
+    return () => { active = false; };
+  }, []);
   const songDirty = JSON.stringify(songDraft) !== JSON.stringify(song);
   const dirty = bio !== saved.bio || mood !== saved.mood || songDirty;
   useEffect(() => {
@@ -147,6 +159,9 @@ function ProfileBody({ who }: { who: PersonId }) {
     const timer = window.setTimeout(expire, delay);
     return () => window.clearTimeout(timer);
   }, [expires, own]);
+  useEffect(() => {
+    if (tab !== "music") window.dispatchEvent(new Event("dd-page-lock"));
+  }, [tab]);
   const saveSong = async () => {
     if (!own || songBusy) return;
     setSongBusy(true);
@@ -212,57 +227,34 @@ function ProfileBody({ who }: { who: PersonId }) {
       className="dd-shell dd-shell-narrow dd-profile-page"
       data-profile-dirty={dirty || busy || songBusy ? "true" : undefined}
     >
-      <TopBar />
-      <header className="dd-profile-title">
-        <div>
-          <h1 className="dd-title">
-            {own ? "Your profile" : `${p.name}'s profile`}
-          </h1>
-          <p className="dd-sub">A little about {own ? "you" : p.name}</p>
-        </div>
-        <Link
-          className="dd-chip"
-          to={own ? `/profile/${partner.id}` : "/profile"}
-        >
-          {own ? `View ${partner.name}` : "Your profile"}
-          <ChevronRight size={16} />
-        </Link>
+      <header className="dd-profile-instabar">
+        <div>{!own && <Link to="/profile" aria-label="Back to your profile"><ChevronLeft size={25}/></Link>}<Lock size={17}/><h1>{who}</h1></div>
+        <nav aria-label="Profile controls"><Link to="/inbox" aria-label="Notification inbox"><Bell size={24}/></Link><Link to="/settings" aria-label="Profile and settings"><Gear size={24}/></Link></nav>
       </header>
-      <section className="dd-card dd-profile-hero">
-        <ProfilePhoto person={p} />
-        <h2>
-          {p.name}{" "}
-          {saved.mood && <span aria-label="Current mood">{saved.mood}</span>}
-        </h2>
-        <p className="dd-card-sub">
-          {own ? "Visible to you and your friend" : "Your friend"}
-        </p>
-        {saved.bio ? (
-          <p className="dd-profile-bio">{saved.bio}</p>
-        ) : (
-          !loading &&
-          !error && (
-            <p className="dd-card-sub">
-              {own ? "Your story, in a few words." : "No bio yet."}
-            </p>
-          )
-        )}
-        {own && !editing && (
-          <button
-            className="dd-btn dd-btn-primary"
-            disabled={loading || !!error}
-            onClick={() => setEditing(true)}
-          >
-            Edit profile
-          </button>
-        )}
-        <ProfileStreak
-          streak={streak.streaks[who]}
-          failed={streak.failed}
-          retry={streak.retry}
-          own={own}
-        />
+      <section className="dd-profile-identity" aria-label={`${p.name}'s profile`}>
+        <div className="dd-profile-overview"><ProfilePhoto person={p}/><div className="dd-profile-stats">
+          <button onClick={() => setTab("posts")}><strong>{postCount ?? "···"}</strong><span>posts</span></button>
+          <button onClick={() => setTab("about")}><strong>{streak.failed ? "···" : streak.streaks[who]?.current_streak ?? "···"}</strong><span>day streak</span></button>
+          <Link to={own ? `/profile/${partner.id}` : "/profile"}><strong>{friendCount ?? "···"}</strong><span>{friendCount === 1 ? "friend" : "friends"}</span></Link>
+        </div></div>
+        <div className="dd-profile-intro"><h2>{p.name} {saved.mood && <span aria-label="Current mood">{saved.mood}</span>}</h2>
+          {saved.bio ? <p className="dd-profile-bio">{saved.bio}</p> : !loading && !error && <p className="dd-profile-muted">{own ? "Your story, in a few words." : "No bio yet."}</p>}
+          {song && !expired && <button className="dd-profile-music-link" onClick={() => setTab("music")}><span aria-hidden="true">♫</span><span>{song.name} <small>· {song.artist}</small></span></button>}
+          <p className="dd-profile-private"><Lock size={11}/> Private · Only you two</p>
+        </div>
+        <div className="dd-profile-actions">
+          {own ? <button disabled={loading || !!error} onClick={() => { setEditing(true); setTab("about"); }}>Edit profile</button> : <Link to="/chat">Message</Link>}
+          <Link to={own ? `/profile/${partner.id}` : "/profile"}>{own ? `View ${partner.name}` : "Your profile"}</Link>
+        </div>
       </section>
+      <div className="dd-profile-tabs" role="tablist" aria-label="Profile sections">
+        {([ ["posts", "Posts"], ["music", "Music"], ["about", "About"] ] as const).map(([id, label], index) => <button key={id} id={`profile-tab-${id}`} role="tab" aria-selected={tab === id} aria-controls={`profile-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)} onKeyDown={e => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) { e.preventDefault(); const ids = ["posts", "music", "about"] as const; const next = e.key === "Home" ? 0 : e.key === "End" ? 2 : (index + (e.key === "ArrowRight" ? 1 : 2)) % 3; setTab(ids[next]); document.getElementById(`profile-tab-${ids[next]}`)?.focus(); } }}><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">{id === "posts" ? <><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></> : id === "music" ? <><path d="M9 18V5l11-2v13M9 9l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/></> : <><rect x="4" y="4" width="16" height="17" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 19c0-6 10-6 10 0M9 4V2h6v2"/></>}</svg><span>{label}</span></button>)}
+      </div>
+      <section id="profile-panel-posts" role="tabpanel" aria-labelledby="profile-tab-posts" hidden={tab !== "posts"}>
+        {profileUID ? <ProfilePosts uid={profileUID} own={own} onCount={countPosts}/> : <div className="dd-profile-state" role={error ? "alert" : "status"}>{error || "Loading posts..."}{error && <button className="dd-btn" onClick={() => setRetry(x => x + 1)}>Retry profile</button>}</div>}
+      </section>
+      <div id="profile-panel-about" role="tabpanel" aria-labelledby="profile-tab-about" hidden={tab !== "about"} className="dd-profile-content">
+      <ProfileStreak streak={streak.streaks[who]} failed={streak.failed} retry={streak.retry} own={own}/>
       {loading ? (
         <section className="dd-card" role="status">
           Loading profile...
@@ -368,7 +360,8 @@ function ProfileBody({ who }: { who: PersonId }) {
           )}
         </section>
       ) : null}
-      <section className="dd-card">
+      </div>
+      <section id="profile-panel-music" role="tabpanel" aria-labelledby="profile-tab-music" hidden={tab !== "music"} className="dd-card dd-profile-song-panel">
         <h2 className="dd-card-title">
           {own ? "Your song" : "Song of the day"}
         </h2>
