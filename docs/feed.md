@@ -1,6 +1,6 @@
 # Private Home feed
 
-Permanent photo posts for the two linked accounts, displayed below Home's date/status area. No videos. A post has 1 to 3 photos and an optional song, selected with the existing SongPicker without changing profile code. Photos are decoded, resized to at most 1600px, and JPEG-encoded locally (dropping EXIF); the service checks JPEG headers, dimensions and 5 MiB/file limits. No captions were requested.
+Permanent photo posts for the two linked accounts, displayed below Home's date/status area. No videos. A post has 1 to 3 photos and an optional song, selected with the existing SongPicker without changing profile code. Photos are decoded, resized to at most 1600px, and JPEG-encoded locally (dropping EXIF); the service checks JPEG headers, dimensions and 5 MiB/file limits. An optional caption up to 1,000 characters is set when posting and displayed below photos/song. Existing posts have an empty caption. Text stays plain, with line breaks preserved.
 
 ## Privacy and lifecycle
 - Existing sign-in and app-entry PIN gate wraps Home, post deep links and Chat.
@@ -24,3 +24,5 @@ Stage 2: rollback SQL tested pair/outsider visibility, idempotent comment UUID, 
 Stage 3: rollback SQL tested outbox creation, single claim, replay prevention, opt-out and burst limit, with no committed dispatch. A sandbox service-worker test checked generic feed alert and exact-post click target. Existing foreground-chat-push regression tests passed. No real user content/PINs/device pushes used. Physical phone delivery is not verified.
 
 Migrations: 0044 feed, 0045 social, 0046 push. Services: feed-media, send-feed-push. No theme-color/safe-area or profile-picker changes.
+
+Caption follow-up: migration 0047 adds the bounded caption column. Both media service and database enforce the limit. Client uses a bounded textarea and retains text after failed posting.
