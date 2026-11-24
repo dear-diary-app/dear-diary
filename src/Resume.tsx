@@ -7,7 +7,7 @@ export function ResumePlace({children}:{children:React.ReactNode}){
  const {session}=useAuth(),uid=session!.user.id,loc=useLocation(),nav=useNavigate();
  const key=`dd_place_${uid}`,started=useRef(false);
  useEffect(()=>{
-  if(!started.current){started.current=true;try{const p=localStorage.getItem(key);if(loc.pathname==='/'&&p&&allowed(p)&&p!=='/'){nav(p,{replace:true});return;}}catch{}}
+  if(!started.current){started.current=true;try{const p=localStorage.getItem(key);if(loc.pathname==='/'&&!new URLSearchParams(loc.search).has('story')&&p&&allowed(p)&&p!=='/'){nav(p,{replace:true});return;}}catch{}}
   if(allowed(loc.pathname))try{localStorage.setItem(key,loc.pathname);}catch{}
  },[loc.pathname,key,nav]);
  useEffect(()=>{
