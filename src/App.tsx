@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, StoreProvider, isUnlocked, useAuth } from './store';
 import { PersonId, publishWaitMs, schedule, otherId, personById } from './model';
 import { ChatProvider } from './ChatStore';
+import { ChatBanner } from './ChatBanner';
 import { ChatView } from './Chat';
 import { useNow } from './ui';
 import { AppEntryGate, Calendar, ChangePassword, ChangePin, Home, HowToUse, Hub, Login, Notifications, Pin, Read, Settings, Write } from './screens';
@@ -105,6 +106,7 @@ function Shell() {
                 <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
                 <ResumePlace><AppEntryGate>
                 <ChatProvider uid={auth.session.user.id}>
+                <ChatBanner/>
                 <TabSwipe><div className="dd-with-nav">
                 <PageSlide>{location => <Routes location={location}>
                     <Route path="/" element={<Home />} />

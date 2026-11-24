@@ -35,6 +35,7 @@ const dropMessage = (list: ChatMsg[], id: string) => list.filter(m => m.id !== i
 export interface ChatApi {
     uid: string; messages: ChatMsg[]; loaded: boolean; loadError: boolean; hasMore: boolean; live: boolean; partnerTyping: boolean; partnerOnline: boolean; unread: number;
     send: (body: string, sticker?: string | null, replyTo?: string | null,effect?:MessageEffect|null) => void;
+    replyFromBanner: (body:string,replyTo:string)=>Promise<boolean>;
     sendGif: (id: string, replyTo?: string | null, messageId?: string) => Promise<boolean>;
     sendWeather:(weather:ChatWeather,replyTo?:string|null)=>void;
     sendSong: (song:Song,replyTo?:string|null)=>void;
@@ -201,6 +202,12 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             const m: ChatMsg = { id: crypto.randomUUID(), sender_id: uid, recipient_id: partner.current ?? '', effect:sticker?null:cleanEffect(effect),body: sticker ? '' : text, sticker, gif_id: null, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: [], state: 'sending' };
             setMessages(prev => [...prev, m].sort(byTime));
             insert(m);
+        },
+        replyFromBanner: async (body,replyTo)=>{
+            const text=body.trim().slice(0,2000),target=list.current.find(m=>m.id===replyTo);
+            if(!text||!target||target.sender_id===uid||target.recipient_id!==uid||!partner.current)return false;
+            const m:ChatMsg={id:crypto.randomUUID(),sender_id:uid,recipient_id:partner.current,body:text,sticker:null,gif_id:null,reply_to:replyTo,reactions:{},created_at:new Date().toISOString(),seen_at:null,edited_at:null,images:[],state:'sending'};
+            setMessages(prev=>[...prev,m].sort(byTime));return insert(m);
         },
         sendGif: async (gif_id, replyTo = null, messageId = crypto.randomUUID()) => {
             if (!isGifId(gif_id)) return false;
