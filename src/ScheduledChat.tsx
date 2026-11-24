@@ -1,20 +1,24 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import { XIcon } from "./icons";
-type Item = { id: string; body: string; send_at: string; state: string };
+import {cleanEffect,emojiTokens,effectName,type MessageEffect} from "./ChatEffects";
+type Item = { id: string; body: string; send_at: string; state: string; effect: MessageEffect|null };
 const localIST = (time: number) =>
   new Date(time + 330 * 60000).toISOString().slice(0, 16);
 export function ScheduledChat({
+  initialEffect,
   draft,
   blocked,
   request,
   onSaved,
 }: {
+  initialEffect?: MessageEffect|null;
   draft: string;
   blocked: boolean;
   request: number;
   onSaved: () => void;
 }) {
+  const [effect,setEffect]=useState<MessageEffect|null>(null);
   const [items, setItems] = useState<Item[]>([]),
     [open, setOpen] = useState(false),
     [body, setBody] = useState(""),
@@ -30,7 +34,7 @@ export function ScheduledChat({
   const refresh = async () => {
     const r = await supabase
       .from("chat_scheduled")
-      .select("id,body,send_at,state")
+      .select("id,body,send_at,state,effect")
       .in("state", ["pending", "failed"])
       .order("send_at");
     if (r.error) setLoadError("Scheduled messages could not load.");
@@ -67,6 +71,7 @@ export function ScheduledChat({
     setId(crypto.randomUUID());
     setEditing(false);
     setBody(draft.trim());
+    setEffect(cleanEffect(initialEffect));
     setAt(localIST(Date.now() + 5 * 60000));
     setOpen(true);
   }, [request]);
@@ -90,6 +95,7 @@ export function ScheduledChat({
       p_id: id,
       p_body: body,
       p_at: time.toISOString(),
+      p_effect: effect,
     });
     setBusy(false);
     if (r.error) {
@@ -137,13 +143,14 @@ export function ScheduledChat({
                 })}{" "}
                 IST
               </strong>
-              <p>{v.body}</p>
+              <p>{v.body}{v.effect?` · ${effectName(v.effect)}`:""}</p>
               <div>
                 <button
                   disabled={busy}
                   onClick={() => {
                     setId(v.id);
                     setBody(v.body);
+                    setEffect(cleanEffect(v.effect));
                     setAt(
                       localIST(
                         Math.max(Date.parse(v.send_at), Date.now() + 5 * 60000),
@@ -197,6 +204,8 @@ export function ScheduledChat({
             unavailable.
           </p>
           <p className="dd-schedule-text">{body}</p>
+          <label className="dd-field"><span>Message effect</span><select aria-label="Scheduled message effect" value={effect||''} disabled={busy} onChange={e=>setEffect(cleanEffect(e.target.value))}><option value="">None</option><option value="blur">Blur</option><option value="bubbles" disabled={!emojiTokens(body).length}>Bubbles</option></select></label>
+          {effect==='bubbles'&&<p>Bubbles will play when your friend first views this delivered message. Replay stays available.</p>}
           <label className="dd-field">
             <span>Send at (IST)</span>
             <input

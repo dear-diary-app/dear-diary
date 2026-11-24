@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'scheduled-effects-fix', emoji: '🫧', title: 'Scheduled effects stay with the message', text: 'Choosing Bubbles or Blur before Schedule now keeps that effect through delivery and changes of time. The schedule window also has a Message effect choice. Bubbles is for emoji-only messages and plays when your friend first views the delivered message.' },
         { id: 'voicelock-pin', emoji: '🔐', title: 'PIN-protected voice-lock setting', text: 'Turning Voice lock off in Settings now asks for your existing diary PIN. Turning it on does not. Cancel, wrong PIN or a failed check leaves it unchanged. Spoken unlock now does nothing. Turn it off in Settings with your PIN.' },
         { id: 'voicelock-notice', emoji: '🎙️', title: 'A quieter voice-lock notice', text: 'The mic notice fades away after 2 seconds. Listening continues until you turn it off in Settings with your PIN. Errors stay visible; your phone may still show its own mic indicator.' },
         { id: 'voicelock', emoji: '🎙️', title: 'Say lock, show the PIN screen', text: 'Optional Voice lock in Settings is off by default. While on and in the foreground, say the English word lock to lock the app. Unlock does nothing; turn listening off in Settings with your PIN. Browser speech services may process audio; recognition is not guaranteed.' },
