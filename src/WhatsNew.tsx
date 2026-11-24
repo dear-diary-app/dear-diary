@@ -9,6 +9,7 @@ export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
     { date: '2026-11-24', label: 'Tuesday, 24 November', features: [
+        { id: 'floating-story-reactions', emoji: '❤️', title: 'Story reactions float up', text: 'A successfully sent story reaction now sends a little burst of that emoji upward before fading away. Open your own story to see your friend’s saved reaction float up too. Activity still keeps the reaction. Reduced-motion mode uses a gentle fade instead.' },
         { id: 'live-recording-wave', emoji: '🎙️', title: 'See your voice while recording', text: 'The recording panel now shows a live waveform that responds to microphone sound. Quiet audio stays near the baseline; louder audio makes taller bars. Stop to listen back before sending. If live levels are unavailable in your browser, recording still works with a clear note.' },
         { id: 'one-tap-voice', emoji: '🎙️', title: 'One tap to start a voice note', text: 'Tap the mic in Chat to start recording without a second Start tap. Allow microphone access if your browser asks. Stop to listen back, then tap Send voice note when ready. Cancel discards it; nothing sends automatically.' },
         { id: 'banner-open-chat', emoji: '💬', title: 'Tap a message banner to open Chat', text: 'Tapping the name or message in an in-app message banner now opens your chat. The separate Reply button still opens a quick reply without leaving your page, and × only dismisses the banner.' },

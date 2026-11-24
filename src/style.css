@@ -2054,3 +2054,11 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-voice-live-wave.is-unavailable{opacity:.3}
 .dd-voice-meter-note{font-size:11px!important;line-height:1.5;opacity:.65}
 @media(prefers-reduced-motion:reduce){.dd-voice-live-wave .dd-voice-wave i{transition:none}}
+
+/* Decorative story reactions never intercept playback gestures or controls. */
+.dd-story-emoji-burst { position:absolute;left:22%;bottom:calc(140px + env(safe-area-inset-bottom,0px));width:1px;height:1px;pointer-events:none;z-index:4;animation:dd-story-burst-lifetime 1900ms linear both; }
+.dd-story-emoji-burst span { position:absolute;left:0;bottom:0;font:36px/1.2 sans-serif;filter:drop-shadow(0 2px 5px #0004);opacity:0;animation:dd-story-emoji-float 1400ms cubic-bezier(.2,.6,.3,1) var(--float-delay) both;will-change:transform,opacity; }
+@keyframes dd-story-emoji-float { 0% { opacity:0;transform:translate(-50%,12px) scale(.45); } 15% { opacity:1;transform:translate(calc(-50% + var(--float-x)), -28px) scale(1.12); } 42% { opacity:1; } 100% { opacity:0;transform:translate(calc(-50% + var(--float-x)), -240px) scale(.78) rotate(var(--float-turn)); } }
+@keyframes dd-story-burst-lifetime { from { visibility:visible; } to { visibility:visible; } }
+@media (prefers-reduced-motion:reduce) { .dd-story-emoji-burst { animation-duration:900ms; }.dd-app .dd-story-emoji-burst span { animation:dd-story-emoji-fade 600ms ease-out both!important; }.dd-story-emoji-burst span:not(:first-child) { display:none; } }
+@keyframes dd-story-emoji-fade { 0%,65% { opacity:1;transform:translate(-50%,-30px); } 100% { opacity:0;transform:translate(-50%,-30px); } }
