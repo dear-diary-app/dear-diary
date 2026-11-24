@@ -27,3 +27,7 @@ Pointer-down on non-control story area pauses immediately and captures that poin
 ## Familiar story layout and Activity
 
 Single active story means one thin progress segment at the top. Header includes Back, current avatar/initial, owner name and compact age, plus own-avatar badge. Owner bottom tools Activity/Share/Copy/More; More contains Replace/Delete and pauses playback. Partner bottom tools open private chat composer (empty, no automatic send) plus Share/Copy and existing emoji row. No boost/music/mentions added. View is marked only when playback emits playing; paired expiry-scoped RLS/RPC records one viewer, owner can inspect Activity with current reaction. Replacement resets and deletion cascades views. Rollback test checked paired mark/owner read, idempotency, outsider denied and replacement reset. 390/820 synthetic layout and hold tests passed both roles, screenshots inspected. Chat composer route uses existing explicit Send; no story message generated or sent.
+
+## Reaction implies viewed
+
+Activity previously depended only on the new story_views table, so an existing reaction could show beside not-viewed. story_react now inserts the matching view atomically, active reactions were backfilled, and Activity treats a same-story reaction as sufficient evidence even if a legacy view row is absent. Rollback synthetic test checked reaction creates view; UI fixture with no view row plus heart displays Viewed. No system-bar, theme-color or safe-area changes in this fix. Reference screenshot inspected and deleted.
