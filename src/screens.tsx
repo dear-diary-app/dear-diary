@@ -1,3 +1,4 @@
+import{Instants}from'./Instants';
 import {SongTasteSettings} from './SongTaste';
 import { PageLockedContext, useDesktopIdle, usePageLocked } from './DesktopIdleLock';
 import {Feed} from './Feed';
@@ -133,7 +134,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
     return <PageLockedContext.Provider value={idleLocked}><VoiceLockProvider person={auth.me!} uid={auth.session!.user.id} active={stage==='open'&&!idleLocked} onLock={lock}>
         {stage==='pin'?<Pin person={auth.me!} appEntry onEntryUnlock={()=>setStage('open')}/>:<>
             {idleLocked&&<><p className="dd-idle-notice" role="status">Locked after 2 minutes of inactivity. Enter your PIN to return. Unsent drafts stay on this page.</p><Pin person={auth.me!} appEntry onEntryUnlock={resume}/></>}
-            <div hidden={idleLocked} {...(idleLocked?{inert:''}:{})} aria-hidden={idleLocked||undefined}>{children}</div>
+            <Instants/><div hidden={idleLocked} {...(idleLocked?{inert:''}:{})} aria-hidden={idleLocked||undefined}>{children}</div>
         </>}
     </VoiceLockProvider></PageLockedContext.Provider>;
 }
@@ -151,7 +152,7 @@ export function Home() {
         <main className="dd-shell dd-home-page">
             {!profileFeed&&<TopBar alert={store.unreadAny(now)} social />}
             <div className="dd-anim" key="home">
-                {!profileFeed&&<><Stories/>
+                {!profileFeed&&<><Stories/><div id="dd-instants-home"/>
                 <aside className="dd-home-diary-area" aria-label="Diary shortcuts and schedule">
                   <section className="dd-home-diary-shortcuts" aria-label="Your two diaries">
                     {peopleOwnFirst(auth.me).map(p => <Link key={p.id} to={`/pin/${p.id}`} className="dd-home-diary-link"><Avatar person={p} size="sm"/><span><strong>{p.id === auth.me ? "Your diary" : `${p.name}'s diary`}</strong><small>{store.unreadLatest(otherId(p.id), now) ? "New page" : "Open diary"}</small></span><BookOpen size={18}/></Link>)}
