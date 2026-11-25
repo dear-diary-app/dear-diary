@@ -109,10 +109,10 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
     const dialogs = useRef<HTMLDialogElement[]>([]);
     const clearUnlocks = () => { for (const person of ['joydeep','aruba']) { try { sessionStorage.removeItem('dd_unlocked_'+person); } catch {} } };
     const pauseMedia = () => { window.dispatchEvent(new Event('dd-page-lock')); document.querySelectorAll('audio,video').forEach(el => (el as HTMLMediaElement).pause()); };
-    const lock=()=>{clearUnlocks();document.querySelectorAll('dialog[open]').forEach(d=>(d as HTMLDialogElement).close());setIdleLocked(false);flushSync(()=>setStage('pin'));};
+    const lock=()=>{clearUnlocks();document.querySelectorAll('dialog[open]:not(#dd-privacy-cover)').forEach(d=>(d as HTMLDialogElement).close());setIdleLocked(false);flushSync(()=>setStage('pin'));};
     const idleLock = () => {
         clearUnlocks(); pauseMedia();
-        dialogs.current = Array.from(document.querySelectorAll<HTMLDialogElement>('dialog[open]'));
+        dialogs.current = Array.from(document.querySelectorAll<HTMLDialogElement>('dialog[open]:not(#dd-privacy-cover)'));
         dialogs.current.forEach(d => d.close());
         (document.activeElement as HTMLElement|null)?.blur();
         flushSync(() => setIdleLocked(true));
@@ -121,7 +121,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (!idleLocked) return;
         const pause = (e: Event) => { if(e.target instanceof HTMLMediaElement)e.target.pause(); };
-        const coverDialogs=()=>{document.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach(d=>{if(!dialogs.current.includes(d))dialogs.current.push(d);d.close();});};
+        const coverDialogs=()=>{document.querySelectorAll<HTMLDialogElement>('dialog[open]:not(#dd-privacy-cover)').forEach(d=>{if(!dialogs.current.includes(d))dialogs.current.push(d);d.close();});};
         const observer=new MutationObserver(coverDialogs);observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['open'],childList:true});
         document.addEventListener('play',pause,true);
         return () => { observer.disconnect();document.removeEventListener('play',pause,true); };

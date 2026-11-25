@@ -879,9 +879,15 @@ body, #root, .dd-app { min-height:100vh; min-height:100dvh; }
 .dd-app[data-theme="midnight"] .dd-settings-fold-note { color:var(--dd-dark-muted); }
 .dd-theme-picker .dd-settings-fold-content > .dd-card-sub { line-height:1.6; }
 
-/* Privacy blur while the app is minimised or unfocused. No entry transition so the app-switcher snapshot is already blurred. */
-html.dd-away body { filter:blur(26px) saturate(.75); pointer-events:none; user-select:none; -webkit-user-select:none; }
-html:not(.dd-away) body { transition:filter .18s ease; }
+/* Conceal immediately. Cover is outside React and in the top layer above media/dialogs. */
+html.dd-away body>:not(#dd-privacy-cover){opacity:0!important;pointer-events:none!important;user-select:none!important}
+html.dd-away dialog:not(#dd-privacy-cover),html.dd-away [popover]{opacity:0!important;pointer-events:none!important}
+#dd-privacy-cover{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:24px;box-sizing:border-box;border:0;border-radius:0;background:#ded7df;color:#5d4a57;text-align:center;outline:0;z-index:2147483647;overflow:hidden}
+#dd-privacy-cover[open]{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+#dd-privacy-cover::backdrop{background:#ded7df}
+#dd-privacy-cover h1{font:400 34px Georgia,serif;margin:0}
+#dd-privacy-cover p{font:14px system-ui,sans-serif;margin:0;opacity:.75}
+#dd-privacy-cover button{margin-top:12px;padding:13px 25px;border:1px solid #80657755;border-radius:24px;color:inherit;background:#ffffff70;font:15px system-ui,sans-serif;min-height:48px}
 
 /* Song on an entry: a small Instagram-style player card */
 .dd-songbox { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 10px; }
