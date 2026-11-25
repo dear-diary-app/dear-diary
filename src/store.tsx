@@ -1,3 +1,4 @@
+import {listenAndroidPush} from './AndroidPush';
 import {listenForForegroundChatPush} from './foregroundChatPush';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
@@ -31,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [attempt, setAttempt] = useState(0);
     const me = profile?.uid === session?.user.id ? profile?.me ?? null : null;
     useEffect(()=>listenForForegroundChatPush(session?.user.id??null),[session?.user.id]);
+    useEffect(()=>{if(sessionReady)return listenAndroidPush(session?.user.id??null);},[sessionReady,session?.user.id]);
     const ready = sessionReady && (!session || profile?.uid === session.user.id);
 
     useEffect(() => {

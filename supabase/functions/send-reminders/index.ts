@@ -1,3 +1,4 @@
+import {sendAndroid} from '../_shared/android-push.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 const messages:Record<string,string>={
@@ -32,5 +33,10 @@ Deno.serve(async req=>{
    else{await db.from('push_deliveries').delete().eq('subscription_id',row.subscription_id).eq('event',row.event).eq('day',row.day);failed++;}
   }
  }
- return json({sent,failed,expired});
+ let nativeSent=0,nativeFailed=0;
+ if(Deno.env.get('FCM_SERVICE_ACCOUNT')){
+ const {data:nativeRows,error:nativeError}=await db.rpc('claim_android_reminders');
+ if(!nativeError)for(const row of nativeRows||[]){const result=await sendAndroid(db,row.user_id,row.event,row.token);nativeSent+=result.sent;nativeFailed+=result.failed;if(result.failed)await db.from('android_push_deliveries').delete().eq('token',row.token).eq('event',row.event).eq('day',row.day);}
+ }
+ return json({sent,failed,expired,nativeSent,nativeFailed});
 });

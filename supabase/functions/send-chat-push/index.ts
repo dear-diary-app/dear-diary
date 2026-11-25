@@ -1,3 +1,4 @@
+import {sendAndroid} from '../_shared/android-push.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json'}});
@@ -36,5 +37,6 @@ Deno.serve(async req=>{
    if(status===404||status===410){await db.from('push_subscriptions').delete().eq('id',s.id);expired++;}else failed++;
   }
  }
- return json({sent,failed,expired});
+ const native=await sendAndroid(db,target,ack?'scheduled_sent':'chat');
+ return json({sent,failed,expired,native});
 });

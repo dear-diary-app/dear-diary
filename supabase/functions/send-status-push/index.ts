@@ -1,3 +1,4 @@
+import {sendAndroid} from '../_shared/android-push.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json'}});
@@ -28,5 +29,7 @@ Deno.serve(async req=>{
    await webpush.sendNotification({endpoint:sub.endpoint,keys:{p256dh:sub.p256dh,auth:sub.auth}},JSON.stringify({title:'Dear Diary',body:`${name} is free now`,account_id:event.recipient_id,type:'friend_free',reply_action:false,tag:`friend-free-${event.sender_id}`,url:'/dear-diary/#/chat'}),{TTL:120,urgency:'normal',timeout:10000});sent++;
   }catch(err){const status=(err as {statusCode?:number}).statusCode;if(status===404||status===410){await db.from('push_subscriptions').delete().eq('id',sub.id);expired++;}else failed++;}
  }
- return json({sent,failed,expired});
+ const {data:nativeSettings,error:nativeSettingsError}=await db.from('app_settings').select('notifications').eq('user_id',event.recipient_id).maybeSingle();
+ const native=!nativeSettingsError&&nativeSettings?.notifications?.friendFree===true&&nativeSettings?.notifications?.chat!==false?await sendAndroid(db,event.recipient_id,'friend_free'):null;
+ return json({sent,failed,expired,native});
 });

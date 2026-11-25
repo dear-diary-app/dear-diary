@@ -1,3 +1,4 @@
+import {sendAndroid} from '../_shared/android-push.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json'}});
@@ -28,5 +29,7 @@ Deno.serve(async req=>{
    await webpush.sendNotification({endpoint:sub.endpoint,keys:{p256dh:sub.p256dh,auth:sub.auth}},JSON.stringify({title:'Dear Diary',body:event.kind==='reaction'?'Your friend reacted to a feed post.':'Your friend commented on a feed post.',account_id:event.recipient_id,type:'feed',reply_action:false,tag:`feed-${event.post_id}`,post_id:event.post_id}),{TTL:120,urgency:'normal',timeout:10000});sent++;
   }catch(err){const status=(err as {statusCode?:number}).statusCode;if(status===404||status===410){await db.from('push_subscriptions').delete().eq('id',sub.id);expired++;}else failed++;}
  }
- return json({sent,failed,expired});
+ const {data:nativeSettings,error:nativeSettingsError}=await db.from('app_settings').select('notifications').eq('user_id',event.recipient_id).maybeSingle();
+ const native=nativeSettingsError||nativeSettings?.notifications?.feed===false?null:await sendAndroid(db,event.recipient_id,'feed');
+ return json({sent,failed,expired,native});
 });
