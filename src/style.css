@@ -2110,3 +2110,5 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-story-avatar-wrap{position:relative;flex:none}
 .dd-app .dd-story-avatar-wrap>.dd-story-plus{position:absolute;z-index:1;right:-2px;bottom:-2px;width:26px;height:26px;min-height:26px;padding:0;display:grid;place-items:center;border-radius:50%;border:2px solid var(--dd-bg-top,#fdf9f4);background:#4296ed;color:#fff;font:600 21px/1 sans-serif;box-shadow:none;transform:none}
 .dd-app .dd-story-avatar-wrap>.dd-story-plus:focus-visible{outline:2px solid var(--lg-ink);outline-offset:3px}
+.dd-scheduled-list:has(.dd-voice){max-height:280px}
+.dd-scheduled-list article>.dd-voice{margin:8px 0 12px}
