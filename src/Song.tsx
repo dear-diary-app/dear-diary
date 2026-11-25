@@ -89,7 +89,7 @@ if (typeof document !== "undefined")
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) active?.stop();
   });
-if(typeof window!=='undefined'){window.addEventListener('dd-voice-play',()=>active?.stop());window.addEventListener('dd-voice-record',()=>active?.stop());window.addEventListener('dd-page-lock',()=>active?.stop());}
+if(typeof window!=='undefined'){window.addEventListener('dd-song-play',e=>{if((e as CustomEvent).detail!==active?.audio)active?.stop();});window.addEventListener('dd-voice-play',()=>active?.stop());window.addEventListener('dd-voice-record',()=>active?.stop());window.addEventListener('dd-page-lock',()=>active?.stop());}
 function usePreview(url: string) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -155,13 +155,13 @@ function usePreview(url: string) {
       audio.current = a;
     }
     const a = audio.current;
-    window.dispatchEvent(new Event('dd-song-play'));
     if (!a.paused) {
       stop();
       return;
     }
     if (active && active.audio !== a) active.stop();
     active = { audio: a, stop };
+    window.dispatchEvent(new CustomEvent('dd-song-play',{detail:a}));
     setFailed(false);
     if (a.currentTime >= 30 || a.ended) a.currentTime = 0;
     a.play().catch(() => {
@@ -170,6 +170,12 @@ function usePreview(url: string) {
     });
   };
   return { playing, progress, failed, toggle };
+}
+
+// A compact profile-header player, using the same preview rules as the song card.
+export function ProfileSongInline({song,onDetails}:{song:Song;onDetails:()=>void}) {
+ const p=usePreview(song.url);
+ return <div className="dd-profile-song-inline"><div className="dd-profile-song-row"><button type="button" className="dd-profile-song-toggle" aria-label={`${p.playing?'Pause':'Play'} profile song: ${song.name}`} aria-pressed={p.playing} onClick={p.toggle}>{p.playing?<Pause/>:<Play/>}</button><button type="button" className="dd-profile-music-link" onClick={onDetails}><span>{song.name} <small>· {song.artist}</small></span></button></div>{p.failed&&<p role="status">Could not play this song. Tap play to retry.</p>}</div>;
 }
 
 const links = new Map<number, string>();

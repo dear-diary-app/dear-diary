@@ -9,7 +9,7 @@ import { ProfilePhoto } from "./ProfilePhoto";
 import { ProfileCrop } from "./ProfileCrop";
 import { ProfileStreak, useProfileStreaks } from "./ProfileStreak";
 import { supabase } from "./lib/supabase";
-import { Song, SongPicker, SongPill, cleanSong } from "./Song";
+import { Song, SongPicker, SongPill, ProfileSongInline, cleanSong } from "./Song";
 import { Bell, Gear, Lock, ChevronLeft } from "./icons";
 import { ProfilePosts } from "./ProfilePosts";
 const MOODS = ["", "😊", "💛", "🌧️", "🌙", "📚", "☕", "🎵", "🌿"];
@@ -241,7 +241,7 @@ function ProfileBody({ who }: { who: PersonId }) {
         </div></div>
         <div className="dd-profile-intro"><h2>{p.name} {saved.mood && <span aria-label="Current mood">{saved.mood}</span>}</h2>
           {saved.bio ? <p className="dd-profile-bio">{saved.bio}</p> : !loading && !error && <p className="dd-profile-muted">{own ? "Your story, in a few words." : "No bio yet."}</p>}
-          {song && !expired && <button className="dd-profile-music-link" onClick={() => setTab("music")}><span aria-hidden="true">♫</span><span>{song.name} <small>· {song.artist}</small></span></button>}
+          {song && !expired && <ProfileSongInline key={song.url} song={song} onDetails={() => setTab("music")}/>}
           {profileUID&&<ProfileSocialLinks uid={profileUID}/>}
           <p className="dd-profile-private"><Lock size={11}/> Private · Only you two</p>
         </div>
