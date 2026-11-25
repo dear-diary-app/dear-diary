@@ -1,3 +1,4 @@
+import{AndroidUnlock,nativeUnlockAvailable,enrollAndroidUnlock}from'./AndroidUnlock';
 import{DeviceUnlockSettings,DeviceUnlockButton,fingerprintFirst}from'./DeviceUnlock';
 import {SongTasteSettings} from './SongTaste';
 import { PageLockedContext, useDesktopIdle, usePageLocked } from './DesktopIdleLock';
@@ -119,6 +120,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
         flushSync(() => setIdleLocked(true));
     };
     useDesktopIdle(stage === 'open' && !idleLocked, idleLock);
+    useEffect(()=>{const lock=()=>idleLock();window.addEventListener('dd-native-background',lock);return()=>window.removeEventListener('dd-native-background',lock);},[]);
     useEffect(() => {
         if (!idleLocked) return;
         const pause = (e: Event) => { if(e.target instanceof HTMLMediaElement)e.target.pause(); };
@@ -233,7 +235,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
         submitting.current = true; setBusy(true); setError(null);
         try {
             const r = await verifyPin(value, stage === 'enter' ? 'verify' : 'set', person);
-            if (r.ok) { finish(); return; }
+            if (r.ok) { if(appEntry&&nativeUnlockAvailable()&&person===auth.me){try{await enrollAndroidUnlock(auth.session!.user.id,value);}catch{}}finish(); return; }
             if (r.noPin) { setStage(person === auth.me ? 'create' : 'owner'); }
             else setError(r.error === 'locked' ? 'Too many tries - locked for 15 minutes'
                 : r.error === 'wrong' ? 'Not quite - try again' : 'Could not check the PIN - please try again');
@@ -296,7 +298,8 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
                         : `This diary is private - only ${p.name} can set its PIN and open it`}
                 </p>
                 {(stage === 'enter' || stage === 'create' || stage === 'confirm') && (<>
-                {appEntry&&person===auth.me&&stage==='enter'&&<DeviceUnlockButton onPinVisible={setShowPin} onUnlock={finish} disabled={busy||ok}/>}
+                {appEntry&&person===auth.me&&stage==='enter'&&nativeUnlockAvailable()&&<AndroidUnlock uid={auth.session!.user.id} onUnlock={finish}/>}
+                {appEntry&&person===auth.me&&stage==='enter'&&!nativeUnlockAvailable()&&<DeviceUnlockButton onPinVisible={setShowPin} onUnlock={finish} disabled={busy||ok}/>}
                 <div hidden={appEntry&&stage==='enter'&&!showPin}>
                 <div className={`dd-pin-dots${error ? ' is-error' : ''}${ok ? ' is-ok' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>
                     {[0, 1, 2, 3].map(i => (
