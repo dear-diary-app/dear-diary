@@ -8,15 +8,20 @@ Deno.serve(async req=>{
  const now=new Date(),ist=new Date(now.getTime()+330*60000),day=ist.toISOString().slice(0,10),minutes=ist.getUTCHours()*60+ist.getUTCMinutes();
  if(minutes<1310||minutes>=1320)return json({skipped:'outside_window'});
  const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
- const {data:tastes,error}=await db.from('song_taste').select('user_id,genres,languages,moods,artists').eq('enabled',true);
+ const {data:tastes,error}=await db.from('song_taste').select('user_id,genres,languages,moods,artists,artist_selections').eq('enabled',true);
  if(error)return json({error:'settings_unavailable'},500);
  let checked=0;
  for(const taste of tastes||[]){
   const {data:done}=await db.from('diary_auto_song_runs').select('result').eq('user_id',taste.user_id).eq('day',day).maybeSingle();if(done&&done.result!=='retry')continue;
   const {data:entry,error:entryError}=await db.from('diary_entries').select('id,song').eq('user_id',taste.user_id).eq('entry_date',day).eq('status','draft').maybeSingle();if(entryError)continue;
   if(!entry||entry.song){await db.rpc('apply_diary_auto_song',{p_user:taste.user_id,p_song:null});continue;}
-  const artists=String(taste.artists||'').split(/[,;\n]/).map(s=>s.trim()).filter(Boolean).slice(0,5);
-  const terms=artists.length?[...artists.map(a=>[a,taste.languages,taste.moods].filter(Boolean).join(' ')),...artists]:[String(taste.genres||'')+' '+String(taste.languages||'')+' '+String(taste.moods||'')];
+  const savedArtists=Array.isArray(taste.artist_selections)?taste.artist_selections.map((a:any)=>String(a.name||'').trim()).filter(Boolean):[];
+  const artists=(savedArtists.length?savedArtists:String(taste.artists||'').split(/[,;\n]/).map(s=>s.trim()).filter(Boolean)).slice(0,20);
+  // Rotate eligible artists so names beyond the first few are not ignored.
+  const rotation=artists.length?((Math.floor(Date.now()/60000)+Math.floor(Date.now()/86400000)*11)%artists.length):0;
+  const rotated=[...artists.slice(rotation),...artists.slice(0,rotation)];
+  const sampled=rotated.slice(0,2);
+  const terms=artists.length?[...sampled.map(a=>[a,taste.languages,taste.moods].filter(Boolean).join(' ')),...sampled]:[String(taste.genres||'')+' '+String(taste.languages||'')+' '+String(taste.moods||'')];
   let chosen:any=null,failed=false;const candidates:any[]=[];
   for(const term of terms.slice(0,4)){
    if(term.trim().length<2)continue;
