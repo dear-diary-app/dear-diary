@@ -186,6 +186,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
     const { go, portal } = useGo();
     const [stage, setStage] = useState<'checking' | 'unavailable' | 'enter' | 'create' | 'confirm' | 'owner'>('checking');
     const [showPin,setShowPin]=useState(()=>nativeUnlockAvailable()||!appEntry||!fingerprintFirst(auth.session!.user.id));
+    const [nativePending,setNativePending]=useState(()=>appEntry&&nativeUnlockAvailable());
     const [pin, setPin] = useState('');
     const [firstPin, setFirstPin] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -256,7 +257,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
 
     useEffect(()=>{
         const key=(e:KeyboardEvent)=>{
-            if(appEntry&&stage==='enter'&&!showPin)return;
+            if(appEntry&&((stage==='enter'&&!showPin)||nativePending))return;
             if(coveredByIdleLock||e.defaultPrevented||e.ctrlKey||e.metaKey||e.altKey||e.repeat||waitingForPublish||readingOpen||busy||ok)return;
             const target=e.target as HTMLElement|null;if(target?.closest('input,textarea,select,[contenteditable=true]'))return;
             if(/^\d$/.test(e.key)){e.preventDefault();press(e.key);}
@@ -264,7 +265,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
             else if(e.key==='Enter'&&pin.length===4&&(stage==='create'||stage==='confirm')&&!target?.closest('button')){e.preventDefault();void submitPin();}
         };
         window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
-    },[coveredByIdleLock,pin,stage,busy,ok,waitingForPublish,readingOpen,appEntry,showPin]);
+    },[coveredByIdleLock,pin,stage,busy,ok,waitingForPublish,readingOpen,appEntry,showPin,nativePending]);
 
     if (readingOpen) return <Navigate to={appEntry ? '/?nowelcome' : person === auth.me ? `/hub/${person}` : `/published/${person}`} replace />;
 
@@ -285,7 +286,8 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
     return (
         <main className={`dd-shell dd-shell-narrow${appEntry ? ' dd-entry-shell' : ''}`}>
             {!appEntry && <TopBar back="/" backLabel="Back to the books" />}
-            <div className="dd-anim dd-pin" key={`pin-${person}`} aria-label={appEntry ? "Unlock Dear Diary" : undefined}>
+            {nativePending&&stage!=='create'&&stage!=='confirm'&&stage!=='owner'&&stage!=='unavailable'&&<section className="dd-native-verifying" aria-label="Verifying device unlock"><img src={import.meta.env.BASE_URL+'diary-opening.svg'} alt=""/><h1>Dear Diary</h1><span className="dd-native-opening-line"/></section>}
+            <div hidden={nativePending&&['checking','enter'].includes(stage)} className="dd-anim dd-pin" key={`pin-${person}`} aria-label={appEntry ? "Unlock Dear Diary" : undefined}>
                 <Avatar person={p} size="lg" />
                 <h1 className="dd-title">{p.name}&rsquo;s Diary</h1>
                 {appEntry && <p className="dd-entry-label">Welcome back, {p.name}</p>}
@@ -298,7 +300,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
                         : `This diary is private - only ${p.name} can set its PIN and open it`}
                 </p>
                 {(stage === 'enter' || stage === 'create' || stage === 'confirm') && (<>
-                {appEntry&&person===auth.me&&stage==='enter'&&nativeUnlockAvailable()&&<AndroidUnlock uid={auth.session!.user.id} onUnlock={finish}/>}
+                {appEntry&&person===auth.me&&stage==='enter'&&nativeUnlockAvailable()&&<AndroidUnlock uid={auth.session!.user.id} onUnlock={finish} onPending={setNativePending}/>}
                 {appEntry&&person===auth.me&&stage==='enter'&&!nativeUnlockAvailable()&&<DeviceUnlockButton onPinVisible={setShowPin} onUnlock={finish} disabled={busy||ok}/>}
                 <div hidden={appEntry&&stage==='enter'&&!showPin}>
                 <div className={`dd-pin-dots${error ? ' is-error' : ''}${ok ? ' is-ok' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>

@@ -2135,3 +2135,8 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 html[data-dd-native] .dd-shell:not(:has(> .dd-topbar)){padding-top:calc(10px + var(--dd-native-safe-top,0px))}html[data-dd-native] .dd-shell{padding-left:max(14px,var(--dd-native-safe-left,0px));padding-right:max(14px,var(--dd-native-safe-right,0px))}
 /* Reader routes hide their TopBar, so the route itself must reserve the status-bar area. */
 .dd-app.dd-app.dd-app .dd-shell.dd-reader-route{padding-top:var(--dd-native-safe-top,env(safe-area-inset-top,0px))}
+
+.dd-native-verifying{min-height:65dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center}
+.dd-pin[hidden]{display:none!important}
+
+.dd-native-verifying img{width:112px;height:112px;animation:dd-native-opening-book 1.2s ease both}.dd-native-verifying h1{font:400 36px/1.2 Georgia,serif;margin:0;animation:dd-native-opening-name .8s ease both}.dd-native-opening-line{width:42px;height:3px;background:#d99aa9;border-radius:3px;animation:dd-native-opening-name 1s ease both}@keyframes dd-native-opening-book{from{opacity:0;transform:translateY(16px) scale(.86) rotate(-7deg)}to{opacity:1;transform:none}}@keyframes dd-native-opening-name{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.dd-native-verifying img,.dd-native-verifying h1,.dd-native-opening-line{animation:none}}
