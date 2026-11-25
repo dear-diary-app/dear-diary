@@ -37,7 +37,7 @@ export interface ChatApi {
     uid: string; messages: ChatMsg[]; loaded: boolean; loadError: boolean; hasMore: boolean; live: boolean; partnerTyping: boolean; partnerOnline: boolean; unread: number;
     send: (body: string, sticker?: string | null, replyTo?: string | null,effect?:MessageEffect|null) => void;
     replyFromBanner: (body:string,replyTo:string)=>Promise<boolean>;
-    sendGif: (id: string, replyTo?: string | null, messageId?: string) => Promise<boolean>;
+    sendGif: (id: string, replyTo?: string | null, messageId?: string, caption?: string) => Promise<boolean>;
     sendWeather:(weather:ChatWeather,replyTo?:string|null)=>void;
     sendSong: (song:Song,replyTo?:string|null)=>void;
     sendVoice: (blob: Blob, duration: number, mime: string, peaks: number[], replyTo?: string | null) => void;
@@ -190,7 +190,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             // A retry after a lost response reuses the same id, never a second message.
             if (error?.code === '23505') {
                 const existing = await supabase.from('chat_messages').select(COLS).eq('id', m.id).single();
-                if ((existing.data?.effect||null)===(m.effect||null) && existing.data?.sender_id === m.sender_id && existing.data?.gif_id === m.gif_id && (existing.data?.weather?.fetchedAt||null)===(m.weather?.fetchedAt||null) && (existing.data?.song?.id||null)===(m.song?.id||null) && (existing.data?.audio?.path||null)===(m.audio?.path||null)) { data = existing.data; error = existing.error; }
+                if ((existing.data?.effect||null)===(m.effect||null) && existing.data?.sender_id === m.sender_id && existing.data?.body === m.body && existing.data?.gif_id === m.gif_id && (existing.data?.weather?.fetchedAt||null)===(m.weather?.fetchedAt||null) && (existing.data?.song?.id||null)===(m.song?.id||null) && (existing.data?.audio?.path||null)===(m.audio?.path||null)) { data = existing.data; error = existing.error; }
             }
             const row = !error && data ? clean(data) : null;
             if (!row) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return false; }
@@ -216,9 +216,9 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             const m:ChatMsg={id:crypto.randomUUID(),sender_id:uid,recipient_id:partner.current,body:text,sticker:null,gif_id:null,reply_to:replyTo,reactions:{},created_at:new Date().toISOString(),seen_at:null,edited_at:null,images:[],state:'sending'};
             setMessages(prev=>[...prev,m].sort(byTime));return insert(m);
         },
-        sendGif: async (gif_id, replyTo = null, messageId = crypto.randomUUID()) => {
+        sendGif: async (gif_id, replyTo = null, messageId = crypto.randomUUID(),caption='') => {
             if (!isGifId(gif_id)) return false;
-            const m: ChatMsg = { id: messageId, sender_id: uid, recipient_id: partner.current ?? '', body: '', sticker: null, gif_id, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: [], state: 'sending' };
+            const m: ChatMsg = { id: messageId, sender_id: uid, recipient_id: partner.current ?? '', body: caption.trim().slice(0,2000), sticker: null, gif_id, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: [], state: 'sending' };
             setMessages(prev => [...prev.filter(x => x.id !== m.id), m].sort(byTime));
             return await insert(m);
         },

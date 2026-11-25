@@ -275,7 +275,7 @@ export function GifPicker({
   onBusyChange,
   height,
 }: {
-  onSend: (id: string, messageId: string) => Promise<boolean>;
+  onSend: (id: string, messageId: string, caption: string) => Promise<boolean>;
   onClose: () => void;
   onBusyChange: (busy: boolean) => void;
   height: number;
@@ -287,15 +287,16 @@ export function GifPicker({
     [more, setMore] = useState(false),
     [searched, setSearched] = useState("");
   const [next, setNext] = useState(0);
+  const[selected,setSelected]=useState<Gif|null>(null),[caption,setCaption]=useState(""),[attempted,setAttempted]=useState(false);const preview=useRef<HTMLDialogElement>(null);useEffect(()=>{if(selected)preview.current?.showModal();else preview.current?.close();},[!!selected]);
   const [sending,setSending]=useState(""),[sendError,setSendError]=useState("");
   const sendingRef=useRef(false), messageIds=useRef(new Map<string,string>());
   const tap=useRef<{x:number;y:number;top:number;moved:boolean}|null>(null);
   const send=async(g:Gif)=>{
     if(sendingRef.current)return;
-    sendingRef.current=true;onBusyChange(true);setSending(g.id);setSendError("");
+    sendingRef.current=true;setAttempted(true);onBusyChange(true);setSending(g.id);setSendError("");
     const id=messageIds.current.get(g.id)||crypto.randomUUID();messageIds.current.set(g.id,id);
-    try{if(!await onSend(g.id,id))setSendError("Could not send GIF. Check your connection, then tap it to retry.");}
-    catch{setSendError("Could not send GIF. Check your connection, then tap it to retry.");}
+    try{if(!await onSend(g.id,id,caption.trim()))setSendError("Could not send GIF. Check your connection, then tap Send to retry.");}
+    catch{setSendError("Could not send GIF. Check your connection, then tap Send to retry.");}
     finally{sendingRef.current=false;onBusyChange(false);setSending("");}
   };
   const pending = useRef("");
@@ -407,13 +408,13 @@ export function GifPicker({
       {sending && <p className="dd-gif-send-state" role="status">Sending GIF...</p>}
       {sendError && <p className="dd-gif-send-state" role="alert">{sendError}</p>}
       <div ref={grid} className="dd-gif-results">
-        {!searched && !busy && <p>Type at least 2 characters. Tap a GIF to send it.</p>}
+        {!searched && !busy && <p>Type at least 2 characters. Tap a GIF to preview it and add a caption.</p>}
         <div className="dd-gif-grid">
-          {results.map(g => <button type="button" key={g.id} aria-label={`Send ${g.title}`} disabled={!!sending}
+          {results.map(g => <button type="button" key={g.id} aria-label={`Preview ${g.title}`} disabled={!!sending}
             onPointerDown={e=>{tap.current={x:e.clientX,y:e.clientY,top:grid.current?.scrollTop??0,moved:false};}}
             onPointerMove={e=>{if(tap.current&&Math.hypot(e.clientX-tap.current.x,e.clientY-tap.current.y)>10)tap.current.moved=true;}}
             onPointerCancel={()=>{if(tap.current)tap.current.moved=true;}}
-            onClick={e=>{const t=tap.current;tap.current=null;if(e.detail!==0&&(!t||t.moved||Math.abs((grid.current?.scrollTop??0)-t.top)>3))return;void send(g);}}>
+            onClick={e=>{const t=tap.current;tap.current=null;if(e.detail!==0&&(!t||t.moved||Math.abs((grid.current?.scrollTop??0)-t.top)>3))return;messageIds.current.delete(g.id);setCaption("");setAttempted(false);setSendError("");setSelected(g);}}>
             <GifGridPreview gif={g}/>
           </button>)}
         </div>
@@ -422,6 +423,7 @@ export function GifPicker({
         {busy && <p role="status">Searching...</p>}
         {error && <p role="alert">{error}</p>}
       </div>
+      <dialog ref={preview} className="dd-gif-caption-dialog" aria-label="GIF preview" onCancel={e=>{e.preventDefault();if(!sendingRef.current)setSelected(null);}}><header><strong>GIF preview</strong><button type="button" aria-label="Close GIF preview" disabled={!!sending} onClick={()=>setSelected(null)}><XIcon size={18}/></button></header>{selected&&<><div className="dd-gif-caption-media"><GifMedia gif={selected}/><GifCredit gif={selected}/></div><label className="dd-field"><span>Caption <small>optional</small></span><textarea aria-label="GIF caption" rows={2} maxLength={2000} placeholder="Add a caption..." value={caption} disabled={!!sending||attempted} onChange={e=>setCaption(e.target.value)}/></label>{sendError&&<p role="alert">{sendError} Your GIF and caption are kept for retry.</p>}<footer><button type="button" className="dd-btn dd-btn-ghost" disabled={!!sending} onClick={()=>setSelected(null)}>Back</button><button type="button" className="dd-btn dd-btn-primary" disabled={!!sending} onClick={()=>void send(selected)}>{sending?'Sending...':sendError?'Retry send':'Send GIF'}</button></footer></>}</dialog>
       <footer>
         <img
           src={`${import.meta.env.BASE_URL}giphy-powered.png`}

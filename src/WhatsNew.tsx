@@ -8,6 +8,7 @@ export interface Feature { id: string; title: string; text: string; emoji: strin
 export interface Release { date: string; label: string; features: Feature[] }
 
 export const RELEASES: Release[] = [
+ {date:"November 25, 2026",label:"GIF captions",features:[{id:"gif-caption-preview",title:"Say it with a GIF and a caption",text:"Pick a GIF to preview it, add an optional caption, then Send. Both arrive together as one message. Your reply stays attached, and cancelling keeps your chat draft.",emoji:"💬"}]},
  {date:"November 25, 2026",label:"Emoji bubbles with text",features:[{id:"mixed-text-emoji-bubbles",title:"Let just the emoji float",text:"Use Bubbles on a message with words and emoji. Only its emoji rise as bubbles while the text stays still. Works for scheduled text too. Reduced-motion keeps the effect off.",emoji:"🫧"}]},
  {date:"November 25, 2026",label:"Scheduled voice notes",features:[{id:"scheduled-voice-notes",title:"Send a voice note later",text:"Record a voice note, tap Schedule beside Send, and choose a date and time in IST. Your private scheduled list keeps it across reloads and lets you change the time or cancel. Delivery runs on the server about once a minute, even with the app closed.",emoji:"🎙️"}]},
  {date:"November 25, 2026",label:"Story shortcuts",features:[{id:"story-upload-plus-seen",title:"Add a story from your avatar",text:"The + on your own story circle always opens upload. After every current story item finishes playing, its colored ring clears on this device. A new story brings the color back.",emoji:"＋"}]},
