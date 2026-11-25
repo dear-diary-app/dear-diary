@@ -133,7 +133,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
     };
     return <PageLockedContext.Provider value={idleLocked}><VoiceLockProvider person={auth.me!} uid={auth.session!.user.id} active={stage==='open'&&!idleLocked} onLock={lock}>
         {stage==='pin'?<Pin person={auth.me!} appEntry onEntryUnlock={()=>setStage('open')}/>:<>
-            {idleLocked&&<><p className="dd-idle-notice" role="status">Locked after 2 minutes of inactivity. Enter your PIN to return. Unsent drafts stay on this page.</p><Pin person={auth.me!} appEntry onEntryUnlock={resume}/></>}
+            {idleLocked&&<><p className="dd-idle-notice" role="status">Locked after 2 minutes of inactivity. Unlock to return. Unsent drafts stay on this page.</p><Pin person={auth.me!} appEntry onEntryUnlock={resume}/></>}
             <div hidden={idleLocked} {...(idleLocked?{inert:''}:{})} aria-hidden={idleLocked||undefined}>{children}</div>
         </>}
     </VoiceLockProvider></PageLockedContext.Provider>;
