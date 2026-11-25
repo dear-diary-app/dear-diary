@@ -10,6 +10,7 @@ export function bannerPreview(m:ChatMsg){
  if(m.effect==='blur')return 'Blurred message';
  if(m.audio)return 'Voice note';if(m.song)return 'Song: '+m.song.title;if(m.weather)return 'Weather: '+m.weather.place;
  if(m.sticker)return 'Sticker';if(m.gif_id)return 'GIF';
+ if(m.body==='/truthdare')return 'Truth or dare challenge';
  const body=parseFeedReply(m.body)?.text??(m.body.startsWith(IMAGE_CREDIT)?imageUserCaption(m.body):m.body);
  return (m.images.length?`${m.images.length===1?'Photo':'Photos'}${body?': ':''}`:'')+body||'New message';
 }

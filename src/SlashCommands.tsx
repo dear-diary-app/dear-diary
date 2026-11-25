@@ -1,6 +1,7 @@
 import React,{useEffect,useState}from'react';
 import{useAIPreferences}from'./AISettings';
 export const SLASH_COMMANDS=[
+ {command:'/truthdare',fill:'/truthdare',hint:'A private challenge with optional answers'},
  {command:'/1year',fill:'/1year',hint:'Our first-year timer'},
  {command:'/ask',fill:'/ask ',hint:'Daily yes/no question'},
  {command:'/ddai-',fill:'/ddai- ',hint:'Private AI question'},
