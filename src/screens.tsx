@@ -1,4 +1,4 @@
-import{DeviceUnlockSettings,DeviceUnlockButton}from'./DeviceUnlock';
+import{DeviceUnlockSettings,DeviceUnlockButton,fingerprintFirst}from'./DeviceUnlock';
 import {SongTasteSettings} from './SongTaste';
 import { PageLockedContext, useDesktopIdle, usePageLocked } from './DesktopIdleLock';
 import {Feed} from './Feed';
@@ -183,6 +183,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
     const auth = useAuth();
     const { go, portal } = useGo();
     const [stage, setStage] = useState<'checking' | 'unavailable' | 'enter' | 'create' | 'confirm' | 'owner'>('checking');
+    const [showPin,setShowPin]=useState(()=>!appEntry||!fingerprintFirst(auth.session!.user.id));
     const [pin, setPin] = useState('');
     const [firstPin, setFirstPin] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -253,6 +254,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
 
     useEffect(()=>{
         const key=(e:KeyboardEvent)=>{
+            if(appEntry&&stage==='enter'&&!showPin)return;
             if(coveredByIdleLock||e.defaultPrevented||e.ctrlKey||e.metaKey||e.altKey||e.repeat||waitingForPublish||readingOpen||busy||ok)return;
             const target=e.target as HTMLElement|null;if(target?.closest('input,textarea,select,[contenteditable=true]'))return;
             if(/^\d$/.test(e.key)){e.preventDefault();press(e.key);}
@@ -260,7 +262,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
             else if(e.key==='Enter'&&pin.length===4&&(stage==='create'||stage==='confirm')&&!target?.closest('button')){e.preventDefault();void submitPin();}
         };
         window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);
-    },[coveredByIdleLock,pin,stage,busy,ok,waitingForPublish,readingOpen]);
+    },[coveredByIdleLock,pin,stage,busy,ok,waitingForPublish,readingOpen,appEntry,showPin]);
 
     if (readingOpen) return <Navigate to={appEntry ? '/?nowelcome' : person === auth.me ? `/hub/${person}` : `/published/${person}`} replace />;
 
@@ -288,13 +290,14 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
                 <p className="dd-sub">
                     {stage === 'checking' ? 'Checking this diary...'
                         : stage === 'unavailable' ? ''
-                        : stage === 'enter' ? appEntry ? 'Enter your 4-digit diary PIN to open your diaries' : `Enter ${p.name}'s 4-digit PIN to open this diary`
+                        : stage === 'enter' ? appEntry ? showPin?'Enter your 4-digit diary PIN to open your diaries':'Unlock with your fingerprint, or use your diary PIN' : `Enter ${p.name}'s 4-digit PIN to open this diary`
                         : stage === 'create' ? 'First time here - choose your 4-digit PIN'
                         : stage === 'confirm' ? 'Once more, to confirm your PIN'
                         : `This diary is private - only ${p.name} can set its PIN and open it`}
                 </p>
                 {(stage === 'enter' || stage === 'create' || stage === 'confirm') && (<>
-                {appEntry&&person===auth.me&&stage==='enter'&&<DeviceUnlockButton onUnlock={finish} disabled={busy||ok}/>}
+                {appEntry&&person===auth.me&&stage==='enter'&&<DeviceUnlockButton onPinVisible={setShowPin} onUnlock={finish} disabled={busy||ok}/>}
+                <div hidden={appEntry&&stage==='enter'&&!showPin}>
                 <div className={`dd-pin-dots${error ? ' is-error' : ''}${ok ? ' is-ok' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>
                     {[0, 1, 2, 3].map(i => (
                         <span key={i} className={`dd-pin-dot${i < pin.length ? ' is-filled' : ''}`}>
@@ -314,6 +317,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
                                 {k === 'del' ? <Erase /> : k}
                             </button>
                         ))}
+                </div>
                 </div>
                 {(stage === 'create' || stage === 'confirm') && (
                     <button type="button" className="dd-btn dd-btn-primary dd-pin-submit"
