@@ -2070,3 +2070,5 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-topics-inline{flex:none;text-align:center;padding:0 10px}.dd-topics-inline .dd-topics-launch{margin:6px 0 0}.dd-topics-inline p{font:11px/1.4 sans-serif;margin:5px auto;max-width:480px;color:var(--lg-ink,#594553)}.dd-topics-inline [role=alert]{color:#a53b56}.dd-topics-launch:disabled{opacity:.6}
 
 .dd-message-translation{margin-top:18px;max-height:46dvh;overflow:auto;text-align:left}.dd-message-translation h3{font-size:.82rem;opacity:.7;margin:16px 0 6px}.dd-message-translation p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}.dd-message-translation small{display:block;opacity:.7;line-height:1.5}
+
+.dd-chat-topics-toggle{display:inline-flex;align-items:center;justify-content:center;width:36px;min-width:36px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--lg-ink);font-size:25px;cursor:pointer;flex-shrink:0}.dd-chat-topics-toggle[aria-expanded=true]{background:var(--lg-control);box-shadow:inset 0 0 0 1px var(--lg-edge)}.dd-chat-topics-toggle:focus-visible{outline:2px solid currentColor;outline-offset:1px}#chat-conversation-topics[hidden]{display:none}
