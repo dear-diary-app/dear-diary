@@ -2130,3 +2130,6 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 
 /* Profile header playback stays local and compact. */
 .dd-profile-song-row{display:flex;align-items:center;gap:7px;min-width:0;margin:2px 0}.dd-profile-song-row .dd-profile-music-link{min-width:0;flex:1}.dd-profile-song-toggle{display:grid;place-items:center;width:32px;height:32px;min-width:32px;padding:0;border-radius:50%;border:1px solid var(--lg-rule,#bdb3b8);background:var(--lg-control,transparent);color:inherit;box-shadow:none;cursor:pointer;touch-action:manipulation}.dd-profile-song-toggle svg{width:15px;height:15px}.dd-profile-song-toggle:focus-visible{outline:2px solid currentColor;outline-offset:3px}.dd-profile-song-inline>p{font-size:11px;line-height:1.4;margin:4px 0 8px;opacity:.8}
+
+/* Native APK: full viewport background, inset only interactive page content. */
+html[data-dd-native] .dd-shell:not(:has(> .dd-topbar)){padding-top:calc(10px + var(--dd-native-safe-top,0px))}html[data-dd-native] .dd-shell{padding-left:max(14px,var(--dd-native-safe-left,0px));padding-right:max(14px,var(--dd-native-safe-right,0px))}
