@@ -2142,3 +2142,13 @@ html[data-dd-native] .dd-shell:not(:has(> .dd-topbar)){padding-top:calc(10px + v
 .dd-native-verifying img{width:112px;height:112px;animation:dd-native-opening-book 1.2s ease both}.dd-native-verifying h1{font:400 36px/1.2 Georgia,serif;margin:0;animation:dd-native-opening-name .8s ease both}.dd-native-opening-line{width:42px;height:3px;background:#d99aa9;border-radius:3px;animation:dd-native-opening-name 1s ease both}@keyframes dd-native-opening-book{from{opacity:0;transform:translateY(16px) scale(.86) rotate(-7deg)}to{opacity:1;transform:none}}@keyframes dd-native-opening-name{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.dd-native-verifying img,.dd-native-verifying h1,.dd-native-opening-line{animation:none}}
 
 .dd-home-socialbar .dd-update-badge{position:relative;color:#a97087}.dd-update-dot{position:absolute;right:4px;top:4px;width:6px;height:6px;border-radius:50%;background:#ce8768;box-shadow:0 0 0 2px var(--dd-bg-top,#fdf9f4)}
+
+/* Chat link cards stay within the existing bubble and colour palette. */
+.dd-chat-url{color:inherit;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.dd-chat-link-wrap:empty{display:none}
+.dd-chat-link-card{display:block;width:280px;max-width:100%;margin:9px 0 3px;border:1px solid color-mix(in srgb,currentColor 16%,transparent);border-radius:16px;overflow:hidden;text-decoration:none;color:inherit;background:color-mix(in srgb,var(--dd-canvas,#fdf9f4) 75%,transparent);touch-action:pan-y}
+.dd-chat-link-card>img{display:block;width:100%;max-height:240px;aspect-ratio:1.75;object-fit:cover}
+.dd-chat-link-info{display:flex;flex-direction:column;gap:5px;padding:12px 14px}
+.dd-chat-link-info small{font-size:10px;letter-spacing:.07em;text-transform:uppercase;opacity:.7;overflow-wrap:anywhere}
+.dd-chat-link-info strong{font-size:14px;line-height:1.4;font-weight:700;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.dd-chat-link-info>span{font-size:11px;opacity:.65;margin-top:3px}

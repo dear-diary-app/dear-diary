@@ -1,3 +1,4 @@
+import{LinkedChatText}from'./ChatLinks';
 import React,{useEffect,useRef,useState}from'react';
 import{createPortal}from'react-dom';
 export const EFFECTS=['blur','bubbles'] as const;
@@ -15,7 +16,7 @@ export function EffectText({text,effect,id,createdAt,preview=false,recipient=fal
  useEffect(()=>{window.clearTimeout(timer.current);setReveal(false);},[text]);
  useEffect(()=>()=>window.clearTimeout(timer.current),[]);
  const show=()=>{setReveal(true);window.clearTimeout(timer.current);timer.current=window.setTimeout(()=>setReveal(false),3000);};
- return <span ref={el} className={`dd-effect-content ${effect?'dd-effect-'+effect:''}`}><span className={`dd-chat-text dd-effect-text${effect==='blur'&&!reveal?' is-blurred':''}`} aria-hidden={effect==='blur'&&!reveal?true:undefined}>{text}</span>{effect==='blur'?<button type="button" className={`dd-blur-control${reveal?' is-revealed':''}`} data-effect-control onClick={e=>{e.stopPropagation();if(!reveal)show();}} aria-label={reveal?'Text visible for three seconds':'Reveal blurred text'}>{reveal?'':'Tap to reveal'}</button>:effect==='bubbles'&&!preview?<button type="button" className="dd-effect-replay" data-effect-control onClick={e=>{e.stopPropagation();play();}} aria-label="Replay Bubbles effect">↻ Bubbles</button>:null}</span>;
+ return <span ref={el} className={`dd-effect-content ${effect?'dd-effect-'+effect:''}`}><span className={`dd-chat-text dd-effect-text${effect==='blur'&&!reveal?' is-blurred':''}`} aria-hidden={effect==='blur'&&!reveal?true:undefined}><LinkedChatText text={text} disabled={preview||effect==='blur'&&!reveal}/></span>{effect==='blur'?<button type="button" className={`dd-blur-control${reveal?' is-revealed':''}`} data-effect-control onClick={e=>{e.stopPropagation();if(!reveal)show();}} aria-label={reveal?'Text visible for three seconds':'Reveal blurred text'}>{reveal?'':'Tap to reveal'}</button>:effect==='bubbles'&&!preview?<button type="button" className="dd-effect-replay" data-effect-control onClick={e=>{e.stopPropagation();play();}} aria-label="Replay Bubbles effect">↻ Bubbles</button>:null}</span>;
 }
 export function SendOptions({text,allowed,scheduleAllowed,onClose,onSchedule,onSend}:{text:string;allowed:boolean;scheduleAllowed:boolean;onClose:()=>void;onSchedule:(effect:MessageEffect|null)=>void;onSend:(effect:MessageEffect)=>void}){
  const dialog=useRef<HTMLDialogElement>(null),owns=useRef(false),sent=useRef(false);const[selected,setSelected]=useState<MessageEffect|null>(null);const[effect,setEffect]=useState<MessageEffect>('blur'),[preview,setPreview]=useState(0);
