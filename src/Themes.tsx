@@ -67,6 +67,7 @@ export function ThemeFrame({ className, children }: { className: string; childre
         document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]')?.setAttribute('content',renderTheme==='midnight'?'black-translucent':'default');
         html.style.setProperty('--dd-colour-scheme', renderTheme === 'midnight' ? 'dark' : 'light');
         html.dataset.diaryTheme = renderTheme;
+        window.DearDiaryAndroid?.postMessage(JSON.stringify({op:'status-icons',background:palette.top}));
         return () => {
             meta?.setAttribute('content', '#fdf9f4');
             html.style.removeProperty('--dd-canvas');

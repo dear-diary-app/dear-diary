@@ -1,0 +1,5 @@
+{
+ "code":6,
+ "version":"1.5",
+ "notes":"Status-bar icons follow your background: dark icons on light colors, light icons on dark colors. Background and bottom colors are unchanged.\n\nPrivate in-app updates: after sign-in, opening the app checks for newer releases. Read the notes and tap Update to download inside Dear Diary. The download is checked for size, SHA-256, app identity, version and the same signing certificate before Android's installer opens.\n\nAndroid still asks for Install confirmation and may ask you to allow installs from Dear Diary. Reopen the app yourself if Android does not reopen it. You can dismiss this page and keep using the current version."
+}

@@ -1,3 +1,4 @@
+import{listenAndroidUpdate}from'./AndroidUpdate';
 import{startAndroidPrivacy}from'./AndroidPrivacy';
 import {listenAndroidPush} from './AndroidPush';
 import {listenForForegroundChatPush} from './foregroundChatPush';
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [attempt, setAttempt] = useState(0);
     const me = profile?.uid === session?.user.id ? profile?.me ?? null : null;
     useEffect(()=>listenForForegroundChatPush(session?.user.id??null),[session?.user.id]);
-    useEffect(()=>{if(sessionReady)return listenAndroidPush(session?.user.id??null);},[sessionReady,session?.user.id]);
+    useEffect(()=>{if(sessionReady){const push=listenAndroidPush(session?.user.id??null),update=listenAndroidUpdate(session?.user.id??null);return()=>{push();update();};}},[sessionReady,session?.user.id]);
     const ready = sessionReady && (!session || profile?.uid === session.user.id);
 
     useEffect(() => {
