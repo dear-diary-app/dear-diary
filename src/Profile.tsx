@@ -1,3 +1,4 @@
+import{ProfileSocialLinks}from'./ProfileSocialLinks';
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth, useStore } from "./store";
@@ -25,6 +26,7 @@ function ProfileBody({ who }: { who: PersonId }) {
   const own = who === me,
     p = personById(who),
     partner = personById(otherId(me!));
+  const [socialDirty,setSocialDirty]=useState(false);
   const [tab, setTab] = useState<"posts" | "music" | "about">("posts");
   const [postCount, setPostCount] = useState<number | null>(null);
   const [friendCount, setFriendCount] = useState<number | null>(null);
@@ -100,7 +102,7 @@ function ProfileBody({ who }: { who: PersonId }) {
     return () => { active = false; };
   }, []);
   const songDirty = JSON.stringify(songDraft) !== JSON.stringify(song);
-  const dirty = bio !== saved.bio || mood !== saved.mood || songDirty;
+  const dirty = bio !== saved.bio || mood !== saved.mood || songDirty || socialDirty;
   useEffect(() => {
     if (!profileUID) return;
     let live = true;
@@ -218,7 +220,7 @@ function ProfileBody({ who }: { who: PersonId }) {
       setBio(clean.bio);
       setSaved(clean);
       setNote("Profile saved.");
-      setEditing(false);
+      if(!socialDirty)setEditing(false);
     }
     setBusy(false);
   };
@@ -240,6 +242,7 @@ function ProfileBody({ who }: { who: PersonId }) {
         <div className="dd-profile-intro"><h2>{p.name} {saved.mood && <span aria-label="Current mood">{saved.mood}</span>}</h2>
           {saved.bio ? <p className="dd-profile-bio">{saved.bio}</p> : !loading && !error && <p className="dd-profile-muted">{own ? "Your story, in a few words." : "No bio yet."}</p>}
           {song && !expired && <button className="dd-profile-music-link" onClick={() => setTab("music")}><span aria-hidden="true">♫</span><span>{song.name} <small>· {song.artist}</small></span></button>}
+          {profileUID&&<ProfileSocialLinks uid={profileUID}/>}
           <p className="dd-profile-private"><Lock size={11}/> Private · Only you two</p>
         </div>
         <div className="dd-profile-actions">
@@ -316,6 +319,7 @@ function ProfileBody({ who }: { who: PersonId }) {
           <p className="dd-card-sub">
             {Array.from(bio).length}/160 · Shared with your friend
           </p>
+          {profileUID&&<ProfileSocialLinks uid={profileUID} editing onDirty={setSocialDirty}/>}
           <fieldset className="dd-mood">
             <legend>Mood</legend>
             <div>
@@ -346,6 +350,8 @@ function ProfileBody({ who }: { who: PersonId }) {
               className="dd-btn dd-btn-ghost"
               disabled={busy}
               onClick={() => {
+                if(socialDirty&&!window.confirm("Discard unsaved social links?"))return;
+                setSocialDirty(false);
                 setBio(saved.bio);
                 setMood(saved.mood);
                 setEditing(false);

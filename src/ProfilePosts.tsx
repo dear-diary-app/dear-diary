@@ -21,7 +21,7 @@ export function ProfilePosts({ uid, own, onCount }: { uid: string; own: boolean;
     return () => { active = false; };
   }, [uid, page, retry, onCount]);
   return <>
-    {!!posts.length && <div className="dd-profile-grid">{posts.map((p, i) => <Link key={p.id} to={`/?post=${encodeURIComponent(p.id)}`} className="dd-profile-tile" onClick={e => { if ((e.target as Element).closest("button")) e.preventDefault(); }} aria-label={`Open ${own ? 'your' : "friend's"} post ${i + 1}`}><FeedPhoto id={p.id} index={0}/>{p.paths.length > 1 && <span className="dd-profile-multiple" aria-label={`${p.paths.length} photos`}>▣</span>}</Link>)}</div>}
+    {!!posts.length && <div className="dd-profile-grid">{posts.map((p, i) => <Link key={p.id} to={`/?owner=${encodeURIComponent(uid)}&post=${encodeURIComponent(p.id)}`} className="dd-profile-tile" onClick={e => { if ((e.target as Element).closest("button")) e.preventDefault(); }} aria-label={`Open ${own ? 'your' : "friend's"} post ${i + 1}`}><FeedPhoto id={p.id} index={0}/>{p.paths.length > 1 && <span className="dd-profile-multiple" aria-label={`${p.paths.length} photos`}>▣</span>}</Link>)}</div>}
     {loading && <p className="dd-profile-state" role="status">Loading posts...</p>}
     {failed && <div className="dd-profile-state" role="alert"><p>Posts could not load.</p><button className="dd-btn" onClick={() => setRetry(n => n + 1)}>Retry posts</button></div>}
     {!loading && !failed && !posts.length && <div className="dd-profile-empty"><span aria-hidden="true">◎</span><h2>No posts yet</h2><p>{own ? 'The moments you share on Home will appear here.' : 'Shared moments will appear here.'}</p>{own && <Link to="/">Share your first moment</Link>}</div>}

@@ -13,7 +13,7 @@ import { PrivacySettings } from './PrivacySettings';
 import { DiaryExport } from './DiaryExport';
 import { PushSettings } from './PushSettings';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import {
     Entry, peopleOwnFirst, PersonId, EMOJIS, ekey, fmtCountdown, fmtPublishCountdown, fmtDateLong, fmtDateShort,
     isReadable, istClock, istParts, latestReadable, otherId, personById, publishWaitMs, schedule, todayKey,
@@ -139,6 +139,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
 }
 
 export function Home() {
+    const profileFeed=new URLSearchParams(useLocation().search).has('owner');
     const store = useStore();
     const auth = useAuth();
     const now = useNow(1000);
@@ -148,15 +149,15 @@ export function Home() {
 
     return (
         <main className="dd-shell dd-home-page">
-            <TopBar alert={store.unreadAny(now)} social />
+            {!profileFeed&&<TopBar alert={store.unreadAny(now)} social />}
             <div className="dd-anim" key="home">
-                <Stories/>
+                {!profileFeed&&<><Stories/>
                 <aside className="dd-home-diary-area" aria-label="Diary shortcuts and schedule">
                   <section className="dd-home-diary-shortcuts" aria-label="Your two diaries">
                     {peopleOwnFirst(auth.me).map(p => <Link key={p.id} to={`/pin/${p.id}`} className="dd-home-diary-link"><Avatar person={p} size="sm"/><span><strong>{p.id === auth.me ? "Your diary" : `${p.name}'s diary`}</strong><small>{store.unreadLatest(otherId(p.id), now) ? "New page" : "Open diary"}</small></span><BookOpen size={18}/></Link>)}
                   </section>
                   <details className="dd-home-schedule"><summary><PhaseIcon size={14}/><span>{sched.phase === 'writing' ? 'Writing time' : sched.phase === 'quiet' ? 'Quiet time' : 'Reading time'}</span><small>{fmtCountdown(sched.countdownMs)} until {sched.next}</small><ChevronRight size={14}/></summary><div><p><CalendarDays size={14}/> {fmtDateLong(todayKey(now))}</p><p><Clock size={14}/> {istClock(now)} IST</p><p>{sched.label}</p><p>{fmtCountdown(sched.countdownMs)} until {sched.next}</p></div></details>
-                </aside>
+                </aside></>}
 
                 <Feed/>
                 <footer className="dd-foot">
