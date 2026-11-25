@@ -3,7 +3,6 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import { cleanSong, type Song } from './Song';
-import { setPrivacyAccount } from './privacy';
 import { disableDevicePush } from './PushSettings';
 import { cleanStickers, Sticker } from './Stickers';
 import { Entry, PersonId, ekey, isReadable, latestReadable, otherId, todayKey } from './model';
@@ -31,7 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loadError, setLoadError] = useState('');
     const [attempt, setAttempt] = useState(0);
     const me = profile?.uid === session?.user.id ? profile?.me ?? null : null;
-    useEffect(() => { setPrivacyAccount(session?.user.id ?? null); }, [session?.user.id]);
     useEffect(()=>listenForForegroundChatPush(session?.user.id??null),[session?.user.id]);
     const ready = sessionReady && (!session || profile?.uid === session.user.id);
 
