@@ -185,7 +185,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
     const auth = useAuth();
     const { go, portal } = useGo();
     const [stage, setStage] = useState<'checking' | 'unavailable' | 'enter' | 'create' | 'confirm' | 'owner'>('checking');
-    const [showPin,setShowPin]=useState(()=>!appEntry||!fingerprintFirst(auth.session!.user.id));
+    const [showPin,setShowPin]=useState(()=>nativeUnlockAvailable()||!appEntry||!fingerprintFirst(auth.session!.user.id));
     const [pin, setPin] = useState('');
     const [firstPin, setFirstPin] = useState('');
     const [error, setError] = useState<string | null>(null);
