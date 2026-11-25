@@ -12,6 +12,14 @@
     <meta name="twitter:title" content="Dear Diary" />
     <meta name="twitter:description" content="A private space for shared moments." />
     <script>
+      // Retain native version events emitted while the application bundle loads.
+      // Memory only: an APK replacement must always report its own installed code.
+      window.addEventListener('dd-android-update', function (event) {
+        var detail = event.detail;
+        if (detail && Number.isInteger(detail.current) && detail.current > 0) {
+          window.ddInstalledCode = detail.current;
+        }
+      });
       // Cosmetic first paint only. Saved data never grants access to diary routes.
       try {
         var saved = JSON.parse(localStorage.getItem('sb-etkjcywiaiiphsrthxqe-auth-token') || 'null');
