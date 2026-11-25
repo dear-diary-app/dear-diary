@@ -13,7 +13,7 @@ export function startAndroidPrivacy(){
  };
  const schedule=()=>check();
  const navigate=()=>{set(true);schedule();};
- const click=(e:Event)=>{const target=e.target as Element|null;if(target?.closest('a,button,summary'))navigate();};
+ const click=(e:Event)=>{const target=e.target as Element|null;if(target?.closest('a,button,summary'))set(true);};
  const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['open','hidden','aria-label','class','data-dd-app-open','data-dd-route','data-page-slide']});
  window.addEventListener('hashchange',navigate);window.addEventListener('dd-native-background',navigate);document.addEventListener('click',click,true);document.addEventListener('visibilitychange',schedule);schedule();
  return()=>{set(true);observer.disconnect();window.removeEventListener('hashchange',navigate);window.removeEventListener('dd-native-background',navigate);document.removeEventListener('click',click,true);document.removeEventListener('visibilitychange',schedule);};
