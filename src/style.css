@@ -2123,3 +2123,5 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 .dd-gif-caption-dialog textarea{box-sizing:border-box;width:100%;resize:vertical;min-height:70px;max-height:22dvh;padding:12px;border:1px solid var(--lg-edge);border-radius:14px;background:var(--lg-control);color:inherit;font:14px/1.4 var(--ds-font-text)}
 .dd-gif-caption-dialog footer{display:flex;justify-content:space-between;gap:12px;margin-top:10px}.dd-gif-caption-dialog footer button{font-size:13px}.dd-gif-caption-dialog p{font-size:12px;line-height:1.45}
 .dd-gif-caption{display:block;margin-top:7px;white-space:pre-wrap;overflow-wrap:anywhere}
+
+.dd-device-unlock{display:flex;flex-direction:column;align-items:center;gap:8px;margin:4px 0 20px}.dd-device-unlock>.dd-btn{display:flex;align-items:center;gap:9px;font-size:14px}.dd-device-unlock>small{font-size:11px;opacity:.65}.dd-device-unlock>p{font-size:12px;max-width:280px;line-height:1.5;margin:2px 0}.dd-device-unlock-actions{display:flex;gap:10px;flex-wrap:wrap}.dd-device-unlock-actions .dd-btn{font-size:12px}

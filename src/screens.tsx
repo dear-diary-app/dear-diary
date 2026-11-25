@@ -1,3 +1,4 @@
+import{DeviceUnlockSettings,DeviceUnlockButton}from'./DeviceUnlock';
 import {SongTasteSettings} from './SongTaste';
 import { PageLockedContext, useDesktopIdle, usePageLocked } from './DesktopIdleLock';
 import {Feed} from './Feed';
@@ -293,6 +294,7 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
                         : `This diary is private - only ${p.name} can set its PIN and open it`}
                 </p>
                 {(stage === 'enter' || stage === 'create' || stage === 'confirm') && (<>
+                {appEntry&&person===auth.me&&stage==='enter'&&<DeviceUnlockButton onUnlock={finish} disabled={busy||ok}/>}
                 <div className={`dd-pin-dots${error ? ' is-error' : ''}${ok ? ' is-ok' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>
                     {[0, 1, 2, 3].map(i => (
                         <span key={i} className={`dd-pin-dot${i < pin.length ? ' is-filled' : ''}`}>
@@ -969,6 +971,7 @@ export function Settings() {
 
                 <section className="dd-settings-dropdowns" aria-label="More settings">
                     <PrivacySettings />
+                    <DeviceUnlockSettings />
                     <VoiceLockSettings />
                     <AISettings />
                     <SongTasteSettings />
