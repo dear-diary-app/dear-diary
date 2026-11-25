@@ -1,5 +1,5 @@
 import { usePageLocked } from './DesktopIdleLock';
-import {cleanEffect,emojiTokens,type MessageEffect} from './ChatEffects';
+import {bubbleEvent,cleanEffect,emojiTokens,type MessageEffect} from './ChatEffects';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -208,7 +208,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             if (!text && !sticker) return;
             const m: ChatMsg = { id: crypto.randomUUID(), sender_id: uid, recipient_id: partner.current ?? '', effect:sticker?null:cleanEffect(effect),body: sticker ? '' : text, sticker, gif_id: null, reply_to: replyTo, reactions: {}, created_at: new Date().toISOString(), seen_at: null, edited_at: null, images: [], state: 'sending' };
             setMessages(prev => [...prev, m].sort(byTime));
-            insert(m);
+            void insert(m).then(ok=>{if(ok&&effect==='bubbles')bubbleEvent(text);});
         },
         replyFromBanner: async (body,replyTo)=>{
             const text=body.trim().slice(0,2000),target=list.current.find(m=>m.id===replyTo);
