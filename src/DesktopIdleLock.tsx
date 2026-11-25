@@ -23,7 +23,7 @@ export function watchDesktopIdle(onLock: () => void) {
         if (Date.now() - last >= DESKTOP_IDLE_MS) { e.preventDefault(); e.stopImmediatePropagation(); check(); return; }
         last = Date.now(); arm();
     };
-    const events = ['pointerdown', 'pointerup', 'click', 'keydown', 'input', 'wheel'];
+    const events = ['pointerdown', 'pointerup', 'click', 'keydown', 'input', 'wheel', 'touchstart', 'touchmove', 'touchend'];
     events.forEach(type => document.addEventListener(type, activity, { capture: true }));
     document.addEventListener('visibilitychange', check); window.addEventListener('focus', check); window.addEventListener('pageshow', check);
     arm();

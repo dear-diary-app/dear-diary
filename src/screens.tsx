@@ -1,5 +1,5 @@
 import {SongTasteSettings} from './SongTaste';
-import { PageLockedContext, useComputerBrowser, useDesktopIdle, usePageLocked } from './DesktopIdleLock';
+import { PageLockedContext, useDesktopIdle, usePageLocked } from './DesktopIdleLock';
 import {Feed} from './Feed';
 import {Stories} from './Stories';
 import {VoiceLockProvider,VoiceLockSettings} from './VoiceLock';
@@ -105,7 +105,6 @@ export function Login() {
 export function AppEntryGate({ children }: { children: React.ReactNode }) {
     const auth = useAuth();
     const [stage, setStage] = useState<'pin' | 'open'>('pin');
-    const computer = useComputerBrowser();
     const [idleLocked, setIdleLocked] = useState(false);
     const dialogs = useRef<HTMLDialogElement[]>([]);
     const clearUnlocks = () => { for (const person of ['joydeep','aruba']) { try { sessionStorage.removeItem('dd_unlocked_'+person); } catch {} } };
@@ -118,7 +117,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
         (document.activeElement as HTMLElement|null)?.blur();
         flushSync(() => setIdleLocked(true));
     };
-    useDesktopIdle(computer && stage === 'open' && !idleLocked, idleLock);
+    useDesktopIdle(stage === 'open' && !idleLocked, idleLock);
     useEffect(() => {
         if (!idleLocked) return;
         const pause = (e: Event) => { if(e.target instanceof HTMLMediaElement)e.target.pause(); };
