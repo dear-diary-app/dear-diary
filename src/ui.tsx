@@ -10,8 +10,11 @@ import { Bell, Gear, ArrowLeft, Heart, ChevronLeft, ChevronRight, XIcon, Message
 export function useNow(stepMs = 1000): Date {
     const [now, setNow] = useState(() => new Date());
     useEffect(() => {
-        const t = setInterval(() => setNow(new Date()), stepMs);
-        return () => clearInterval(t);
+        let t:ReturnType<typeof setInterval>|undefined;
+        const update=()=>{if(!document.hidden)setNow(new Date());};
+        const visibility=()=>{if(t)clearInterval(t);t=undefined;if(!document.hidden){update();t=setInterval(update,stepMs);}};
+        visibility();document.addEventListener('visibilitychange',visibility);
+        return()=>{if(t)clearInterval(t);document.removeEventListener('visibilitychange',visibility);};
     }, [stepMs]);
     return now;
 }

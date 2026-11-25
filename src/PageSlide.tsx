@@ -46,5 +46,5 @@ export function PageSlide({ children }: { children: (location: ReturnType<typeof
         });
     }, [location, shown, navigation]);
     useLayoutEffect(() => () => { pending.current?.skipTransition(); }, []);
-    return <div ref={page} className="dd-route-page">{children(shown)}</div>;
+    return <div ref={page} className="dd-route-page" data-dd-route={shown.pathname}>{children(shown)}</div>;
 }

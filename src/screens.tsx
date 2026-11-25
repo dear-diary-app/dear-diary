@@ -120,7 +120,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
         flushSync(() => setIdleLocked(true));
     };
     useDesktopIdle(stage === 'open' && !idleLocked, idleLock);
-    useEffect(()=>{const lock=()=>idleLock();window.addEventListener('dd-native-background',lock);return()=>window.removeEventListener('dd-native-background',lock);},[]);
+    useEffect(()=>{const lock=()=>idleLock();window.addEventListener('dd-native-background',lock);window.addEventListener('dd-native-pin-fallback',lock);return()=>{window.removeEventListener('dd-native-background',lock);window.removeEventListener('dd-native-pin-fallback',lock);};},[]);
     useEffect(() => {
         if (!idleLocked) return;
         const pause = (e: Event) => { if(e.target instanceof HTMLMediaElement)e.target.pause(); };
@@ -136,7 +136,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
     return <PageLockedContext.Provider value={idleLocked}><VoiceLockProvider person={auth.me!} uid={auth.session!.user.id} active={stage==='open'&&!idleLocked} onLock={lock}>
         {stage==='pin'?<Pin person={auth.me!} appEntry onEntryUnlock={()=>setStage('open')}/>:<>
             {idleLocked&&<><p className="dd-idle-notice" role="status">Locked after 2 minutes of inactivity. Unlock to return. Unsent drafts stay on this page.</p><Pin person={auth.me!} appEntry onEntryUnlock={resume}/></>}
-            <div hidden={idleLocked} {...(idleLocked?{inert:''}:{})} aria-hidden={idleLocked||undefined}>{children}</div>
+            <div data-dd-app-open={!idleLocked} hidden={idleLocked} {...(idleLocked?{inert:''}:{})} aria-hidden={idleLocked||undefined}>{children}</div>
         </>}
     </VoiceLockProvider></PageLockedContext.Provider>;
 }

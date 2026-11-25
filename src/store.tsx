@@ -1,3 +1,4 @@
+import{startAndroidPrivacy}from'./AndroidPrivacy';
 import {listenAndroidPush} from './AndroidPush';
 import {listenForForegroundChatPush} from './foregroundChatPush';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
@@ -25,6 +26,7 @@ const AuthCtx = createContext<Auth | null>(null);
 export const useAuth = () => useContext(AuthCtx)!;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+    useEffect(()=>startAndroidPrivacy(),[]);
     const [session, setSession] = useState<Session | null>(null);
     const [sessionReady, setSessionReady] = useState(false);
     const [profile, setProfile] = useState<{ uid: string; me: PersonId | null } | null>(null);
