@@ -2101,3 +2101,5 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 
 .dd-truth-form header{position:sticky;top:-16px;background:var(--lg-panel,#faf3f7);z-index:1;padding-top:4px}.dd-truth-form textarea{margin-bottom:5px}
 .dd-app[data-theme=midnight] .dd-truth-answers button[aria-pressed=true]{background:#796079;color:white}
+
+#chat-conversation-topics{opacity:1;transition:opacity .3s ease}#chat-conversation-topics.is-fading{opacity:0;pointer-events:none}@media(prefers-reduced-motion:reduce){#chat-conversation-topics{transition:none}}
