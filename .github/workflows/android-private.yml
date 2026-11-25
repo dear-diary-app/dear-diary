@@ -20,7 +20,14 @@ jobs:
         run: printf '%s' "$FIREBASE_CONFIG" > android-private/google-services.json
       - name: Compile release
         run: |
-          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          export ANDROID_HOME="$RUNNER_TEMP/android-sdk"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl --fail -L https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip -o "$RUNNER_TEMP/android-tools.zip"
+          unzip -q "$RUNNER_TEMP/android-tools.zip" -d "$RUNNER_TEMP/android-unpack"
+          mv "$RUNNER_TEMP/android-unpack/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > "$RUNNER_TEMP/licenses.log" || test "${PIPESTATUS[1]}" = 0
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.0' 
           gradle -p android-private --no-daemon assembleRelease
       - name: Sign and verify
         env:
