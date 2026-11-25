@@ -444,7 +444,7 @@ export function ChatView({ partner }: { partner: Person }) {
             </div>}
         </header>
 
-        <div id="chat-conversation-topics" hidden={!topicsOpen||!!selected||recording||!!editing}><ConversationTopics canUse={text.length<2000} onUse={prompt=>{const next=text.trim()?text+'\n'+prompt:prompt;if(next.length>2000)return false;setText(next);requestAnimationFrame(()=>{grow();input.current?.focus();});return true;}}/></div>
+        <div id="dd-instants-chat"/><div id="chat-conversation-topics" hidden={!topicsOpen||!!selected||recording||!!editing}><ConversationTopics canUse={text.length<2000} onUse={prompt=>{const next=text.trim()?text+'\n'+prompt:prompt;if(next.length>2000)return false;setText(next);requestAnimationFrame(()=>{grow();input.current?.focus();});return true;}}/></div>
         <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onTouchMove={dismissOpeningUnread} onKeyDown={dismissOpeningUnread} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{dismissOpeningUnread();jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget&&Date.now()-heldAt.current>650) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
             {!chat.loaded && !chat.loadError && <p className="dd-chat-empty" role="status">Opening your chat...</p>}
