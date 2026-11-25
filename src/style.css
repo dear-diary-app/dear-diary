@@ -2140,3 +2140,5 @@ html[data-dd-native] .dd-shell:not(:has(> .dd-topbar)){padding-top:calc(10px + v
 .dd-pin[hidden]{display:none!important}
 
 .dd-native-verifying img{width:112px;height:112px;animation:dd-native-opening-book 1.2s ease both}.dd-native-verifying h1{font:400 36px/1.2 Georgia,serif;margin:0;animation:dd-native-opening-name .8s ease both}.dd-native-opening-line{width:42px;height:3px;background:#d99aa9;border-radius:3px;animation:dd-native-opening-name 1s ease both}@keyframes dd-native-opening-book{from{opacity:0;transform:translateY(16px) scale(.86) rotate(-7deg)}to{opacity:1;transform:none}}@keyframes dd-native-opening-name{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.dd-native-verifying img,.dd-native-verifying h1,.dd-native-opening-line{animation:none}}
+
+.dd-home-socialbar .dd-update-badge{position:relative;color:#a97087}.dd-update-dot{position:absolute;right:4px;top:4px;width:6px;height:6px;border-radius:50%;background:#ce8768;box-shadow:0 0 0 2px var(--dd-bg-top,#fdf9f4)}

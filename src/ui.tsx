@@ -1,3 +1,4 @@
+import{AndroidUpdateBadge}from'./AndroidUpdate';
 import {VoiceLockContext} from './VoiceLockContext';
 import {ZoomPhoto} from './ZoomPhoto';
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -62,7 +63,7 @@ export function TopBar({ back, backLabel, alert, social = false }: { back?: stri
             <Link to="/" className="dd-wordmark"><img src={`${import.meta.env.BASE_URL}icons/diary-192.png`} width="32" height="32" alt="" /> <span>Dear Diary</span></Link>
             {shortcut&&<button type="button" className="dd-voice-shortcut" aria-label="Double tap to toggle voice lock" disabled={!voiceLock?.supported} onPointerDown={e=>{down.current={x:e.clientX,y:e.clientY};}} onPointerCancel={()=>{down.current=null;lastTap.current=null;}} onClick={doubleTap}/>}
             <div className="dd-topbar-side is-right">
-                {social && <button type="button" className="dd-iconbtn" aria-label="Create a post" onClick={() => window.dispatchEvent(new Event("dd-create-feed-post"))}><ImagePlus size={24}/></button>}
+                {social&&<AndroidUpdateBadge/>}{social && <button type="button" className="dd-iconbtn" aria-label="Create a post" onClick={() => window.dispatchEvent(new Event("dd-create-feed-post"))}><ImagePlus size={24}/></button>}
                 <Link className="dd-iconbtn" to={options ? "/notifications" : "/inbox"} aria-label={options ? "Notification preferences" : "Notification inbox"}>
                     {social ? <Heart size={25}/> : <Bell />}
                 </Link>
