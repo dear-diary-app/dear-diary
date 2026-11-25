@@ -6,7 +6,7 @@ The app loads the existing HTTPS site and uses its existing Supabase accounts an
 
 ## Controls
 
-Android app options, top right: optional device gate, reload, Android notifications. The gate is additional to the diary PIN, not a replacement for server verification. Android 11+ uses strong biometrics or device credentials; Android 9/10 uses device credentials. Device gate locks on backgrounding, with a shield. Cancel leaves a retry/close screen.
+Settings -> Android app options: optional device gate, reload, Android notifications. The gate is additional to the diary PIN, not a replacement for server verification. Android 11+ uses strong biometrics or device credentials; Android 9/10 uses device credentials. Device gate locks on backgrounding, with a shield. Cancel leaves a retry/close screen.
 
 ## Security
 

@@ -18,7 +18,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 public final class MainActivity extends Activity {
  private static final String HOME="https://dear-diary-app.github.io/dear-diary/";
- private WebView web; private FrameLayout root; private LinearLayout shield;
+ private int insetTop=0,insetBottom=0,insetLeft=0,insetRight=0; private WebView web; private FrameLayout root; private LinearLayout shield;
  private ValueCallback<Uri[]> fileCallback; private PermissionRequest mediaRequest;
  public static volatile boolean foreground=false; private String pendingRoute="";
  private boolean unlocked=false,authenticating=false,externalFlow=false; private CancellationSignal biometricCancel;
@@ -27,9 +27,12 @@ public final class MainActivity extends Activity {
  @Override public void onCreate(Bundle state){super.onCreate(state);
   getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
   if(Build.VERSION.SDK_INT>=33)setRecentsScreenshotEnabled(false);
-  getWindow().setStatusBarColor(Color.rgb(240,245,236));getWindow().setNavigationBarColor(Color.rgb(240,245,236));
+  getWindow().setStatusBarColor(Color.TRANSPARENT);getWindow().setNavigationBarColor(Color.TRANSPARENT);
+  getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE|View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+  if(Build.VERSION.SDK_INT>=30)getWindow().setDecorFitsSystemWindows(false);
+  if(Build.VERSION.SDK_INT>=28){WindowManager.LayoutParams lp=getWindow().getAttributes();lp.layoutInDisplayCutoutMode=WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;getWindow().setAttributes(lp);}
   pendingRoute=safeRoute(getIntent().getStringExtra("route"));
-  root=new FrameLayout(this);setContentView(root);root.setOnApplyWindowInsetsListener((v,insets)->{if(Build.VERSION.SDK_INT>=30){android.graphics.Insets bars=insets.getInsets(WindowInsets.Type.systemBars());v.setPadding(bars.left,bars.top,bars.right,bars.bottom);}else v.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());return insets;});web=new WebView(this);FrameLayout.LayoutParams wp=new FrameLayout.LayoutParams(-1,-1);wp.topMargin=(int)(36*getResources().getDisplayMetrics().density);root.addView(web,wp);
+  root=new FrameLayout(this);setContentView(root);root.setOnApplyWindowInsetsListener((v,insets)->{if(Build.VERSION.SDK_INT>=30){android.graphics.Insets bars=insets.getInsets(WindowInsets.Type.systemBars()|WindowInsets.Type.displayCutout());insetTop=bars.top;insetBottom=bars.bottom;insetLeft=bars.left;insetRight=bars.right;int ime=insets.getInsets(WindowInsets.Type.ime()).bottom;v.setPadding(0,0,0,Math.max(0,ime));}else{insetTop=insets.getSystemWindowInsetTop();insetBottom=insets.getStableInsetBottom();insetLeft=insets.getSystemWindowInsetLeft();insetRight=insets.getSystemWindowInsetRight();v.setPadding(0,0,0,Math.max(0,insets.getSystemWindowInsetBottom()-insetBottom));}applyInsets();return insets;});web=new WebView(this);FrameLayout.LayoutParams wp=new FrameLayout.LayoutParams(-1,-1);root.addView(web,wp);
   web.setFilterTouchesWhenObscured(true);WebView.setWebContentsDebuggingEnabled(false);
   WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setAllowFileAccess(false);s.setAllowContentAccess(true);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);s.setMediaPlaybackRequiresUserGesture(true);s.setGeolocationEnabled(false);s.setSupportMultipleWindows(false);
   CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
@@ -40,12 +43,12 @@ public final class MainActivity extends Activity {
     try{JSONObject data=new JSONObject(message.getData());String op=data.optString("op");
      if(op.equals("bind")){String uid=data.optString("uid");if(!uid.matches("[0-9a-f-]{36}"))return;getSharedPreferences("push",0).edit().putString("uid",uid).apply();pushToken();}
      if(op.equals("unbind")){getSharedPreferences("push",0).edit().remove("uid").apply();((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancelAll();}
-     if(op.equals("ready")){pushToken();}
+     if(op.equals("ready")){pushToken();}if(op.equals("options")){showOptions();}
     }catch(Exception ignored){}
    });
   }
   web.setWebViewClient(new WebViewClient(){
-   @Override public void onPageFinished(WebView v,String url){if(trusted(Uri.parse(url))){if(!pendingRoute.isEmpty()){web.evaluateJavascript("location.hash="+JSONObject.quote(pendingRoute),null);pendingRoute="";}pushToken();}}
+   @Override public void onPageFinished(WebView v,String url){if(trusted(Uri.parse(url))){applyInsets();if(!pendingRoute.isEmpty()){web.evaluateJavascript("location.hash="+JSONObject.quote(pendingRoute),null);pendingRoute="";}pushToken();}}
 
    @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){Uri u=r.getUrl();if(trusted(u))return false;if("https".equals(u.getScheme())){try{startActivity(new Intent(Intent.ACTION_VIEW,u));}catch(Exception e){externalFlow=false;}}return true;}
    @Override public void onReceivedSslError(WebView v,android.webkit.SslErrorHandler h,android.net.http.SslError e){h.cancel();}
@@ -57,9 +60,9 @@ public final class MainActivity extends Activity {
    @Override public void onPermissionRequestCanceled(PermissionRequest r){if(mediaRequest==r)mediaRequest=null;}
   });
   shield=new LinearLayout(this);shield.setOrientation(1);shield.setGravity(Gravity.CENTER);shield.setPadding(32,32,32,32);shield.setBackgroundColor(Color.rgb(240,245,236));TextView title=new TextView(this);title.setText("Dear Diary\nApp locked");title.setTextSize(24);title.setGravity(Gravity.CENTER);shield.addView(title);Button unlock=new Button(this);unlock.setText("Unlock with device");unlock.setOnClickListener(v->authenticate());shield.addView(unlock);TextView help=new TextView(this);help.setText("Use your phone screen lock if fingerprint is unavailable.\nYour separate diary PIN is still required inside.");help.setGravity(Gravity.CENTER);shield.addView(help);Button close=new Button(this);close.setText("Close app");close.setOnClickListener(v->finish());shield.addView(close);root.addView(shield,new FrameLayout.LayoutParams(-1,-1));
-  Button menu=new Button(this);menu.setText("⋮");menu.setContentDescription("Android app options");FrameLayout.LayoutParams mp=new FrameLayout.LayoutParams((int)(36*getResources().getDisplayMetrics().density),(int)(40*getResources().getDisplayMetrics().density),Gravity.TOP|Gravity.END);root.addView(menu,mp);menu.setOnClickListener(v->showOptions());
   if(!gateEnabled()){unlocked=true;shield.setVisibility(View.GONE);web.loadUrl(HOME);}else{web.setVisibility(View.INVISIBLE);}
  }
+ private void applyInsets(){if(web==null)return;float d=getResources().getDisplayMetrics().density;String script="document.documentElement.style.setProperty('--dd-native-safe-top','"+(insetTop/d)+"px');document.documentElement.style.setProperty('--dd-native-safe-bottom','"+(insetBottom/d)+"px');document.documentElement.style.setProperty('--dd-native-safe-left','"+(insetLeft/d)+"px');document.documentElement.style.setProperty('--dd-native-safe-right','"+(insetRight/d)+"px');";web.evaluateJavascript(script,null);}
  private static String safeRoute(String route){return "/chat".equals(route)?"/chat":"";}
  @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);String r=safeRoute(intent.getStringExtra("route"));if(web!=null&&unlocked&&!r.isEmpty())web.evaluateJavascript("location.hash="+JSONObject.quote(r),null);else pendingRoute=r;}
  private void pushToken(){if(!getSharedPreferences("push",0).getBoolean("enabled",false)||!trusted(Uri.parse(web.getUrl())))return;try{FirebaseMessaging.getInstance().getToken().addOnSuccessListener(token->{if(!isFinishing()&&trusted(Uri.parse(web.getUrl())))web.evaluateJavascript("window.dispatchEvent(new CustomEvent('dd-android-token',{detail:"+JSONObject.quote(token)+"}))",null);});}catch(IllegalStateException ignored){}}
