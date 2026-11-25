@@ -1,5 +1,5 @@
 {
-  "code": 6,
-  "version": "1.5",
-  "notes": "Status-bar icons follow your background: dark icons on light colors, light icons on dark colors. Background and bottom colors are unchanged.\n\nPrivate in-app updates: after sign-in, opening the app checks for newer releases. Read the notes and tap Update to download inside Dear Diary. The download is checked for size, SHA-256, app identity, version and the same signing certificate before Android's installer opens.\n\nAndroid still asks for Install confirmation and may ask you to allow installs from Dear Diary. Reopen the app yourself if Android does not reopen it. You can dismiss this page and keep using the current version.\n\nThe brief diary-PIN flash after a successful device unlock is replaced by a neutral verification screen. Failed device proof still shows the diary-PIN fallback; private content stays locked until verification completes."
+  "code": 7,
+  "version": "1.6",
+  "notes": "A calmer Dear Diary lock screen: book logo, soft pastel background, fingerprint hint and tidy unlock/diary-PIN choices. Light and dark lock colors follow your last selected app background. Retry stays available when you cancel the Android prompt.\n\nAndroid still handles fingerprint or phone-PIN verification securely. Diary PIN fallback, screenshot protection and verified device proof are unchanged.\n\nChat topic star now adds an unused question directly to your draft in one tap, with no options list. Tap Send when ready. The brief feedback fades after 3 seconds."
 }
