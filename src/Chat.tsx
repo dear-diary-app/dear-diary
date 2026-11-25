@@ -199,12 +199,14 @@ export function ChatView({ partner }: { partner: Person }) {
     const leave = () => { if ((window.history.state?.idx ?? 0) > 0) navigate(-1); else navigate('/', { replace: true }); };
     const [text, setText] = useState('');
     const [translation,setTranslation]=useState<TranslationDraft|null>(null);
+    const [receivedTranslation,setReceivedTranslation]=useState<{id:string;text:string}|null>(null);
     const [translationUndo,setTranslationUndo]=useState<{before:string;after:string}|null>(null);
-    useEffect(()=>{setTranslation(null);setTranslationUndo(null);},[chat.uid]);
+    useEffect(()=>{setTranslation(null);setReceivedTranslation(null);setTranslationUndo(null);},[chat.uid]);
     useEffect(()=>{if(translationUndo&&text!==translationUndo.after)setTranslationUndo(null);},[text,translationUndo]);
     const [recording,setRecording]=useState(false);
     useEffect(()=>{setRecording(false);},[useLocation().pathname]);
     const [replyTo, setReplyTo] = useState<string | null>(null);
+    const heldAt=useRef(0);
     const [selected, setSelected] = useState<string | null>(null);
     const [pinnedIds,setPinnedIds]=useState<Set<string>>(new Set());
     const [pinRequest,setPinRequest]=useState<{id:string;pin:boolean;n:number}|null>(null);
@@ -417,7 +419,7 @@ export function ChatView({ partner }: { partner: Person }) {
         if (d !== lastDay) { lastDay = d; items.push(<p key={`d${d}`} className="dd-chat-day"><span>{dayLabel(m.created_at)}</span></p>); }
         if(openingUnread?.first===m.id)items.push(<div className="dd-unread-divider" key="opening-unread" role="status"><span>{openingUnread.ids.length} unread {openingUnread.ids.length===1?'message':'messages'}</span></div>);
         items.push(<Row key={m.id} arrive={arrivals.has(m.id)} m={m} mine={m.sender_id === chat.uid} partner={partner} original={m.reply_to ? byId.get(m.reply_to) : undefined}
-            selected={selected === m.id} gif={m.gif_id ? gifs.items[m.gif_id] : undefined} gifError={gifs.error} retryGif={gifs.retry} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => setSelected(m.id)} onPhoto={(paths, i) => setViewer({ paths, i })} onReply={() => startReply(m.id)} onMore={() => { input.current?.blur(); setEmojiFor(m.id); }} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
+            selected={selected === m.id} gif={m.gif_id ? gifs.items[m.gif_id] : undefined} gifError={gifs.error} retryGif={gifs.retry} onSelect={() => setSelected(s => s === m.id ? null : m.id)} onTap={() => setSelected(null)} onOpen={() => {heldAt.current=Date.now();setSelected(m.id);}} onPhoto={(paths, i) => setViewer({ paths, i })} onReply={() => startReply(m.id)} onMore={() => { input.current?.blur(); setEmojiFor(m.id); }} onJump={jump} flash={flash === m.id} lastMine={m.id === lastMineId} />);
     });
 
     return <>{desktop && <DesktopConversations/>}<main {...(profileOpen ? { inert: '' } : {})} aria-hidden={profileOpen || undefined} className="dd-chat" {...customStyle} style={{...customStyle.style,...(vh?{height:vh}:{})}} aria-label={`Chat with ${partner.name}`}
@@ -433,6 +435,8 @@ export function ChatView({ partner }: { partner: Person }) {
                     <div className="dd-chat-menu" role="menu">
                         <button type="button" role="menuitem" onClick={()=>{const id=selMsg.id;setPinRequest({id,pin:!pinnedIds.has(id),n:Date.now()});setMenuOpen(false);setSelected(null);}}>{pinnedIds.has(selMsg.id)?'Unpin':'Pin'}</button>
                         {isText && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); copySel(); }}>Copy</button>}
+                        {isText && selMsg.sender_id!==chat.uid && <button type="button" role="menuitem" onClick={()=>{setReceivedTranslation({id:selMsg.id,text:selMsg.body});setMenuOpen(false);setSelected(null);}}>Translate</button>}
+                        <button type="button" role="menuitem" className="is-danger" onClick={()=>{const id=selMsg.id;setMenuOpen(false);setSelected(null);void chat.deleteForMe(id).then(ok=>{if(ok){if(replyTo===id)setReplyTo(null);if(editing===id)stopEdit();say('Deleted for you. Your friend still has it.');}else say('Could not delete for you. Please try again.');});}}>Delete this message for me</button>
                         {canEdit && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); startEdit(); }}>Edit</button>}
                         {canUnsend && <button type="button" role="menuitem" className="is-danger" onClick={() => { setMenuOpen(false); const id=selMsg.id; setSelected(null); say('Unsending...'); void chat.unsend(id).then(ok=>say(ok?'':'Could not unsend. Check your connection and try again.')); }}>Unsend</button>}
                     </div></>}
@@ -440,7 +444,7 @@ export function ChatView({ partner }: { partner: Person }) {
         </header>
 
         {!selected&&!recording&&!editing&&<ConversationTopics canUse={text.length<2000} onUse={prompt=>{const next=text.trim()?text+'\n'+prompt:prompt;if(next.length>2000)return false;setText(next);requestAnimationFrame(()=>{grow();input.current?.focus();});return true;}}/>}
-        <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onTouchMove={dismissOpeningUnread} onKeyDown={dismissOpeningUnread} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{dismissOpeningUnread();jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}>
+        <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onTouchMove={dismissOpeningUnread} onKeyDown={dismissOpeningUnread} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{dismissOpeningUnread();jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget&&Date.now()-heldAt.current>650) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
             {!chat.loaded && !chat.loadError && <p className="dd-chat-empty" role="status">Opening your chat...</p>}
             {chat.loadError && <p className="dd-chat-empty" role="alert">Could not load the chat. <button type="button" className="dd-chat-link" onClick={chat.reload}>Try again</button></p>}
@@ -453,6 +457,7 @@ export function ChatView({ partner }: { partner: Person }) {
         <BubblesLayer/><div className="dd-chat-compose">
             <button type="button" className={`dd-chat-bottom${awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?' is-visible':''}`} aria-label={newBelowCount?`Scroll to latest message, ${newBelowCount} new ${newBelowCount===1?'message':'messages'}`:'Scroll to latest message'} tabIndex={awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen?0:-1} aria-hidden={!(awayFromBottom&&!selected&&!emojiFor&&!viewer&&!profileOpen&&!trayOpen)||undefined} onPointerDown={e=>e.preventDefault()} onClick={()=>{jumpingToBottom.current=true;setNewBelow(false);stick.current=true;toBottom(true);}}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>{newBelowCount>0&&<span className="dd-chat-bottom-count" aria-hidden="true">{newBelowCount>99?'99+':newBelowCount}</span>}</button>
             {ddai!==null&&<ChatDDAI uid={chat.uid} text={ddai} onClose={()=>setDDAI(null)}/>}
+            {receivedTranslation&&<ChatTranslate key={receivedTranslation.id} uid={chat.uid} readOnly draft={{full:receivedTranslation.text,text:receivedTranslation.text,selected:false,start:0,end:receivedTranslation.text.length}} onClose={()=>setReceivedTranslation(null)} onUse={()=>false}/>}
             {translation&&<ChatTranslate uid={chat.uid} draft={translation} onClose={()=>setTranslation(null)} onUse={result=>{if(text!==translation.full)return false;const next=translation.full.slice(0,translation.start)+result+translation.full.slice(translation.end);if(next.length>2000)return false;setTranslationUndo({before:text,after:next});setText(next);requestAnimationFrame(()=>{grow();input.current?.focus();});return true;}}/>}
             {sendOptions&&<SendOptions text={text} allowed={effectsAllowed} scheduleAllowed={effectsAllowed&&!replyTo} onClose={()=>setSendOptions(false)} onSchedule={effect=>{setScheduleEffect(effect);setScheduleRequest(n=>n+1);}} onSend={(effect:MessageEffect)=>{if(!effectsAllowed)return;chat.send(text,null,replyTo,effect);chat.typing(false);setText('');setReplyTo(null);setNote('');stick.current=true;requestAnimationFrame(grow);}}/>}
             <ScheduledChat initialEffect={scheduleEffect} draft={text} blocked={ddaiQuery(text)!==null||!!replyTo||!!editing||staged.length>0||(askQuery(text)!==null||isOneYear(text)||imageQuery(text)!==null||musicQuery(text)!==null||text.trim().toLowerCase()==='/weather')} request={scheduleRequest} onSaved={()=>{setText('');chat.typing(false);requestAnimationFrame(grow);}}/>

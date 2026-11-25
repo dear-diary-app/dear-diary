@@ -42,7 +42,7 @@ export interface ChatApi {
     sendSong: (song:Song,replyTo?:string|null)=>void;
     sendVoice: (blob: Blob, duration: number, mime: string, peaks: number[], replyTo?: string | null) => void;
     sendImages: (files: Blob[], body: string, replyTo?: string | null) => void;
-    retry: (id: string) => void; discard: (id: string) => void; unsend: (id: string) => Promise<boolean>; edit: (id: string, body: string) => void; react: (id: string, emoji: string) => void;
+    retry: (id: string) => void; discard: (id: string) => void; unsend: (id: string) => Promise<boolean>; deleteForMe:(id:string)=>Promise<boolean>; edit: (id: string, body: string) => void; react: (id: string, emoji: string) => void;
     loadOlder: () => Promise<void>; typing: (on: boolean) => void; setViewing: (on: boolean) => void; reload: () => void;
 }
 const Ctx = createContext<ChatApi | null>(null);
@@ -74,32 +74,37 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     const joined = useRef(false);
     const partner = useRef<string | null>(null);
     const list = useRef<ChatMsg[]>([]);
+    const hidden=useRef(new Set<string>());
     const { partnerTyping, typing, receive: receiveTyping, clear: clearTyping, stop: stopTyping } = useChatTyping(uid, channel, joined);
     list.current = messages;
 
     const merge = useCallback((rows: unknown[]) => {
-        const next = rows.map(clean).filter((m): m is ChatMsg => !!m);
+        const next = rows.map(clean).filter((m): m is ChatMsg => !!m&&!hidden.current.has(m.id));
         if (!next.length) return;
         setMessages(prev => {
-            const map = new Map(prev.map(m => [m.id, m]));
-            next.forEach(m => { const old = map.get(m.id); map.set(m.id, { ...m, state: old?.state === 'failed' ? 'failed' : undefined }); });
+            const map = new Map(prev.filter(m=>!hidden.current.has(m.id)).map(m => [m.id, m]));
+            next.forEach(m => { const old = map.get(m.id); map.set(m.id, { ...m,reply_to:m.reply_to&&hidden.current.has(m.reply_to)?null:m.reply_to, state: old?.state === 'failed' ? 'failed' : undefined }); });
             return [...map.values()].sort(byTime);
         });
     }, []);
 
     const fetchLatest = useCallback(async () => {
+        const hiddenRows=await supabase.from('chat_hidden_messages').select('message_id');
+        if(hiddenRows.error){setLoadError(prev=>prev||list.current.length===0);return;}
+        hiddenRows.data?.forEach(r=>hidden.current.add(r.message_id));
+        setMessages(prev=>prev.filter(m=>!hidden.current.has(m.id)).map(m=>m.reply_to&&hidden.current.has(m.reply_to)?{...m,reply_to:null}:m));
         const { data, error } = await supabase.from('chat_messages').select(COLS).order('created_at', { ascending: false }).limit(PAGE);
         if (error || !data) { setLoadError(prev => prev || list.current.length === 0); return; }
         setLoadError(false);
-        const rows = (data as unknown[]).map(clean).filter((m): m is ChatMsg => !!m);
+        const rows = (data as unknown[]).map(clean).filter((m): m is ChatMsg => !!m&&!hidden.current.has(m.id));
         const oldest = rows.length === PAGE ? rows[rows.length - 1].created_at : '';
         setHasMore(h => (rows.length === PAGE ? true : list.current.length > rows.length ? h : false));
         setMessages(prev => {
-            const map = new Map(prev.map(m => [m.id, m]));
+            const map = new Map(prev.filter(m=>!hidden.current.has(m.id)).map(m => [m.id, m]));
             const fresh = new Set(rows.map(r => r.id));
             // A message that is inside the fetched window but missing from it was unsent.
             prev.forEach(m => { if (!m.state && !fresh.has(m.id) && (oldest === '' || m.created_at >= oldest)) map.delete(m.id); });
-            rows.forEach(m => { const old = map.get(m.id); map.set(m.id, { ...m, state: old?.state === 'failed' ? 'failed' : undefined }); });
+            rows.forEach(m => { const old = map.get(m.id); map.set(m.id, { ...m,reply_to:m.reply_to&&hidden.current.has(m.reply_to)?null:m.reply_to, state: old?.state === 'failed' ? 'failed' : undefined }); });
             return [...map.values()].sort(byTime);
         });
         setLoaded(true);
@@ -244,6 +249,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             if (blobs) void sendWithPhotos(m, blobs); else insert(m);
         },
         discard: id => { const m=list.current.find(x=>x.id===id);if(m?.audio)void supabase.rpc('chat_remove_voice',{p_id:id,p_path:m.audio.path});pendingAudio.current.delete(id);pending.current.delete(id); setMessages(prev => prev.filter(m => m.id !== id)); },
+        deleteForMe:async id=>{const old=list.current.find(m=>m.id===id);if(!old||old.state)return false;try{const r=await supabase.rpc('chat_delete_for_me',{p_id:id});if(r.error||r.data!==true)return false;hidden.current.add(id);setMessages(prev=>dropMessage(prev,id));window.dispatchEvent(new Event('dd-chat-hidden'));return true;}catch{return false;}},
         unsend: async id => {
             const old = list.current.find(m => m.id === id);
             if (!old || old.sender_id !== uid || old.state === 'sending') return false;
