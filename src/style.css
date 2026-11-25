@@ -2133,3 +2133,5 @@ html.dd-chat-typing .dd-dock-frost{display:none}
 
 /* Native APK: full viewport background, inset only interactive page content. */
 html[data-dd-native] .dd-shell:not(:has(> .dd-topbar)){padding-top:calc(10px + var(--dd-native-safe-top,0px))}html[data-dd-native] .dd-shell{padding-left:max(14px,var(--dd-native-safe-left,0px));padding-right:max(14px,var(--dd-native-safe-right,0px))}
+/* Reader routes hide their TopBar, so the route itself must reserve the status-bar area. */
+.dd-app.dd-app.dd-app .dd-shell.dd-reader-route{padding-top:var(--dd-native-safe-top,env(safe-area-inset-top,0px))}
