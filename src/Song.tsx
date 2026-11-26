@@ -175,7 +175,7 @@ function usePreview(url: string) {
 // A compact profile-header player, using the same preview rules as the song card.
 export function ProfileSongInline({song,onDetails}:{song:Song;onDetails:()=>void}) {
  const p=usePreview(song.url);
- return <div className="dd-profile-song-inline"><div className="dd-profile-song-row"><button type="button" className="dd-profile-song-toggle" aria-label={`${p.playing?'Pause':'Play'} profile song: ${song.name}`} aria-pressed={p.playing} onClick={p.toggle}>{p.playing?<Pause/>:<Play/>}</button><button type="button" className="dd-profile-music-link" onClick={onDetails}><span>{song.name} <small>· {song.artist}</small></span></button></div>{p.failed&&<p role="status">Could not play this song. Tap play to retry.</p>}</div>;
+ return <div className="dd-profile-song-inline"><div className="dd-profile-song-row"><button type="button" className="dd-profile-song-toggle" aria-label={`${p.playing?'Pause':'Play'} profile song: ${song.name}`} aria-pressed={p.playing} onClick={p.toggle}><svg className="dd-profile-song-progress" viewBox="0 0 38 38" aria-hidden="true"><circle className="dd-profile-song-progress-track" cx="19" cy="19" r="17"/><circle className="dd-profile-song-progress-value" cx="19" cy="19" r="17" pathLength="100" strokeDasharray="100" strokeDashoffset={100-Math.max(0,Math.min(1,p.progress))*100}/></svg>{p.playing?<Pause/>:<Play/>}</button><button type="button" className="dd-profile-music-link" onClick={onDetails}><span>{song.name} <small>· {song.artist}</small></span></button></div>{p.failed&&<p role="status">Could not play this song. Tap play to retry.</p>}</div>;
 }
 
 const links = new Map<number, string>();
