@@ -110,9 +110,12 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
     const [stage, setStage] = useState<'pin' | 'open'>('pin');
     const [idleLocked, setIdleLocked] = useState(false);
     const dialogs = useRef<HTMLDialogElement[]>([]);
+    const freshUnlockKey='dd_fresh_unlock_'+auth.session!.user.id;
+    const requireFreshUnlock = useRef((()=>{try{return sessionStorage.getItem(freshUnlockKey)==='true';}catch{return false;}})());
+    const clearFreshUnlock=()=>{requireFreshUnlock.current=false;try{sessionStorage.removeItem(freshUnlockKey);}catch{}};
     const clearUnlocks = () => { for (const person of ['joydeep','aruba']) { try { sessionStorage.removeItem('dd_unlocked_'+person); } catch {} } };
     const pauseMedia = () => { window.dispatchEvent(new Event('dd-page-lock')); document.querySelectorAll('audio,video').forEach(el => (el as HTMLMediaElement).pause()); };
-    const lock=()=>{clearUnlocks();document.querySelectorAll('dialog[open]').forEach(d=>(d as HTMLDialogElement).close());setIdleLocked(false);flushSync(()=>setStage('pin'));};
+    const lock=()=>{requireFreshUnlock.current=true;try{sessionStorage.setItem(freshUnlockKey,'true');}catch{}pauseMedia();clearUnlocks();document.querySelectorAll('dialog[open]').forEach(d=>(d as HTMLDialogElement).close());setIdleLocked(false);flushSync(()=>setStage('pin'));};
     const idleLock = () => {
         clearUnlocks(); pauseMedia();
         dialogs.current = Array.from(document.querySelectorAll<HTMLDialogElement>('dialog[open]'));
@@ -132,11 +135,11 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
     },[idleLocked]);
     useEffect(()=>{if(stage==='open'&&!idleLocked)window.DearDiaryAndroid?.postMessage(JSON.stringify({op:'picker-web-ready'}));},[stage,idleLocked]);
     const resume = () => {
-        setIdleLocked(false);
+        clearFreshUnlock();setIdleLocked(false);
         requestAnimationFrame(() => { dialogs.current.forEach(d => { if(d.isConnected)try{d.showModal();}catch{} }); dialogs.current=[]; });
     };
     return <PageLockedContext.Provider value={idleLocked}><VoiceLockProvider person={auth.me!} uid={auth.session!.user.id} active={stage==='open'&&!idleLocked} onLock={lock}>
-        {stage==='pin'?<Pin person={auth.me!} appEntry onEntryUnlock={()=>setStage('open')}/>:<>
+        {stage==='pin'?<Pin person={auth.me!} appEntry requireFreshUnlock={requireFreshUnlock.current} onEntryUnlock={()=>{clearFreshUnlock();setStage('open');}}/>:<>
             {idleLocked&&<><p className="dd-idle-notice" role="status">Locked after 2 minutes of inactivity. Unlock to return. Unsent drafts stay on this page.</p><Pin person={auth.me!} appEntry onEntryUnlock={resume}/></>}
             <div data-dd-app-open={!idleLocked} hidden={idleLocked} {...(idleLocked?{inert:''}:{})} aria-hidden={idleLocked||undefined}>{children}</div>
         </>}
@@ -178,7 +181,7 @@ export function Home() {
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
 
-export function Pin({ person, appEntry = false, onEntryUnlock }: { person: PersonId; appEntry?: boolean; onEntryUnlock?: () => void }) {
+export function Pin({ person, appEntry = false, requireFreshUnlock = false, onEntryUnlock }: { person: PersonId; appEntry?: boolean; requireFreshUnlock?: boolean; onEntryUnlock?: () => void }) {
     const coveredByIdleLock = usePageLocked() && !appEntry;
     const p = personById(person);
     const now = useNow(1000);
@@ -187,8 +190,8 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
     const auth = useAuth();
     const { go, portal } = useGo();
     const [stage, setStage] = useState<'checking' | 'unavailable' | 'enter' | 'create' | 'confirm' | 'owner'>('checking');
-    const [showPin,setShowPin]=useState(()=>nativeUnlockAvailable()||!appEntry||!fingerprintFirst(auth.session!.user.id));
-    const [nativePending,setNativePending]=useState(()=>appEntry&&nativeUnlockAvailable());
+    const [showPin,setShowPin]=useState(()=>requireFreshUnlock||nativeUnlockAvailable()||!appEntry||!fingerprintFirst(auth.session!.user.id));
+    const [nativePending,setNativePending]=useState(()=>appEntry&&nativeUnlockAvailable()&&!requireFreshUnlock);
     const [pin, setPin] = useState('');
     const [firstPin, setFirstPin] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -302,8 +305,8 @@ export function Pin({ person, appEntry = false, onEntryUnlock }: { person: Perso
                         : `This diary is private - only ${p.name} can set its PIN and open it`}
                 </p>
                 {(stage === 'enter' || stage === 'create' || stage === 'confirm') && (<>
-                {appEntry&&person===auth.me&&stage==='enter'&&nativeUnlockAvailable()&&<AndroidUnlock uid={auth.session!.user.id} onUnlock={finish} onPending={setNativePending}/>}
-                {appEntry&&person===auth.me&&stage==='enter'&&!nativeUnlockAvailable()&&<DeviceUnlockButton onPinVisible={setShowPin} onUnlock={finish} disabled={busy||ok}/>}
+                {appEntry&&person===auth.me&&stage==='enter'&&nativeUnlockAvailable()&&<AndroidUnlock requireInteraction={requireFreshUnlock} uid={auth.session!.user.id} onUnlock={finish} onPending={setNativePending}/>}
+                {appEntry&&person===auth.me&&stage==='enter'&&!nativeUnlockAvailable()&&<DeviceUnlockButton allowAutomatic={!requireFreshUnlock} onPinVisible={setShowPin} onUnlock={finish} disabled={busy||ok}/>}
                 <div hidden={appEntry&&stage==='enter'&&!showPin}>
                 <div className={`dd-pin-dots${error ? ' is-error' : ''}${ok ? ' is-ok' : ''}`} aria-label={`${pin.length} of 4 digits entered`}>
                     {[0, 1, 2, 3].map(i => (
