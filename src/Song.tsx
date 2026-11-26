@@ -282,6 +282,7 @@ export function SongPill({
 }
 
 interface Hit {
+  trackTimeMillis?: number;
   trackId: number;
   trackName: string;
   artistName: string;
@@ -294,7 +295,9 @@ function Result({
   chosen,
   onPick,
   compact = false,
+  showDuration = false,
 }: {
+  showDuration?: boolean;
   hit: Hit;
   compact?: boolean;
   chosen: boolean;
@@ -320,7 +323,7 @@ function Result({
       </button>
       <span className="dd-song-text">
         <strong>{hit.trackName}</strong>
-        <small>{hit.artistName}</small>
+        <small>{hit.artistName}{showDuration && Number.isFinite(hit.trackTimeMillis) && <> · {Math.floor(hit.trackTimeMillis!/60000)}:{String(Math.floor(hit.trackTimeMillis!/1000)%60).padStart(2,"0")}</>}</small>
       </span>
       <button type="button" className="dd-song-use" onClick={onPick}>
         {chosen ? (
@@ -344,12 +347,17 @@ export function SongPicker({
   song,
   onChange,
   compact = false,
+  inboxSheet = false,
+  onPicked,
 }: {
+  inboxSheet?: boolean;
+  onPicked?: () => void;
   song?: Song | null;
   compact?: boolean;
   onChange: (s: Song | null) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(inboxSheet);
+  const [tab,setTab]=useState<"search"|"selected">("search");
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
@@ -405,8 +413,10 @@ export function SongPicker({
       onChange(s);
       setOpen(false);
       setQ("");
+      onPicked?.();
     }
   };
+  if(inboxSheet)return <section className="dd-inbox-music-picker" aria-label="Choose an inbox song"><label className="dd-inbox-music-search"><Search size={20}/><input type="search" value={q} onChange={e=>{setQ(e.target.value);setTab("search");}} placeholder="Search songs or artists" aria-label="Search for a song"/></label><div className="dd-inbox-music-tabs" role="tablist" aria-label="Music source"><button role="tab" aria-selected={tab==='search'} onClick={()=>setTab('search')}>Search</button><button role="tab" aria-selected={tab==='selected'} onClick={()=>setTab('selected')}>Selected</button></div>{tab==='selected'?song?<SongPill song={song}/>:<p className="dd-song-note">No song selected yet.</p>:<>{state==='loading'&&<p role="status">Searching...</p>}{state==='error'&&<p role="alert">Search did not work. Try a different search or check your connection.</p>}{q.trim().length<2&&<p className="dd-song-note">Find a song you love. Type at least two letters to search the catalog.</p>}{state==='idle'&&q.trim().length>=2&&!hits.length&&<p className="dd-song-note">No songs found. Try the artist name too.</p>}<ul className="dd-song-list">{hits.map(h=><Result key={h.trackId} hit={h} chosen={song?.id===h.trackId} onPick={()=>pick(h)} showDuration/>)}</ul></>}<p className="dd-inbox-music-credit">Previews up to 30 seconds, courtesy of iTunes. Times shown are full track lengths, when available.</p></section>;
   return (
     <section className="dd-songbox" aria-label="Song for this page">
       {song ? (
