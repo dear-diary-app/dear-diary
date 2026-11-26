@@ -33,7 +33,8 @@ export function ChatStatus({
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [retry, setRetry] = useState(0),
-    [open, setOpen] = useState(false);
+    [open, setOpen] = useState(false),
+    [expanded,setExpanded]=useState(false);
   const dialog = useRef<HTMLDialogElement>(null),
     trigger = useRef<HTMLButtonElement>(null),
     ownRef = useRef("");
@@ -110,7 +111,7 @@ export function ChatStatus({
   };
   return (
     <>
-      {inboxHeader?<button ref={trigger} className="dd-dm-header-status" aria-label="Set your chat status" aria-haspopup="dialog" onClick={()=>setOpen(true)}><span className="dd-dm-status-pair"><span><b>You</b><span>{own||"No status"}</span></span><span><b>{partner.name}</b><span>{other||"No status"}</span></span></span></button>:inbox?<div className="dd-dm-notes"><button ref={trigger} className="dd-dm-note" onClick={()=>setOpen(true)} aria-label="Set your note or status"><span className="dd-dm-note-bubble">{own||"Share a thought..."}</span><Avatar person={personById(me!)}/><small>Your note</small><i aria-hidden="true">+</i></button><button className="dd-dm-note" onClick={()=>setOpen(true)} aria-label={`${partner.name} note: ${other||"No note shared"}`}><span className="dd-dm-note-bubble">{other||"No note yet"}</span><Avatar person={partner}/><small>{partner.name}</small></button></div>:<button
+      {inboxHeader?<div className="dd-dm-status-dropdown"><button className="dd-dm-status-toggle" aria-label="Show both statuses" aria-expanded={expanded} onClick={()=>setExpanded(v=>!v)}>Status <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" style={{transform:expanded?'rotate(180deg)':'none'}}><path d="m5 7 5 5 5-5"/></svg></button>{expanded&&<div className="dd-dm-status-menu"><span><b>You</b><span>{own||"No status"}</span></span><span><b>{partner.name}</b><span>{other||"No status"}</span></span><button ref={trigger} onClick={()=>setOpen(true)} aria-label="Set your chat status">Change your status</button></div>}</div>:inbox?<div className="dd-dm-notes"><button ref={trigger} className="dd-dm-note" onClick={()=>setOpen(true)} aria-label="Set your note or status"><span className="dd-dm-note-bubble">{own||"Share a thought..."}</span><Avatar person={personById(me!)}/><small>Your note</small><i aria-hidden="true">+</i></button><button className="dd-dm-note" onClick={()=>setOpen(true)} aria-label={`${partner.name} note: ${other||"No note shared"}`}><span className="dd-dm-note-bubble">{other||"No note yet"}</span><Avatar person={partner}/><small>{partner.name}</small></button></div>:<button
         ref={trigger}
         className="dd-availability-pill"
         aria-label={`Chat status: ${partner.name}${other ? `, ${other}` : online ? ", Online" : ", no status"}. Set your status`}
