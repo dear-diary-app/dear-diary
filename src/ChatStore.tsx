@@ -179,10 +179,11 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     const pending = useRef(new Map<string, Blob[]>());
     // Photos upload first (private bucket), then the message row points at them.
     const sendWithPhotos = useCallback(async (m: ChatMsg, blobs: Blob[]) => {
-        const paths = await uploadImages(m.sender_id, m.id, blobs);
-        if (!paths) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return; }
-        pending.current.delete(m.id);
-        insert({ ...m, images: paths });
+        try {
+            const paths = await uploadImages(m.sender_id, m.id, blobs);
+            if (!paths) throw Error('Photo upload failed');
+            if (await insert({ ...m, images: paths })) pending.current.delete(m.id);
+        } catch { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); }
     }, []);
     const insert = useCallback(async (m: ChatMsg): Promise<boolean> => {
         try {
