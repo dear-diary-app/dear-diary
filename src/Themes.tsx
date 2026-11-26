@@ -93,15 +93,15 @@ export function ThemeFrame({ className, children }: { className: string; childre
     </ThemeContext.Provider>;
 }
 
-export function ThemePicker() {
+export function ThemePicker({friendSafe=false}:{friendSafe?:boolean}={}) {
     const state = useContext(ThemeContext)!;const weather=useContext(WeatherContext);
     return <section className="dd-card dd-theme-picker" aria-labelledby="dd-theme-heading">
         <details className="dd-settings-fold">
         <summary><span className="dd-settings-fold-label"><h2 id="dd-theme-heading" className="dd-card-title">Background theme</h2><span className="dd-settings-fold-note">{state.mode==='weather'?'Weather':state.mode==='auto'?'Auto day / night':PALETTES.find(p => p.id === state.theme)!.name}</span></span><ChevronRight size={20} /></summary>
         <div className="dd-settings-fold-content">
         <p className="dd-card-sub">A little colour for your space. Choose an automatic day/night look, keep one fixed colour, or let Weather choose the colours. Your choice is only for your account.</p>
-        <div className="dd-theme-modes" role="group" aria-label="Theme mode"><button type="button" aria-pressed={state.mode==='auto'} onClick={()=>state.setMode('auto')}>Auto day / night</button><button type="button" aria-pressed={state.mode==='fixed'} onClick={()=>state.setMode('fixed')}>Fixed colour</button><button type="button" aria-pressed={state.mode==='weather'} onClick={()=>{state.setMode('weather');if(!state.weatherOn)state.setWeatherOn(true);}}>Weather</button></div>
-        {state.weatherOn&&<WeatherSummary/>}
+        <div className="dd-theme-modes" role="group" aria-label="Theme mode"><button type="button" aria-pressed={state.mode==='auto'} onClick={()=>state.setMode('auto')}>Auto day / night</button><button type="button" aria-pressed={state.mode==='fixed'} onClick={()=>state.setMode('fixed')}>Fixed colour</button>{!friendSafe&&<button type="button" aria-pressed={state.mode==='weather'} onClick={()=>{state.setMode('weather');if(!state.weatherOn)state.setWeatherOn(true);}}>Weather</button>}</div>
+        {!friendSafe&&state.weatherOn&&<WeatherSummary/>}
         <p className="dd-card-sub">Auto: Lavender from 6 am to 6 pm, Midnight from 6 pm to 6 am, using this device's local time. Weather mode leaves Auto and Fixed unselected, with colours that follow the sky. Until weather loads, your fixed colour is the fallback. Mode and weather options stay on this device, separately for each account.</p>
         <div className="dd-theme-options" role="group" aria-label="Background theme colour">
             {PALETTES.map(p => <button type="button" key={p.id} disabled={state.busy}
@@ -113,7 +113,7 @@ export function ThemePicker() {
                 <span><strong>{p.name}</strong><small>{p.note}</small></span>
             </button>)}
         </div>
-        <div className="dd-weather-settings"><label><input type="checkbox" checked={state.weatherOn} onChange={e=>{state.setWeatherOn(e.target.checked);if(!e.target.checked&&state.mode==='weather')state.setMode('fixed');}}/> Local weather background</label><p>Optional. Uses your device location or selected city, rounded to about 5 km, to get weather from Open-Meteo about every 10 minutes while open. Device coordinates stay out of your diary and are not saved. A manually selected city is saved only on this device. The weather provider receives them and your IP address. Each person sees their own local weather.</p>{state.weatherOn&&<><WeatherCityPicker/><button type="button" className="dd-btn dd-btn-ghost" onClick={weather.refresh}>Enable / refresh weather</button></>}<p>Generated sky scenes, not video or a live camera. Layered clouds drift over sun, moon, rain, snow and wind (25 km/h or more). Motion is capped at 24 fps, reduces detail and frame rate if drawing is expensive, and pauses when hidden. It can use more battery. Reduced motion, data saver or low-power devices use still scenes. Weather unavailable? Your selected colour stays on.</p><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Weather data by Open-Meteo</a></div>
+        {!friendSafe&&<div className="dd-weather-settings"><label><input type="checkbox" checked={state.weatherOn} onChange={e=>{state.setWeatherOn(e.target.checked);if(!e.target.checked&&state.mode==='weather')state.setMode('fixed');}}/> Local weather background</label><p>Optional. Uses your device location or selected city, rounded to about 5 km, to get weather from Open-Meteo about every 10 minutes while open. Device coordinates stay out of your diary and are not saved. A manually selected city is saved only on this device. The weather provider receives them and your IP address. Each person sees their own local weather.</p>{state.weatherOn&&<><WeatherCityPicker/><button type="button" className="dd-btn dd-btn-ghost" onClick={weather.refresh}>Enable / refresh weather</button></>}<p>Generated sky scenes, not video or a live camera. Layered clouds drift over sun, moon, rain, snow and wind (25 km/h or more). Motion is capped at 24 fps, reduces detail and frame rate if drawing is expensive, and pauses when hidden. It can use more battery. Reduced motion, data saver or low-power devices use still scenes. Weather unavailable? Your selected colour stays on.</p><a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Weather data by Open-Meteo</a></div>}
         {state.message && <p className="dd-theme-message" role="status">{state.message}</p>}
         </div></details>
     </section>;

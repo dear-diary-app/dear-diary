@@ -1,3 +1,4 @@
+import{FriendModeSettings}from'./FriendMode';
 import{AndroidUnlock,nativeUnlockAvailable,enrollAndroidUnlock}from'./AndroidUnlock';
 import{DeviceUnlockSettings,DeviceUnlockButton,fingerprintFirst}from'./DeviceUnlock';
 import {SongTasteSettings} from './SongTaste';
@@ -931,6 +932,7 @@ export function Settings() {
 
                 <Link className="dd-menu-card" to="/profile"><span className="dd-menu-icon"><Heart /></span><span className="dd-menu-text"><strong>Your profile</strong><small>Photo, bio, mood and streak</small></span><ChevronRight size={18}/></Link>
 
+                <FriendModeSettings />
                 <DiaryInstall />
 
                 <Link className="dd-menu-card" to="/settings/how-to-use">

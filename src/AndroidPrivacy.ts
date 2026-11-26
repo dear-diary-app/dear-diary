@@ -1,3 +1,4 @@
+import{friendModeOn}from'./friendPrivacy';
 // Default-deny Android screenshot policy. This does not expose a native unlock path.
 export function startAndroidPrivacy(){
  const bridge=window.DearDiaryAndroid;if(!bridge)return()=>{};
@@ -9,7 +10,7 @@ export function startAndroidPrivacy(){
   const route=document.querySelector('[data-dd-route]')?.getAttribute('data-dd-route');
   const locked=route!==path||document.documentElement.hasAttribute('data-page-slide')||!document.querySelector('[data-dd-app-open="true"]')||document.hidden||!!document.querySelector('[aria-label="Unlock Dear Diary"],.dd-login,.dd-security-page,[role="dialog"],.dd-crop-overlay,dialog[open],.dd-chat-banner,.dd-chat-banner-notice');
   const sensitiveSettings=path==='/settings'&&!!document.querySelector('[data-dd-private-settings] details[open],.dd-device-settings details[open],.dd-export details[open],section[aria-labelledby="privacy-heading"] details[open],input[type="password"]');
-  set(!allowed||locked||sensitiveSettings);
+  set(friendModeOn()||!allowed||locked||sensitiveSettings);
  };
  const schedule=()=>check();
  const navigate=()=>{set(true);schedule();};

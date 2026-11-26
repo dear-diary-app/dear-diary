@@ -73,19 +73,25 @@ async function chatIsInForeground(accountId) {
  })));
  return answers.some(Boolean);
 }
+async function friendPrivacyOn(){
+ return new Promise(resolve=>{const request=indexedDB.open('dear-diary-privacy',1);request.onupgradeneeded=()=>request.result.createObjectStore('state');request.onerror=()=>resolve(true);request.onsuccess=()=>{const db=request.result,tx=db.transaction('state','readonly'),read=tx.objectStore('state').get('friend');read.onsuccess=()=>{db.close();resolve(read.result===true);};read.onerror=()=>{db.close();resolve(true);};};});
+}
+self.addEventListener('message',event=>{if(event.data?.type==='diary-friend-privacy'&&event.ports?.[0])event.ports[0].postMessage({friendPrivacy:1});});
+async function privateNotification(title,options){if(await friendPrivacyOn())return;return self.registration.showNotification(title,options);}
 self.addEventListener('push', event => {
  let data={};try{data=event.data?event.data.json():{};}catch{}
  const body=typeof data.body==='string'?data.body.slice(0,500):'Open Dear Diary for your reminder.';
  const tag=typeof data.tag==='string'?data.tag.slice(0,150):'diary-reminder';
  event.waitUntil((async()=>{
+  if(await friendPrivacyOn())return;
   // Old payloads without an account remain generic OS alerts, never mixed into an inbox.
   if(data.type==='feed'&&typeof data.post_id==='string'&&/^[0-9a-f-]{36}$/i.test(data.post_id)){
-   await self.registration.showNotification('Dear Diary',{body,icon:BASE+'icons/diary-192.png',badge:BASE+'icons/diary-192.png',tag,data:{feed:true,post_id:data.post_id,account_id:data.account_id},renotify:false});return;
+   await privateNotification('Dear Diary',{body,icon:BASE+'icons/diary-192.png',badge:BASE+'icons/diary-192.png',tag,data:{feed:true,post_id:data.post_id,account_id:data.account_id},renotify:false});return;
   }
   if(data.type==='chat'){
    if(await chatIsInForeground(data.account_id).catch(()=>false))return;
    const who=typeof data.title==='string'?data.title.slice(0,40):'Dear Diary';
-   await self.registration.showNotification(who,{body,icon:BASE+'icons/diary-192.png',badge:BASE+'icons/diary-192.png',tag,data:{chat:true,account_id:data.account_id},actions:data.reply_action===true?[{action:'reply',title:'Open to reply'}]:[],renotify:true});
+   await privateNotification(who,{body,icon:BASE+'icons/diary-192.png',badge:BASE+'icons/diary-192.png',tag,data:{chat:true,account_id:data.account_id},actions:data.reply_action===true?[{action:'reply',title:'Open to reply'}]:[],renotify:true});
    return;
   }
   if(typeof data.account_id==='string' && /^[0-9a-f-]{36}$/i.test(data.account_id)){
@@ -93,12 +99,13 @@ self.addEventListener('push', event => {
    await storeInbox({id:data.account_id+':'+tag,account_id:data.account_id,title:'Dear Diary',body,received_at:Date.now(),type}).catch(()=>{});
    for(const client of await clients.matchAll({type:'window',includeUncontrolled:true}))client.postMessage({type:'diary-inbox-updated',account_id:data.account_id});
   }
-  await self.registration.showNotification('Dear Diary',{body,icon:BASE+'icons/diary-192.png',badge:BASE+'icons/diary-192.png',tag,data:{url:BASE+'#/inbox'},renotify:false});
+  await privateNotification('Dear Diary',{body,icon:BASE+'icons/diary-192.png',badge:BASE+'icons/diary-192.png',tag,data:{url:BASE+'#/inbox'},renotify:false});
  })());
 });
 self.addEventListener('notificationclick', event => {
  event.notification.close();
  event.waitUntil((async()=>{
+  if(await friendPrivacyOn()){const windows=await clients.matchAll({type:'window',includeUncontrolled:true});const app=windows.find(c=>new URL(c.url).pathname.startsWith(BASE));return app?app.focus():clients.openWindow(BASE);}
   const feed=event.notification.data?.feed===true&&/^[0-9a-f-]{36}$/i.test(event.notification.data?.post_id);
   const chat=Boolean(event.notification.data&&event.notification.data.chat);
   const reply=chat&&event.action==='reply';

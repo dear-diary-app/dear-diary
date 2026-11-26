@@ -1,3 +1,4 @@
+import {FriendModeProvider,FriendShell,useFriendMode}from'./FriendMode';
 import { usePageLocked } from './DesktopIdleLock';
 import React from 'react';
 import { DesktopFrame } from './DesktopLayout';
@@ -106,12 +107,15 @@ function Shell() {
             </div>
         );
     }
+    return <FriendModeProvider><SignedShell live={live}/></FriendModeProvider>;
+}
+function SignedShell({live}:{live:boolean}){const auth=useAuth(),friend=useFriendMode();
     return (
-        <StoreProvider key={auth.session.user.id} me={auth.me}>
-            <ThemeFrame key={auth.session.user.id} className={live ? 'dd-app dd-live' : 'dd-app'}>
+            <ThemeFrame key={auth.session!.user.id} className={live ? 'dd-app dd-live' : 'dd-app'}>
                 <div className="dd-grain" style={{ backgroundImage: `url(${grain})` }} />
+                {friend.on?<FriendShell/>:<StoreProvider key={auth.session!.user.id} me={auth.me!}>
                 <ResumePlace><AppEntryGate>
-                <ChatProvider uid={auth.session.user.id}>
+                <ChatProvider uid={auth.session!.user.id}>
                 <ChatBanner/>
                 <TabSwipe><DesktopFrame>
                 <PageSlide>{location => <Routes location={location}>
@@ -137,9 +141,8 @@ function Shell() {
                 <BottomNav />
                 </DesktopFrame></TabSwipe>
                 </ChatProvider>
-                </AppEntryGate></ResumePlace>
+                </AppEntryGate></ResumePlace></StoreProvider>}
             </ThemeFrame>
-        </StoreProvider>
     );
 }
 
