@@ -1,8 +1,9 @@
+import{ChatInbox}from'./ChatInbox';
 import {FriendModeProvider,FriendShell,useFriendMode}from'./FriendMode';
 import { usePageLocked } from './DesktopIdleLock';
 import React from 'react';
 import { DesktopFrame } from './DesktopLayout';
-import { Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { AuthProvider, StoreProvider, isUnlocked, useAuth } from './store';
 import { PersonId, publishWaitMs, schedule, otherId, personById } from './model';
 import { ChatProvider } from './ChatStore';
@@ -65,6 +66,8 @@ function PublishedRoute() {
 }
 function ChatRoute() {
     const auth = useAuth();
+    const loc=useLocation();
+    if(loc.pathname==='/chat'&&!loc.search)return <ChatInbox/>;
     return <ChatView partner={personById(otherId(auth.me!))} />;
 }
 function PinRoute() {

@@ -7,7 +7,7 @@ import { useChat } from './ChatStore';
 export function BottomNav() {
     const { me } = useAuth();
     const { unread } = useChat();
-    const { pathname } = useLocation();
+    const { pathname,search } = useLocation();
     const active = (pathname === '/' || pathname === '/inbox') ? 'home'
         : pathname.startsWith('/calendar/') ? 'calendar'
         : pathname.startsWith('/chat') ? 'chat'
@@ -15,7 +15,7 @@ export function BottomNav() {
         : pathname.startsWith('/settings') || pathname === '/notifications' ? ''
         : 'entries';
     // The conversation is full screen, like Instagram: it has its own back arrow.
-    if (pathname.startsWith('/chat')) return null;
+    if (pathname.startsWith('/chat/') || (pathname==='/chat'&&!!search)) return null;
     const tabs = [
         { id: 'home', label: 'Home', to: '/', Icon: HomeIcon },
         { id: 'entries', label: 'My diary', to: `/hub/${me}`, Icon: BookOpen },

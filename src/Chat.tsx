@@ -201,7 +201,7 @@ export function ChatView({ partner }: { partner: Person }) {
     const customStyle=chatStyleProps(useChatStyle(chat.uid));
     const navigate = useNavigate();
     // Go back to wherever the chat was opened from; if it was opened directly, go home.
-    const leave = () => { if ((window.history.state?.idx ?? 0) > 0) navigate(-1); else navigate('/', { replace: true }); };
+    const leave = () => { navigate('/chat'); };
     const [text, setText] = useState('');
     const [topicDraw,setTopicDraw]=useState(0);
     const [topicBusy,setTopicBusy]=useState(false);

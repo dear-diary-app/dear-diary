@@ -44,7 +44,7 @@ export function DesktopConversations() {
     const last = chat.messages[chat.messages.length - 1];
     const preview = chat.partnerTyping ? 'Typing...' : !last ? 'Your private conversation' : last.effect === 'blur' ? 'Hidden message' : last.audio ? 'Voice message' : last.images?.length ? 'Photo' : last.gif_id ? 'GIF' : last.sticker ? 'Sticker' : last.song ? 'Song' : last.weather ? 'Weather' : last.body?.startsWith('__') || last.body?.startsWith('dd:') ? 'Message' : last.body || 'Message';
     return <aside className="dd-desktop-conversations" aria-label="Conversations"><header><h1>{personById(me!).name}</h1><Link to="/profile" aria-label="Your profile"><UserRound size={23}/></Link></header><div className="dd-desktop-inbox-title"><h2>Messages</h2><span>Just you two</span></div>
-        <Link to="/chat" className="dd-desktop-conversation" aria-current="page"><Avatar person={partner}/><span><strong>{partner.name}</strong><small>{preview}</small></span>{chat.unread > 0 && <i aria-label="Unread messages"/>}</Link>
+        <Link to="/chat/thread" className="dd-desktop-conversation" aria-current="page"><Avatar person={partner}/><span><strong>{partner.name}</strong><small>{preview}</small></span>{chat.unread > 0 && <i aria-label="Unread messages"/>}</Link>
         <p className="dd-desktop-private"><BookOpen size={15}/> A private space for your shared moments.</p>
     </aside>;
 }

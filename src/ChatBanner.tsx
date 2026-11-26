@@ -14,7 +14,7 @@ export function bannerPreview(m:ChatMsg){
  const body=parseFeedReply(m.body)?.text??(m.body.startsWith(IMAGE_CREDIT)?imageUserCaption(m.body):m.body);
  return (m.images.length?`${m.images.length===1?'Photo':'Photos'}${body?': ':''}`:'')+body||'New message';
 }
-export function ChatBanner(){const locked=usePageLocked();const chat=useChat(),store=useStore(),auth=useAuth(),loc=useLocation(),navigate=useNavigate();return <IncomingChatBanner chat={chat} enabled={!locked&&store.notifPrefs.chat!==false} sender={personById(otherId(auth.me!)).name} path={loc.pathname} onOpen={()=>navigate("/chat")}/>;}
+export function ChatBanner(){const locked=usePageLocked();const chat=useChat(),store=useStore(),auth=useAuth(),loc=useLocation(),navigate=useNavigate();return <IncomingChatBanner chat={chat} enabled={!locked&&store.notifPrefs.chat!==false} sender={personById(otherId(auth.me!)).name} path={loc.pathname} onOpen={()=>navigate("/chat/thread")}/>;}
 export function IncomingChatBanner({chat,enabled,sender,path,onOpen}:{onOpen:()=>void;chat:ReturnType<typeof useChat>;enabled:boolean;sender:string;path:string}){
  const[message,setMessage]=useState<ChatMsg|null>(null),[reply,setReply]=useState(false),[text,setText]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [remaining,setRemaining]=useState(100);

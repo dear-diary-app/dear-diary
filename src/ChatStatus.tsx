@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "./lib/supabase";
 import { useAuth } from "./store";
+import {Avatar} from "./ui";
+import {personById} from "./model";
 import type { Person } from "./model";
 import { XIcon } from "./icons";
 const choices = [
@@ -14,11 +16,13 @@ const choices = [
 export function ChatStatus({
   partner,
   online,
+  inbox=false,
 }: {
   partner: Person;
   online: boolean;
+  inbox?: boolean;
 }) {
-  const { session } = useAuth(),
+  const { session,me } = useAuth(),
     uid = session?.user.id;
   const [own, setOwn] = useState(""),
     [other, setOther] = useState(""),
@@ -104,7 +108,7 @@ export function ChatStatus({
   };
   return (
     <>
-      <button
+      {inbox?<div className="dd-dm-notes"><button ref={trigger} className="dd-dm-note" onClick={()=>setOpen(true)} aria-label="Set your note or status"><span className="dd-dm-note-bubble">{own||"Share a thought..."}</span><Avatar person={personById(me!)}/><small>Your note</small><i aria-hidden="true">+</i></button><button className="dd-dm-note" onClick={()=>setOpen(true)} aria-label={`${partner.name} note: ${other||"No note shared"}`}><span className="dd-dm-note-bubble">{other||"No note yet"}</span><Avatar person={partner}/><small>{partner.name}</small></button></div>:<button
         ref={trigger}
         className="dd-availability-pill"
         aria-label={`Chat status: ${partner.name}${other ? `, ${other}` : online ? ", Online" : ", no status"}. Set your status`}
@@ -116,7 +120,7 @@ export function ChatStatus({
           {other && online && <i aria-label="Online" />}
         </span>
         <small>{own ? `You: ${own}` : "Set yours"}</small>
-      </button>
+      </button>}
       <dialog
         ref={dialog}
         className="dd-availability-dialog"
@@ -153,8 +157,7 @@ export function ChatStatus({
             </span>
           </div>
           <p>
-            Choose what your friend sees. Your status stays until you change or
-            clear it. Online is automatic and separate.
+            Choose what your friend sees. {inbox?"Your note uses your existing chat status and stays until you change or clear it. It does not expire automatically.":"Your status stays until you change or clear it."} Online is automatic and separate.
           </p>
           <p className="dd-card-note">Changing any status to Free can notify your friend if they turn on Friend is free in Settings → Notifications. Saving Free again does not send another alert.</p>
           <label className="dd-field">
