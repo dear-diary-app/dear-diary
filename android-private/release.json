@@ -1,5 +1,5 @@
 {
-  "code": 8,
-  "version": "1.7",
-  "notes": "An update, ready when you are. A small download badge appears in the Home header only when a newer private release is available. Tap it to reopen the release details if you dismissed them.\n\nA softer update page. Pastel light and dark styling, a clear version header, readable release-note cards and real download progress.\n\nThe same safety checks. Downloads still need the expected size, SHA-256, app identity, newer version and the same signing certificate before opening Android\u2019s installer. Android still asks you to confirm Install."
+  "code": 9,
+  "version": "1.8",
+  "notes": "Stories that stay in the app. Android Back closes a story and returns Home, with an extra native safeguard.\n\nYour photo story studio. Add a photo, Apple Music preview, text styles, colors, text backgrounds, emoji stickers and photo filters. Drag decorations or place them at the top, center or bottom. Preview before posting.\n\nThree stories, kept together. Up to 3 active photo, video or shared-post stories per person. New stories no longer replace previous ones. Each expires after 24 hours.\n\nThe pastel update sheet, verified downloads, Android confirmation, lock flow and screenshot protection stay unchanged.\n\nHold, slide, react. Hold Like on a feed post to reveal six emoji above the button. Slide to one and release. Quick tap keeps the usual heart behavior; existing reactions are unchanged."
 }
