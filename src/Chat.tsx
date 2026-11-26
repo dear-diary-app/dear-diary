@@ -1,6 +1,7 @@
 import{ChatLinkPreview,LinkedChatText}from'./ChatLinks';
 import{TruthDareForm,TruthDareCard,truthDareQuery,isTruthDare}from'./TruthDare';
 import{ConversationTopics}from'./ConversationTopics';
+import{Instants}from'./Instants';
 import { usePageLocked } from './DesktopIdleLock';
 import { DesktopConversations, useDesktopLayout } from './DesktopLayout';
 import {parseFeedReply} from './FeedSocial';
@@ -458,6 +459,7 @@ export function ChatView({ partner }: { partner: Person }) {
             </div>}
         </header>
 
+        {!profileOpen&&<Instants disabled={recording||!!editing||!!selected}/> }
         <div id="chat-conversation-topics" className={topicsFading?'is-fading':''} hidden={!topicsOpen||!!selected||recording||!!editing}><ConversationTopics direct trigger={topicDraw} onActivity={armTopics} onBusy={busy=>{setTopicBusy(busy);if(busy){clearTopicsTimers();setTopicsFading(false);}else armTopics();}} canUse={text.length<2000} onUse={prompt=>{const next=text.trim()?text+'\n'+prompt:prompt;if(next.length>2000)return false;setText(next);requestAnimationFrame(()=>{grow();input.current?.focus();});return true;}}/></div>
         <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onTouchMove={dismissOpeningUnread} onKeyDown={dismissOpeningUnread} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{dismissOpeningUnread();jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget&&Date.now()-heldAt.current>650) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
