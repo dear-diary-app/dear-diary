@@ -9,7 +9,7 @@ import { ProfilePhoto } from "./ProfilePhoto";
 import { ProfileCrop } from "./ProfileCrop";
 import { ProfileStreak, useProfileStreaks } from "./ProfileStreak";
 import { supabase } from "./lib/supabase";
-import { Song, SongPicker, SongPill, ProfileSongInline, cleanSong } from "./Song";
+import { Song, SongPicker, ProfileSongInline, cleanSong } from "./Song";
 import { Bell, Gear, Lock, ChevronLeft } from "./icons";
 import { ProfilePosts } from "./ProfilePosts";
 const MOODS = ["", "😊", "💛", "🌧️", "🌙", "📚", "☕", "🎵", "🌿"];
@@ -27,7 +27,7 @@ function ProfileBody({ who }: { who: PersonId }) {
     p = personById(who),
     partner = personById(otherId(me!));
   const [socialDirty,setSocialDirty]=useState(false);
-  const [tab, setTab] = useState<"posts" | "music" | "about">("posts");
+  const [tab, setTab] = useState<"posts" | "about">("posts");
   const [postCount, setPostCount] = useState<number | null>(null);
   const [friendCount, setFriendCount] = useState<number | null>(null);
   const countPosts = useCallback((n: number | null) => setPostCount(n), []);
@@ -44,7 +44,7 @@ function ProfileBody({ who }: { who: PersonId }) {
     [profileUID, setProfileUID] = useState(""),
     [song, setSong] = useState<Song | null>(null),
     [songDraft, setSongDraft] = useState<Song | null>(null),
-    [expires, setExpires] = useState(""),
+    [songVersion, setSongVersion] = useState(""),
     [songLoading, setSongLoading] = useState(true),
     [songError, setSongError] = useState(""),
     [songBusy, setSongBusy] = useState(false),
@@ -110,7 +110,7 @@ function ProfileBody({ who }: { who: PersonId }) {
       setSongLoading(true);
       const r = await supabase
         .from("profile_songs")
-        .select("song,expires_at")
+        .select("song,expires_at,updated_at")
         .eq("user_id", profileUID)
         .maybeSingle();
       if (!live) return;
@@ -121,12 +121,12 @@ function ProfileBody({ who }: { who: PersonId }) {
       }
       setSongError("");
       const v =
-        r.data && new Date(r.data.expires_at).getTime() > Date.now()
+        r.data && (!r.data.expires_at || new Date(r.data.expires_at).getTime() > Date.now())
           ? cleanSong(r.data.song)
           : null;
       setSong(v);
       setSongDraft(v);
-      setExpires(r.data?.expires_at || "");
+      setSongVersion(r.data?.updated_at || "");
     };
     void load();
     const focus = () => {
@@ -142,28 +142,6 @@ function ProfileBody({ who }: { who: PersonId }) {
       document.removeEventListener("visibilitychange", focus);
     };
   }, [profileUID, songRetry]);
-  const expired = !!expires && new Date(expires).getTime() <= now.getTime();
-  useEffect(() => {
-    if (!expires) return;
-    const expire = () => {
-      setSong(null);
-      setSongDraft(null);
-      setExpires("");
-      setSongNote(
-        own ? "Your previous song has expired." : "This song has expired.",
-      );
-    };
-    const delay = new Date(expires).getTime() - Date.now();
-    if (delay <= 0) {
-      expire();
-      return;
-    }
-    const timer = window.setTimeout(expire, delay);
-    return () => window.clearTimeout(timer);
-  }, [expires, own]);
-  useEffect(() => {
-    if (tab !== "music") window.dispatchEvent(new Event("dd-page-lock"));
-  }, [tab]);
   const saveSong = async () => {
     if (!own || songBusy) return;
     setSongBusy(true);
@@ -177,8 +155,8 @@ function ProfileBody({ who }: { who: PersonId }) {
       return;
     }
     setSong(songDraft);
-    setExpires(r.data || "");
-    setSongNote(songDraft ? "Song shared for 24 hours." : "Song removed.");
+    setSongVersion(r.data || "");
+    setSongNote(songDraft ? "Profile song saved. It stays until you change or remove it." : "Song removed.");
   };
 
   useEffect(() => {
@@ -220,7 +198,7 @@ function ProfileBody({ who }: { who: PersonId }) {
       setBio(clean.bio);
       setSaved(clean);
       setNote("Profile saved.");
-      if(!socialDirty)setEditing(false);
+      if(!socialDirty&&!songDirty)setEditing(false);
     }
     setBusy(false);
   };
@@ -241,7 +219,7 @@ function ProfileBody({ who }: { who: PersonId }) {
         </div></div>
         <div className="dd-profile-intro"><h2>{p.name} {saved.mood && <span aria-label="Current mood">{saved.mood}</span>}</h2>
           {saved.bio ? <p className="dd-profile-bio">{saved.bio}</p> : !loading && !error && <p className="dd-profile-muted">{own ? "Your story, in a few words." : "No bio yet."}</p>}
-          {song && !expired && <ProfileSongInline key={song.url} song={song} onDetails={() => setTab("music")}/>}
+          {song && <ProfileSongInline key={song.url} song={song} onDetails={() => {setTab("about");if(own)setEditing(true);}}/>}
           {profileUID&&<ProfileSocialLinks uid={profileUID}/>}
           <p className="dd-profile-private"><Lock size={11}/> Private · Only you two</p>
         </div>
@@ -251,13 +229,15 @@ function ProfileBody({ who }: { who: PersonId }) {
         </div>
       </section>
       <div className="dd-profile-tabs" role="tablist" aria-label="Profile sections">
-        {([ ["posts", "Posts"], ["music", "Music"], ["about", "About"] ] as const).map(([id, label], index) => <button key={id} id={`profile-tab-${id}`} role="tab" aria-selected={tab === id} aria-controls={`profile-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)} onKeyDown={e => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) { e.preventDefault(); const ids = ["posts", "music", "about"] as const; const next = e.key === "Home" ? 0 : e.key === "End" ? 2 : (index + (e.key === "ArrowRight" ? 1 : 2)) % 3; setTab(ids[next]); document.getElementById(`profile-tab-${ids[next]}`)?.focus(); } }}><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">{id === "posts" ? <><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></> : id === "music" ? <><path d="M9 18V5l11-2v13M9 9l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/></> : <><rect x="4" y="4" width="16" height="17" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 19c0-6 10-6 10 0M9 4V2h6v2"/></>}</svg><span>{label}</span></button>)}
+        {([ ["posts", "Posts"], ["about", "About"] ] as const).map(([id, label], index) => <button key={id} id={`profile-tab-${id}`} role="tab" aria-selected={tab === id} aria-controls={`profile-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => setTab(id)} onKeyDown={e => { if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) { e.preventDefault(); const ids = ["posts", "about"] as const; const next = e.key === "Home" ? 0 : e.key === "End" ? 1 : (index + 1) % 2; setTab(ids[next]); document.getElementById(`profile-tab-${ids[next]}`)?.focus(); } }}><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">{id === "posts" ? <><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></> : <><rect x="4" y="4" width="16" height="17" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M7 19c0-6 10-6 10 0M9 4V2h6v2"/></>}</svg><span>{label}</span></button>)}
       </div>
       <section id="profile-panel-posts" role="tabpanel" aria-labelledby="profile-tab-posts" hidden={tab !== "posts"}>
         {profileUID ? <ProfilePosts uid={profileUID} own={own} onCount={countPosts}/> : <div className="dd-profile-state" role={error ? "alert" : "status"}>{error || "Loading posts..."}{error && <button className="dd-btn" onClick={() => setRetry(x => x + 1)}>Retry profile</button>}</div>}
       </section>
       <div id="profile-panel-about" role="tabpanel" aria-labelledby="profile-tab-about" hidden={tab !== "about"} className="dd-profile-content">
       <ProfileStreak streak={streak.streaks[who]} failed={streak.failed} retry={streak.retry} own={own}/>
+          {song&&songVersion&&profileUID&&!songLoading&&!songError&&<ProfileSongReactions key={profileUID+songVersion} owner={profileUID} version={songVersion} own={own} friend={partner.name}/>}
+
       {loading ? (
         <section className="dd-card" role="status">
           Loading profile...
@@ -320,6 +300,8 @@ function ProfileBody({ who }: { who: PersonId }) {
             {Array.from(bio).length}/160 · Shared with your friend
           </p>
           {profileUID&&<ProfileSocialLinks uid={profileUID} editing onDirty={setSocialDirty}/>}
+          <div className="dd-profile-song-editor" aria-label="Edit profile song"><h3>Profile song</h3><p className="dd-card-sub">Stays under your bio until you change or remove it. Inbox songs are separate.</p>{songLoading?<p role="status">Loading song...</p>:songError?<p role="alert">{songError} <button type="button" className="dd-btn" onClick={()=>setSongRetry(n=>n+1)}>Retry song</button></p>:<><fieldset disabled={songBusy} style={{border:0,padding:0,margin:0}}><SongPicker song={songDraft} onChange={setSongDraft} compact/></fieldset>{songDirty&&<div className="dd-profile-save"><button type="button" className="dd-btn" disabled={songBusy} onClick={saveSong}>{songBusy?"Saving song...":songDraft?"Save profile song":"Remove profile song"}</button><button type="button" className="dd-btn dd-btn-ghost" disabled={songBusy} onClick={()=>setSongDraft(song)}>Cancel song change</button></div>}</>}{songNote&&<p role="status">{songNote}</p>}</div>
+
           <fieldset className="dd-mood">
             <legend>Mood</legend>
             <div>
@@ -348,9 +330,10 @@ function ProfileBody({ who }: { who: PersonId }) {
             </button>
             <button
               className="dd-btn dd-btn-ghost"
-              disabled={busy}
+              disabled={busy||songBusy}
               onClick={() => {
-                if(socialDirty&&!window.confirm("Discard unsaved social links?"))return;
+                if((socialDirty||songDirty)&&!window.confirm("Discard unsaved profile changes?"))return;
+                setSongDraft(song);setSongNote("");
                 setSocialDirty(false);
                 setBio(saved.bio);
                 setMood(saved.mood);
@@ -367,83 +350,6 @@ function ProfileBody({ who }: { who: PersonId }) {
         </section>
       ) : null}
       </div>
-      <section id="profile-panel-music" role="tabpanel" aria-labelledby="profile-tab-music" hidden={tab !== "music"} className="dd-card dd-profile-song-panel">
-        <h2 className="dd-card-title">
-          {own ? "Your song" : "Song of the day"}
-        </h2>
-        {songLoading ? (
-          <p role="status">Loading song...</p>
-        ) : songError ? (
-          <p role="alert">
-            {songError}{" "}
-            <button
-              className="dd-btn"
-              onClick={() => setSongRetry((x) => x + 1)}
-            >
-              Retry song
-            </button>
-          </p>
-        ) : own ? (
-          <>
-            <fieldset
-              disabled={songBusy}
-              style={{ border: 0, padding: 0, margin: 0 }}
-            >
-              <SongPicker song={songDraft} onChange={setSongDraft} compact />
-            </fieldset>
-            {songDirty && (
-              <div className="dd-profile-save">
-                <button
-                  className="dd-btn dd-btn-primary"
-                  disabled={songBusy}
-                  onClick={saveSong}
-                >
-                  {songBusy
-                    ? "Sharing..."
-                    : songDraft
-                      ? "Share for 24 hours"
-                      : "Remove song"}
-                </button>
-                <button
-                  className="dd-btn dd-btn-ghost"
-                  disabled={songBusy}
-                  onClick={() => setSongDraft(song)}
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-            {!songDirty && song && !expired && (
-              <button
-                className="dd-btn dd-btn-ghost"
-                disabled={songBusy}
-                onClick={() => setSongDraft(null)}
-              >
-                Remove song
-              </button>
-            )}
-          </>
-        ) : song && !expired ? (
-          <SongPill song={song} compact />
-        ) : (
-          <p className="dd-card-sub">No song shared right now.</p>
-        )}
-        {song && !expired && expires && (
-          <p className="dd-card-sub">
-            Until{" "}
-            {new Date(expires).toLocaleString("en-IN", {
-              timeZone: "Asia/Kolkata",
-              day: "numeric",
-              month: "short",
-              hour: "numeric",
-              minute: "2-digit",
-            })}{" "}
-            IST
-          </p>
-        )}
-        {song&&!expired&&expires&&profileUID&&!songLoading&&!songError&&!songDirty&&<ProfileSongReactions key={profileUID+expires} owner={profileUID} expires={expires} own={own} friend={partner.name}/> }
-        {songNote && <p role="status">{songNote}</p>}
-      </section>
       {note && (
         <p className="dd-card" role="status">
           {note}
