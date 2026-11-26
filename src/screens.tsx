@@ -130,6 +130,7 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
         document.addEventListener('play',pause,true);
         return () => { observer.disconnect();document.removeEventListener('play',pause,true); };
     },[idleLocked]);
+    useEffect(()=>{if(stage==='open'&&!idleLocked)window.DearDiaryAndroid?.postMessage(JSON.stringify({op:'picker-web-ready'}));},[stage,idleLocked]);
     const resume = () => {
         setIdleLocked(false);
         requestAnimationFrame(() => { dialogs.current.forEach(d => { if(d.isConnected)try{d.showModal();}catch{} }); dialogs.current=[]; });
