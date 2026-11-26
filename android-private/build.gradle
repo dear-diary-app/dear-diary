@@ -3,7 +3,7 @@ if (file('google-services.json').exists()) { apply plugin: 'com.google.gms.googl
 android {
  namespace 'com.deardiary.privateapp'
  compileSdk 35
- defaultConfig { applicationId 'com.deardiary.privateapp'; minSdk 28; targetSdk 35; versionCode 12; versionName '2.1' }
+ defaultConfig { applicationId 'com.deardiary.privateapp'; minSdk 28; targetSdk 35; versionCode 13; versionName '2.2' }
  sourceSets { main { manifest.srcFile 'AndroidManifest.xml'; java.srcDirs=['src']; res.srcDirs=['res'] } }
  buildTypes { release { debuggable false; minifyEnabled false } }
  compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }

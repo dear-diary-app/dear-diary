@@ -1,3 +1,4 @@
+import{chatSendError}from'./chatSendError';
 import { usePageLocked } from './DesktopIdleLock';
 import {bubbleEvent,cleanEffect,emojiTokens,type MessageEffect} from './ChatEffects';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -16,7 +17,7 @@ import { primeImage, removeImages, uploadImages } from './chatImages';
 export interface ChatMsg {
     effect?:MessageEffect|null;
     id: string; sender_id: string; recipient_id: string; body: string; sticker: string | null; gif_id: string | null; reply_to: string | null;
-    reactions: Record<string, string>; created_at: string; seen_at: string | null; edited_at: string | null; images: string[]; state?: 'sending' | 'failed'; scheduled?: boolean; audio?: Voice | null; song?:Song|null;weather?:ChatWeather|null;
+    reactions: Record<string, string>; created_at: string; seen_at: string | null; edited_at: string | null; images: string[]; state?: 'sending' | 'failed'; sendError?:string; scheduled?: boolean; audio?: Voice | null; song?:Song|null;weather?:ChatWeather|null;
 }
 const COLS = 'id, sender_id, recipient_id, body, sticker, gif_id, reply_to, reactions, created_at, seen_at, edited_at, images, scheduled, audio, song, weather, effect';
 const PAGE = 60;
@@ -175,7 +176,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
     }, [pageLocked, viewing, visible, unseenIncoming, uid]);
 
     const pendingAudio = useRef(new Map<string, Blob>());
-    const sendWithVoice = async (m: ChatMsg, blob: Blob) => { try { if (!m.audio || !await uploadVoice(m.audio, blob)) throw Error(); await insert(m); } catch { setMessages(prev=>prev.map(x=>x.id===m.id?{...x,state:'failed'}:x)); } };
+    const sendWithVoice = async (m: ChatMsg, blob: Blob) => { try { if (!m.audio || !await uploadVoice(m.audio, blob)) throw Error(); await insert(m); } catch(e) { setMessages(prev=>prev.map(x=>x.id===m.id?{...x,state:'failed',sendError:e instanceof Error&&/^Voice upload .+\[(AUTH|SIZE|TIMEOUT|NETWORK|VOICE)\]$/.test(e.message)?e.message:chatSendError('voice',e)}:x)); } };
     const pending = useRef(new Map<string, Blob[]>());
     // Photos upload first (private bucket), then the message row points at them.
     const sendWithPhotos = useCallback(async (m: ChatMsg, blobs: Blob[]) => {
@@ -183,7 +184,7 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
             const paths = await uploadImages(m.sender_id, m.id, blobs);
             if (!paths) throw Error('Photo upload failed');
             if (await insert({ ...m, images: paths })) pending.current.delete(m.id);
-        } catch { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); }
+        } catch(e) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed',sendError:e instanceof Error&&/^Photo upload .+\[(AUTH|SIZE|TIMEOUT|NETWORK|PHOTO)\]$/.test(e.message)?e.message:chatSendError('photo',e) } : x)); }
     }, []);
     const insert = useCallback(async (m: ChatMsg): Promise<boolean> => {
         try {
@@ -194,11 +195,11 @@ export function ChatProvider({ uid, children }: { uid: string; children: React.R
                 if ((existing.data?.effect||null)===(m.effect||null) && existing.data?.sender_id === m.sender_id && existing.data?.body === m.body && existing.data?.gif_id === m.gif_id && (existing.data?.weather?.fetchedAt||null)===(m.weather?.fetchedAt||null) && (existing.data?.song?.id||null)===(m.song?.id||null) && (existing.data?.audio?.path||null)===(m.audio?.path||null)) { data = existing.data; error = existing.error; }
             }
             const row = !error && data ? clean(data) : null;
-            if (!row) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return false; }
+            if (!row) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed',sendError:chatSendError('message',error) } : x)); return false; }
             pendingAudio.current.delete(m.id);
             setMessages(prev => prev.map(x => x.id === m.id ? row : x).sort(byTime));
             return true;
-        } catch { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed' } : x)); return false; }
+        } catch(e) { setMessages(prev => prev.map(x => x.id === m.id ? { ...x, state: 'failed',sendError:chatSendError('message',e) } : x)); return false; }
     }, []);
 
     const api = useMemo<ChatApi>(() => ({

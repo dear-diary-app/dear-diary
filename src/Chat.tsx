@@ -185,7 +185,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
             </div>
         </div>}
         {lastMine && mine && m.state==='failed' && <p className="dd-chat-status" aria-label="Failed message actions">
-            <button type="button" onClick={() => chat.retry(m.id)}>Retry</button> <button type="button" onClick={() => chat.discard(m.id)}>Delete</button>
+            <span role="alert">{m.sendError||'Could not send. Check your connection and tap Retry.'}</span> <button type="button" onClick={() => chat.retry(m.id)}>Retry</button> <button type="button" onClick={() => chat.discard(m.id)}>Delete</button>
         </p>}
     </div>;
 }
@@ -244,16 +244,17 @@ export function ChatView({ partner }: { partner: Person }) {
     const pick = async (list: FileList | null) => {
         const files = Array.from(list ?? []);
         if (fileInput.current) fileInput.current.value = '';
-        if (!files.length) return;
+        if (!files.length) {say('No photo was returned by the picker. Try choosing it from Files. [PICKER]');return;}
         if (files.some(f => f.type.startsWith('video/'))) { say('Videos can not be sent. Please choose photos only.'); return; }
-        if (files.some(f => !f.type.startsWith('image/') || /svg/i.test(f.type))) { say('Only photos can be sent.'); return; }
+        if (files.some(f => (!f.type.startsWith('image/')&&!!f.type) || /svg/i.test(f.type))) { say('Only photos can be sent.'); return; }
         if (staged.length + files.length > MAX_PHOTOS) { say(`You can send up to ${MAX_PHOTOS} photos at a time.`); return; }
         try {
-            const blobs = await Promise.all(files.map(f => prepareImage(f)));
-            setEditing(null); setTrayOpen(false);
+            say('Preparing photo...');
+            const blobs = await Promise.all(files.map(f => prepareImage(f.type?f:new File([f],f.name,{type:/\.png$/i.test(f.name)?'image/png':/\.webp$/i.test(f.name)?'image/webp':'image/jpeg'}))));
+            setNote('');setEditing(null); setTrayOpen(false);
             setStaged(prev => [...prev, ...blobs.map(b => ({ id: crypto.randomUUID(), blob: b, url: URL.createObjectURL(b) }))].slice(0, MAX_PHOTOS));
             stick.current = true;
-        } catch (e) { say((e as Error).message === 'big' ? 'That photo is too large. Please choose a smaller one.' : 'Could not read that photo. Try a different one.'); }
+        } catch (e) { say((e as Error).message === 'big' ? 'That photo is too large. Please choose a smaller one.' : 'Could not decode that photo. Choose a JPEG/PNG from Files. [DECODE]'); }
     };
     useEffect(() => { setMenuOpen(false); }, [selected]);
     const gifs = useChatGifs(chat.messages.flatMap(m => m.gif_id ? [m.gif_id] : []));

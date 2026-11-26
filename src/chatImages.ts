@@ -1,3 +1,4 @@
+import{chatSendError}from'./chatSendError';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabase';
 
@@ -42,7 +43,7 @@ export async function uploadImages(uid: string, id: string, blobs: Blob[]): Prom
     for (let i = 0; i < blobs.length; i++) {
         const { error } = await supabase.storage.from(BUCKET).upload(paths[i], blobs[i], { contentType: 'image/jpeg' });
         // A retry after a half-finished send finds the file already there.
-        if (error && !/exist|duplicate/i.test(error.message)) return null;
+        if(error&&!/exist|duplicate/i.test(error.message))throw Error(chatSendError('photo',error));
     }
     return paths;
 }
