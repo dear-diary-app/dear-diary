@@ -1,5 +1,5 @@
 {
-  "code": 9,
-  "version": "1.8",
-  "notes": "Stories that stay in the app. Android Back closes a story and returns Home, with an extra native safeguard.\n\nYour photo story studio. Add a photo, Apple Music preview, text styles, colors, text backgrounds, emoji stickers and photo filters. Drag decorations or place them at the top, center or bottom. Preview before posting.\n\nThree stories, kept together. Up to 3 active photo, video or shared-post stories per person. New stories no longer replace previous ones. Each expires after 24 hours.\n\nThe pastel update sheet, verified downloads, Android confirmation, lock flow and screenshot protection stay unchanged.\n\nHold, slide, react. Hold Like on a feed post to reveal six emoji above the button. Slide to one and release. Quick tap keeps the usual heart behavior; existing reactions are unchanged."
+  "code": 10,
+  "version": "1.9",
+  "notes": "A fullscreen story studio. Your photo fills the canvas with a right-side tool column, overlay controls and a quiet Post button. Drag the photo or adjust zoom to frame it. The preview shows the crop that will be posted. Text, full-color stickers, music and filters stay available.\n\nOnly real viewers. Story Activity no longer lists anyone who has not viewed the story. No views yet stays empty of names and photos.\n\nColor reactions, everywhere in these tools. Feed hold reactions, the reaction chooser, story reactions and story stickers now use bundled full-color artwork instead of monochrome font fallback.\n\nThe three-active-story limit, private access, lock flow, Back safeguard and pastel update sheet are unchanged."
 }
