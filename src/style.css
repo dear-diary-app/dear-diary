@@ -2181,3 +2181,6 @@ html[data-dd-native] .dd-shell:not(:has(> .dd-topbar)){padding-top:calc(10px + v
 .dd-app[data-theme=midnight] .dd-story-composer.dd-story-studio-full>header{background:linear-gradient(#0007,transparent);color:#fff}
 
 .dd-story-unseen-dot{display:block;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px #ffffff12}.dd-story-viewer-initial{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:#ad879f;color:#fff;font:600 14px/1 sans-serif;border:1px solid #fff9}.dd-story-activity-loading{font-size:23px;opacity:.55}
+
+/* Home feed heading fades before reaching the top, then scrolls away. */
+.dd-home-page .dd-feed>.dd-feed-heading{position:relative;top:auto;z-index:auto;opacity:var(--dd-feed-heading-opacity,1)}
