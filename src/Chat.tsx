@@ -1,7 +1,6 @@
 import{ChatLinkPreview,LinkedChatText}from'./ChatLinks';
 import{TruthDareForm,TruthDareCard,truthDareQuery,isTruthDare}from'./TruthDare';
 import{ConversationTopics}from'./ConversationTopics';
-import{Instants}from'./Instants';
 import { usePageLocked } from './DesktopIdleLock';
 import { DesktopConversations, useDesktopLayout } from './DesktopLayout';
 import {parseFeedReply} from './FeedSocial';
@@ -26,7 +25,6 @@ import { ChatProfile } from './ChatProfile';
 import { ChatAttachments } from './ChatAttachments';
 import { ChatPins } from './ChatPins';
 import { ScheduledChat } from './ScheduledChat';
-import { ChatStatus } from './ChatStatus';
 import { VoicePlayer, VoiceRecorder, Mic } from './VoiceNote';
 import {QuestionCard,askQuery} from './ChatQuestion';
 import {supabase} from './lib/supabase';
@@ -444,7 +442,7 @@ export function ChatView({ partner }: { partner: Person }) {
             <button type="button" className="dd-chat-back" onClick={() => selected ? setSelected(null) : leave()} aria-label={selected ? "Cancel selection" : "Back"}><ArrowLeft size={22} /></button>
             {selected ? <div className="dd-chat-selection"><h1>1 selected</h1><p>Choose a reaction</p></div> : <Link to="/chat/profile" state={{ ddChatProfile: true }} className="dd-chat-contact" aria-label={`View ${partner.name}'s profile`} onClick={()=>input.current?.blur()}><Avatar person={partner} size="sm" />
             <div className={`dd-contact-label${chat.partnerOnline?' is-online':''}`}><h1>{partner.name}</h1><p aria-live="polite" aria-hidden={!chat.partnerOnline||undefined}>Online</p></div></Link>}
-            {<div className={`dd-chat-status-group${selMsg?' is-hidden':''}`}>{<ChatPins uid={chat.uid} request={pinRequest} onState={setPinnedIds} onJump={async id=>{stick.current=false;for(let i=0;i<21;i++){const el=scroller.current?.querySelector<HTMLElement>(`[data-id="${CSS.escape(id)}"]`);if(el){jump(id);return true;}if(i===20)return false;await chat.loadOlder();await new Promise(r=>setTimeout(r,40));}return false;}}/>}<button type="button" className="dd-chat-topics-toggle" aria-label="Conversation topics" aria-expanded={topicsOpen} aria-controls="chat-conversation-topics" aria-busy={topicBusy} disabled={topicBusy||recording||!!editing||!!selected} onClick={toggleTopics}><span aria-hidden="true">✦</span></button><ChatStatus partner={partner} online={chat.partnerOnline}/></div>}
+            {<div className={`dd-chat-status-group${selMsg?' is-hidden':''}`}>{<ChatPins uid={chat.uid} request={pinRequest} onState={setPinnedIds} onJump={async id=>{stick.current=false;for(let i=0;i<21;i++){const el=scroller.current?.querySelector<HTMLElement>(`[data-id="${CSS.escape(id)}"]`);if(el){jump(id);return true;}if(i===20)return false;await chat.loadOlder();await new Promise(r=>setTimeout(r,40));}return false;}}/>}<button type="button" className="dd-chat-topics-toggle" aria-label="Conversation topics" aria-expanded={topicsOpen} aria-controls="chat-conversation-topics" aria-busy={topicBusy} disabled={topicBusy||recording||!!editing||!!selected} onClick={toggleTopics}><span aria-hidden="true">✦</span></button></div>}
             {selMsg && !selMsg.state && <div className="dd-chat-head-actions">
                 <button type="button" className="dd-chat-more" aria-label="Message options" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(o => !o)}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg></button>
                 {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => { setMenuOpen(false); setSelected(null); }} />
@@ -459,7 +457,6 @@ export function ChatView({ partner }: { partner: Person }) {
             </div>}
         </header>
 
-        {!profileOpen&&<Instants disabled={recording||!!editing||!!selected}/> }
         <div id="chat-conversation-topics" className={topicsFading?'is-fading':''} hidden={!topicsOpen||!!selected||recording||!!editing}><ConversationTopics direct trigger={topicDraw} onActivity={armTopics} onBusy={busy=>{setTopicBusy(busy);if(busy){clearTopicsTimers();setTopicsFading(false);}else armTopics();}} canUse={text.length<2000} onUse={prompt=>{const next=text.trim()?text+'\n'+prompt:prompt;if(next.length>2000)return false;setText(next);requestAnimationFrame(()=>{grow();input.current?.focus();});return true;}}/></div>
         <div className={`dd-chat-list${selected ? ' has-held' : ''}`} ref={scroller} onTouchMove={dismissOpeningUnread} onKeyDown={dismissOpeningUnread} onPointerDown={()=>{jumpingToBottom.current=false;}} onWheel={()=>{dismissOpeningUnread();jumpingToBottom.current=false;}} onClick={e => { if (e.target === e.currentTarget&&Date.now()-heldAt.current>650) setSelected(null); }}>
             {chat.hasMore && <button type="button" className="dd-chat-older" onClick={() => { const el = scroller.current; const h = el?.scrollHeight ?? 0; void chat.loadOlder().then(() => requestAnimationFrame(() => { if (el) el.scrollTop += el.scrollHeight - h; })); }}>Load earlier messages</button>}
