@@ -17,10 +17,12 @@ export function ChatStatus({
   partner,
   online,
   inbox=false,
+  inboxHeader=false,
 }: {
   partner: Person;
   online: boolean;
   inbox?: boolean;
+  inboxHeader?: boolean;
 }) {
   const { session,me } = useAuth(),
     uid = session?.user.id;
@@ -108,7 +110,7 @@ export function ChatStatus({
   };
   return (
     <>
-      {inbox?<div className="dd-dm-notes"><button ref={trigger} className="dd-dm-note" onClick={()=>setOpen(true)} aria-label="Set your note or status"><span className="dd-dm-note-bubble">{own||"Share a thought..."}</span><Avatar person={personById(me!)}/><small>Your note</small><i aria-hidden="true">+</i></button><button className="dd-dm-note" onClick={()=>setOpen(true)} aria-label={`${partner.name} note: ${other||"No note shared"}`}><span className="dd-dm-note-bubble">{other||"No note yet"}</span><Avatar person={partner}/><small>{partner.name}</small></button></div>:<button
+      {inboxHeader?<button ref={trigger} className="dd-dm-header-status" aria-label="Set your chat status" aria-haspopup="dialog" onClick={()=>setOpen(true)}><span className="dd-dm-status-dot" aria-hidden="true"/><span>{own||"Set status"}</span></button>:inbox?<div className="dd-dm-notes"><button ref={trigger} className="dd-dm-note" onClick={()=>setOpen(true)} aria-label="Set your note or status"><span className="dd-dm-note-bubble">{own||"Share a thought..."}</span><Avatar person={personById(me!)}/><small>Your note</small><i aria-hidden="true">+</i></button><button className="dd-dm-note" onClick={()=>setOpen(true)} aria-label={`${partner.name} note: ${other||"No note shared"}`}><span className="dd-dm-note-bubble">{other||"No note yet"}</span><Avatar person={partner}/><small>{partner.name}</small></button></div>:<button
         ref={trigger}
         className="dd-availability-pill"
         aria-label={`Chat status: ${partner.name}${other ? `, ${other}` : online ? ", Online" : ", no status"}. Set your status`}
