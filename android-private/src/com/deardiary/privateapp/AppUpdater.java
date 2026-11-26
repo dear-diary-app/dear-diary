@@ -6,9 +6,9 @@ final class AppUpdater{
  private int code(){try{return(int)host.getPackageManager().getPackageInfo(host.getPackageName(),0).getLongVersionCode();}catch(Exception e){return Integer.MAX_VALUE;}}
  void reset(){epoch++;checked=false;offered=null;pending=null;if(sheet!=null)sheet.dismiss();}
  void background(){if(!downloading)checked=false;}
- void ready(){if(!checked&&!downloading&&host.canUpdate()){checked=true;request("check",0);}}
+ void ready(){if(!downloading&&host.canUpdate()){checked=true;request("check",0);}}
  private void request(String action,int target){host.updateEvent(action,code(),target);}
- void result(JSONObject d){if(!host.canUpdate())return;if(d.optString("op").equals("update-error")){if(status!=null)status.setText("Could not check or download the update. Check your connection and try again.");if(update!=null)update.setEnabled(true);return;}
+ void result(JSONObject d){if(!host.canUpdate())return;if(d.optString("op").equals("update-error")){checked=false;if(status!=null)status.setText("Could not check or download the update. Check your connection and try again.");if(update!=null)update.setEnabled(true);return;}
   if(!d.optBoolean("available",false)||d.optInt("code")<=code())return;
   if(d.optString("action").equals("download")){if(offered==null||d.optInt("code")!=offered.optInt("code")||!d.optString("sha256").equals(offered.optString("sha256")))return;download(d);return;}
   offered=d;show();
