@@ -1,5 +1,5 @@
 {
-  "code": 20,
-  "version": "2.9",
-  "notes": "Single-use return from an unlocked diary through the native Instagram bottom bar, valid less than ten minutes. No repeated app-open PIN/biometric only for the same uninterrupted session. Screen off, phone lock, leaving Instagram, recents, Activity recreation/process death, other entry, expiry or Android Back keep normal gates. Own existing diary access may resume; partner time-lock, export PIN, screenshot policy, Friend mode and other feature locks unchanged. Residual risk: someone holding the unlocked phone during that session can reach normal diary pages. No real-account or physical-device QA. Install over existing app, do not uninstall. Instagram WebView stays alive behind the diary for reentry, with no forced page reload while Android retains it. No fixed retention timer. Android/process/Activity recreation or site reload can reset the feed; cookies remain. Cold app entry and diary locks are still gated."
+  "code": 21,
+  "version": "2.10",
+  "notes": "Fixes the Instagram return-gate race by acknowledging preparation before launch and matching the ticket during acknowledged web resume before removing the native cover. Valid same-session native-tab return within ten minutes does not repeat app-open PIN/biometric. All expiry/phone-lock/other-app/recreation restrictions, feature locks and retained Instagram behavior from2.9 remain. Someone holding an unlocked phone in that window can reach normal diary pages. No physical-phone test. Install over existing app, do not uninstall."
 }
