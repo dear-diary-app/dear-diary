@@ -1010,6 +1010,7 @@ export function Settings() {
                     <DiaryExport />
                 </section>
                 {window.DearDiaryAndroid&&<section className="dd-card"><h2 className="dd-card-title">Android app</h2><p className="dd-card-sub">Device gate, Android notifications and app information.</p><button type="button" className="dd-btn dd-btn-ghost" onClick={()=>window.DearDiaryAndroid?.postMessage(JSON.stringify({op:'options'}))}>Android app options</button></section>}
+                <Link className="dd-btn dd-btn-ghost" to="/instagram">Instagram info &amp; privacy</Link>
                 <RulesPrecautions />
                 <span style={{ display: 'none' }}>{now.toISOString()}</span>
                 <button type="button" className="dd-btn dd-btn-ghost" onClick={() => auth.signOut()}>Sign out</button>
