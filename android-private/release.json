@@ -1,5 +1,5 @@
 {
-  "code": 21,
-  "version": "2.10",
-  "notes": "Fixes the Instagram return-gate race by acknowledging preparation before launch and matching the ticket during acknowledged web resume before removing the native cover. Valid same-session native-tab return within ten minutes does not repeat app-open PIN/biometric. All expiry/phone-lock/other-app/recreation restrictions, feature locks and retained Instagram behavior from2.9 remain. Someone holding an unlocked phone in that window can reach normal diary pages. No physical-phone test. Install over existing app, do not uninstall."
+  "code": 22,
+  "version": "2.11",
+  "notes": "Android notifications now describe the event rather than repeating one generic update sentence: chat, friend Free status, scheduled sent, feed activity and diary reminders. 9 PM is labeled as a writing reminder. Fixed anonymous copy only, no names, chat text, diary text or photo content. Friend Free status is not a live-online detector. Existing SECRET lockscreen visibility, account/permission checks and Friend-mode suppression remain. Different categories no longer overwrite one another. Android/user lockscreen settings may still expose event categories. No live push/physical-phone test. Install over existing app, do not uninstall. Optional 11 PM IST /ask reminder is claimed only if the daily quota is unused; disabled by default for other accounts. OS delivery may be delayed."
 }

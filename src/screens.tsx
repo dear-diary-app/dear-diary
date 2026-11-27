@@ -1027,6 +1027,7 @@ export function Settings() {
 
 const NOTIFS: { key: string; label: string; hint: string }[] = [
     { key: 'open', label: 'Writing window opens', hint: 'A gentle nudge at 6:00 AM when today\u2019s page opens' },
+    { key: 'ask', label: 'Daily /ask reminder', hint: '11 PM IST, only if your daily Yes/No question is unused. Best-effort delivery.' },
     { key: 'writing', label: 'Daily writing reminder', hint: 'A nudge at 9:00 PM to write today\u2019s page before the evening gets away' },
     { key: 'lock', label: 'Diaries lock', hint: 'A reminder at 9:45 PM, before everything locks at 10:00 PM' },
     { key: 'published', label: 'Nightly reading time', hint: 'A 10:00 PM reminder that writing is closed and reading time has begun' },

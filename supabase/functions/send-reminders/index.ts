@@ -2,6 +2,7 @@ import {sendAndroid} from '../_shared/android-push.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 const messages:Record<string,string>={
+ ask:'11 PM /ask reminder: if you have not used today’s question, you can ask before midnight IST.',
  open:'A new diary page is ready. Your writing window is open until 10 PM.',
  writing:'A gentle reminder to write today’s diary page. Your writing window closes at 10 PM.',
  lock:'15 minutes left to write. Your diary locks at 10 PM.',
