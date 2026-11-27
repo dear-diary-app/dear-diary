@@ -70,7 +70,7 @@ function Row({ arrive, m, mine, partner, original, selected, onSelect, onTap, on
     const [heartPop,setHeartPop] = useState(0);
     const heartTimer = useRef<number>();
     useEffect(()=>()=>{window.clearTimeout(hold.current);window.clearTimeout(heartTimer.current);},[]);
-    const interactive = (target:EventTarget) => target instanceof Element && !!target.closest('button,a,input,textarea,video,audio,.dd-chat-thumb,.dd-chat-gif');
+    const interactive = (target:EventTarget) => target instanceof Element && !!target.closest('button,a,input,textarea,video,audio,.dd-voice,.dd-chat-thumb,.dd-chat-gif');
     const tapHeart = (e:React.PointerEvent) => {
         const now=performance.now(),scroll=(e.currentTarget.closest('.dd-chat-list') as HTMLElement)?.scrollTop??0,previous=lastTap.current;
         if(previous&&now-previous.time<=300&&Math.hypot(e.clientX-previous.x,e.clientY-previous.y)<=24&&Math.abs(scroll-previous.scroll)<3){
@@ -447,6 +447,7 @@ export function ChatView({ partner }: { partner: Person }) {
                 <button type="button" className="dd-chat-more" aria-label="Message options" aria-haspopup="menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(o => !o)}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg></button>
                 {menuOpen && <><button type="button" className="dd-chat-menu-scrim" aria-label="Close menu" onClick={() => { setMenuOpen(false); setSelected(null); }} />
                     <div className="dd-chat-menu" role="menu">
+                        <button type="button" role="menuitem" onClick={()=>{const id=selMsg.id;setMenuOpen(false);startReply(id);}}>Reply</button>
                         <button type="button" role="menuitem" onClick={()=>{const id=selMsg.id;setPinRequest({id,pin:!pinnedIds.has(id),n:Date.now()});setMenuOpen(false);setSelected(null);}}>{pinnedIds.has(selMsg.id)?'Unpin':'Pin'}</button>
                         {isText && <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); copySel(); }}>Copy</button>}
                         {isText && selMsg.sender_id!==chat.uid && <button type="button" role="menuitem" onClick={()=>{setReceivedTranslation({id:selMsg.id,text:selMsg.body});setMenuOpen(false);setSelected(null);}}>Translate</button>}
