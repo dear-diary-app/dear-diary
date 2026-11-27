@@ -1,3 +1,4 @@
+import{friendModeOn}from'./friendPrivacy';
 import{FriendModeSettings}from'./FriendMode';
 import{AndroidUnlock,nativeUnlockAvailable,enrollAndroidUnlock}from'./AndroidUnlock';
 import{DeviceUnlockSettings,DeviceUnlockButton,fingerprintFirst}from'./DeviceUnlock';
@@ -124,6 +125,8 @@ export function AppEntryGate({ children }: { children: React.ReactNode }) {
         flushSync(() => setIdleLocked(true));
     };
     useDesktopIdle(stage === 'open' && !idleLocked, idleLock);
+    const instagramReturn=useRef<{at:number;own:boolean}|null>(null);
+    useEffect(()=>{const prepare=()=>{instagramReturn.current=stage==='open'&&!idleLocked&&!friendModeOn()?{at:performance.now(),own:sessionStorage.getItem('dd_unlocked_'+auth.me)==='1'}:null;};const resumeInstagram=()=>{const previous=instagramReturn.current;instagramReturn.current=null;if(!previous||performance.now()-previous.at>=600000||requireFreshUnlock.current||friendModeOn())return;if(previous.own)sessionStorage.setItem('dd_unlocked_'+auth.me,'1');dialogs.current=[];flushSync(()=>{setIdleLocked(false);setStage('open');});};window.addEventListener('dd-instagram-prepare',prepare);window.addEventListener('dd-instagram-resume',resumeInstagram);return()=>{window.removeEventListener('dd-instagram-prepare',prepare);window.removeEventListener('dd-instagram-resume',resumeInstagram);};},[stage,idleLocked,auth.me]);
     useEffect(()=>{const lock=()=>idleLock();window.addEventListener('dd-native-background',lock);window.addEventListener('dd-native-pin-fallback',lock);return()=>{window.removeEventListener('dd-native-background',lock);window.removeEventListener('dd-native-pin-fallback',lock);};},[]);
     useEffect(() => {
         if (!idleLocked) return;
