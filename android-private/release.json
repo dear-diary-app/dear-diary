@@ -1,5 +1,5 @@
 {
-  "code": 17,
-  "version": "2.6",
-  "notes": "Instagram Reels now opens inside the APK in a dedicated isolated WebView, replacing the browser Custom Tab. Instagram controls login and navigation. WebView has a weaker privacy boundary: the app technically could access its page; our implementation does not collect credentials or browsing activity. No diary bridge, cookie copying or page injection. Separate process/storage, HTTPS navigation allowlist with no diary bridge. Launch only while unlocked and outside Friend mode; only the Reels screen stays open across app switches and has no Dear Diary lock, screenshot blocking or recents blanking. Phone lock still works normally. Diary pages retain their existing gate/Friend mode protections. Bottom navigation now has Reels. Camera, mic, files and downloads are disabled. No physical-device Instagram login/Reels test. Install over the existing app, do not uninstall."
+  "code": 18,
+  "version": "2.7",
+  "notes": "Removes the native Close/title/disclaimer bars from the Instagram screen. Instagram fills the content area below Android status/cutout insets and above navigation/keyboard insets. Android Back follows Instagram history, then returns to Dear Diary. The disclosure stays on the Reels launch page. Instagram-only background persistence and screenshot/recents behavior are unchanged; diary locks and Friend mode launch checks remain. Separate process/storage, no diary bridge or credential collection, HTTPS allowlist and denied camera/mic/uploads/downloads are unchanged. Device-specific inset behavior has not been verified on a physical phone. Install over the existing app; do not uninstall."
 }
