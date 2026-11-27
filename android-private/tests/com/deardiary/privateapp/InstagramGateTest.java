@@ -13,6 +13,5 @@ public class InstagramGateTest{
  @Test public void friendModeRejected(){a.getSharedPreferences("push",0).edit().putBoolean("friend_mode",true).commit();assertFalse(a.canOpenInstagram());}
  @Test public void loginBusyRejected()throws Exception{set("authenticating",true);assertFalse(a.canOpenInstagram());}
  @Test public void untrustedOriginsRejected(){for(String u:new String[]{"https://www.instagram.com/#/instagram","https://dear-diary-app.github.io.evil.test/dear-diary/#/instagram","http://dear-diary-app.github.io/dear-diary/#/instagram","https://dear-diary-app.github.io/other/#/instagram"}){web.url=u;assertFalse(a.canOpenInstagram());}}
- @Test public void missingBrowserDoesNotLaunch()throws Exception{Method m=MainActivity.class.getDeclaredMethod("openInstagram");m.setAccessible(true);m.invoke(a);assertNull(org.robolectric.Shadows.shadowOf(a).getNextStartedActivity());}
  @Test public void webGateNotReadyDoesNotLaunch()throws Exception{web.ready=false;Method m=MainActivity.class.getDeclaredMethod("openInstagram");m.setAccessible(true);m.invoke(a);assertNull(org.robolectric.Shadows.shadowOf(a).getNextStartedActivity());}
 }

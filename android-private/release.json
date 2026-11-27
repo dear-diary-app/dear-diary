@@ -1,5 +1,5 @@
 {
-  "code": 16,
-  "version": "2.5",
-  "notes": "Adds an explicit-tap Instagram Reels browser screen using Android Custom Tabs. Browser login and normal Instagram navigation remain. No feed-only guarantee, CSS/JS injection, credential collection or diary cookie transfer. Available only outside Friend mode while Dear Diary is unlocked. The browser screen is outside Dear Diary lock and screenshot controls. Returning keeps the existing diary gate. Requires a Custom Tabs browser; no silent external-app fallback. This build is staged, not published."
+  "code": 17,
+  "version": "2.6",
+  "notes": "Instagram Reels now opens inside the APK in a dedicated isolated WebView, replacing the browser Custom Tab. Instagram controls login and navigation. WebView has a weaker privacy boundary: the app technically could access its page; our implementation does not collect credentials or browsing activity. No diary bridge, cookie copying or page injection. Separate process/storage, HTTPS navigation allowlist and screenshot protection. Launch only while unlocked and outside Friend mode; leaving/backgrounding closes the screen. Camera, mic, files and downloads are disabled. No physical-device Instagram login/Reels test. Install over the existing app, do not uninstall."
 }
