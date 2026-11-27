@@ -1,6 +1,6 @@
 import{createClient}from'npm:@supabase/supabase-js@2';
 import{webProvider,officialProvider,type VideoResult}from'./providers.ts';
-const headers={'Access-Control-Allow-Origin':'https://dear-diary-app.github.io','Access-Control-Allow-Headers':'authorization,apikey,content-type','Content-Type':'application/json','Cache-Control':'no-store'};
+const headers={'Access-Control-Allow-Origin':'https://dear-diary-app.github.io','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Content-Type':'application/json','Cache-Control':'no-store'};
 // Short-lived public results only. Hash keys, no persistent query/history/logging.
 const cache=new Map<string,{until:number;results:VideoResult[]}>();const pending=new Map<string,Promise<VideoResult[]>>();let blockedUntil=0;
 Deno.serve(async req=>{const out=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers});if(req.method==='OPTIONS')return new Response('ok',{headers});if(req.method!=='POST')return out({},405);
