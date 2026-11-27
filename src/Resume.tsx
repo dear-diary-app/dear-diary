@@ -1,7 +1,7 @@
 import React,{useEffect,useRef} from 'react';
 import {useLocation,useNavigate} from 'react-router-dom';
 import {useAuth} from './store';
-const allowed=(p:string)=>/^\/(?:$|chat(?:\/(?:profile|thread))?$|profile(?:\/(?:joydeep|aruba))?$|(?:hub|write|read|calendar|published|pin)\/(?:joydeep|aruba)$|settings(?:\/(?:how-to-use|whats-new|password|pin))?$|notifications$|inbox$)/.test(p);
+const allowed=(p:string)=>/^\/(?:$|room$|chat(?:\/(?:profile|thread))?$|profile(?:\/(?:joydeep|aruba))?$|(?:hub|write|read|calendar|published|pin)\/(?:joydeep|aruba)$|settings(?:\/(?:how-to-use|whats-new|password|pin))?$|notifications$|inbox$)/.test(p);
 // Device-local navigation metadata only. No diary/chat text, secrets or unlock grants.
 export function ResumePlace({children}:{children:React.ReactNode}){
  const {session}=useAuth(),uid=session!.user.id,loc=useLocation(),nav=useNavigate();

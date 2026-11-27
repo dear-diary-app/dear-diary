@@ -1,0 +1,7 @@
+package com.deardiary.privateapp;
+import android.view.*;import android.webkit.*;import android.widget.*;import java.lang.reflect.*;import org.junit.*;import org.junit.runner.RunWith;import org.robolectric.*;import org.robolectric.annotation.Config;import static org.junit.Assert.*;
+@RunWith(RobolectricTestRunner.class)@Config(sdk=28,manifest=Config.NONE)
+public class RoomNativeTest{
+ @Test public void backClosesVideoBeforeNavigation()throws Exception{MainActivity a=Robolectric.buildActivity(MainActivity.class).get();FrameLayout root=new FrameLayout(a);View video=new View(a);root.addView(video);boolean[] called={false};for(String n:new String[]{"root","roomFullscreen","roomFullscreenCallback"}){Field f=MainActivity.class.getDeclaredField(n);f.setAccessible(true);f.set(a,n.equals("root")?root:n.equals("roomFullscreen")?video:(WebChromeClient.CustomViewCallback)()->called[0]=true);}Field web=MainActivity.class.getDeclaredField("web");web.setAccessible(true);web.set(a,new WebView(a));a.onBackPressed();assertTrue(called[0]);assertEquals(0,root.getChildCount());assertFalse(a.isFinishing());}
+ @Test public void sixTabsIncludeRoomWithoutMovingReelsSelection(){MainActivity a=Robolectric.buildActivity(MainActivity.class).get();String[] selected={""};InstagramNav nav=new InstagramNav(a,false,x->selected[0]=x);assertEquals(6,nav.getChildCount());nav.getChildAt(3).performClick();assertEquals("room",selected[0]);nav.getChildAt(4).performClick();assertEquals("reels",selected[0]);}
+}

@@ -1,3 +1,4 @@
+import{Room}from'./Room';
 import{InstagramFeed}from'./InstagramFeed';
 import{ChatInbox}from'./ChatInbox';
 import {FriendModeProvider,FriendShell,useFriendMode}from'./FriendMode';
@@ -131,6 +132,7 @@ function SignedShell({live}:{live:boolean}){const auth=useAuth(),friend=useFrien
                     <Route path="/read/:viewer" element={<ReadRoute />} />
                     <Route path="/calendar/:viewer" element={<CalendarRoute />} />
                     <Route path="/chat/*" element={<ChatRoute />} />
+                    <Route path="/room" element={<Room />} />
                     <Route path="/instagram" element={<InstagramFeed />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/profile/:person" element={<ProfilePage />} />

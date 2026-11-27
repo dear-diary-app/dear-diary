@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from './store';
-import { BookOpen, CalendarDays, UserRound, HomeIcon, MessageCircle, ReelsIcon } from './icons';
+import { BookOpen, CalendarDays, UserRound, HomeIcon, MessageCircle, ReelsIcon, Users } from './icons';
 import { useChat } from './ChatStore';
 import{usePageLocked}from'./DesktopIdleLock';
 import{openInstagramFromTab}from'./instagramNative';
@@ -12,6 +12,7 @@ export function BottomNav() {
     const { unread } = useChat();
     const { pathname,search } = useLocation();
     const active = (pathname === '/' || pathname === '/inbox') ? 'home'
+        : pathname==='/room'?'room'
         : pathname==='/instagram'?'reels'
         : pathname.startsWith('/calendar/') ? 'calendar'
         : pathname.startsWith('/chat') ? 'chat'
@@ -23,11 +24,12 @@ export function BottomNav() {
     const tabs = [
         { id: 'home', label: 'Home', to: '/', Icon: HomeIcon },
         { id: 'entries', label: 'My diary', to: `/hub/${me}`, Icon: BookOpen },
-        { id: 'chat', label: 'Chat', to: '/chat', Icon: MessageCircle, ReelsIcon },
+        { id: 'chat', label: 'Chat', to: '/chat', Icon: MessageCircle, ReelsIcon, Users },
+        { id: 'room', label: 'Room', to: '/room', Icon: Users },
         { id: 'reels', label: 'Reels', to: '/instagram', Icon: ReelsIcon },
         { id: 'profile', label: 'Profile', to: '/profile', Icon: UserRound },
     ];
-    return <><div className="dd-dock-frost" aria-hidden="true"/><nav className="dd-bottom-nav dd-bottom-nav-five" aria-label="Main navigation">
+    return <><div className="dd-dock-frost" aria-hidden="true"/><nav className="dd-bottom-nav dd-bottom-nav-six" aria-label="Main navigation">
         {tabs.map(({ id, label, to, Icon }) => <Link key={id} to={to}
             onClick={id==='reels'?e=>openInstagramFromTab(e,locked):undefined}
             className={`dd-bottom-tab${active === id ? ' is-current' : ''}`}

@@ -30,6 +30,8 @@ export function watchDesktopIdle(onLock: () => void) {
     return () => { done = true; clearTimeout(timer); events.forEach(type => document.removeEventListener(type, activity, true)); document.removeEventListener('visibilitychange', check); window.removeEventListener('focus', check); window.removeEventListener('pageshow', check); };
 }
 export function useDesktopIdle(active: boolean, onLock: () => void) {
+    const [watching,setWatching]=useState(false);
+    useEffect(()=>{const check=()=>setWatching(location.hash.split('?')[0]==='#/room'&&document.documentElement.hasAttribute('data-room-watching')&&!document.hidden);check();window.addEventListener('dd-room-watching',check);window.addEventListener('hashchange',check);document.addEventListener('visibilitychange',check);return()=>{window.removeEventListener('dd-room-watching',check);window.removeEventListener('hashchange',check);document.removeEventListener('visibilitychange',check);};},[]);
     const callback = useRef(onLock); callback.current = onLock;
-    useEffect(() => active ? watchDesktopIdle(() => callback.current()) : undefined, [active]);
+    useEffect(() => active && !watching ? watchDesktopIdle(() => callback.current()) : undefined, [active,watching]);
 }

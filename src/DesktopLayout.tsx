@@ -4,7 +4,7 @@ import { useAuth } from './store';
 import { useChat } from './ChatStore';
 import { otherId, personById } from './model';
 import { Avatar } from './ui';
-import { BookOpen, CalendarDays, UserRound, HomeIcon, MessageCircle, Bell, Gear } from './icons';
+import { BookOpen, CalendarDays, UserRound, HomeIcon, MessageCircle, Bell, Gear, Users } from './icons';
 
 // Touch-capable devices deliberately keep the existing phone/tablet UI, even
 // a large tablet with a trackpad. Only a large, non-touch desktop opts in.
@@ -29,6 +29,7 @@ function DesktopNav() {
         { label: 'Home', to: '/', Icon: HomeIcon, active: pathname === '/' },
         { label: 'My diary', to: `/hub/${me}`, Icon: BookOpen, active: /^\/(hub|write|read|pin|published)\//.test(pathname) },
         { label: 'Messages', to: '/chat', Icon: MessageCircle, active: pathname.startsWith('/chat') },
+        { label: 'Room', to: '/room', Icon: Users, active: pathname==='/room' },
         { label: 'History', to: `/calendar/${me}`, Icon: CalendarDays, active: pathname.startsWith('/calendar/') },
         { label: 'Notifications', to: '/inbox', Icon: Bell, active: pathname === '/inbox' },
         { label: 'Profile', to: '/profile', Icon: UserRound, active: pathname.startsWith('/profile') },

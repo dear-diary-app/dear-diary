@@ -2,7 +2,7 @@ import{useEffect}from'react';
 import{useLocation,useNavigate}from'react-router-dom';
 import{useAuth}from'./store';
 import type{PersonId}from'./model';
-export const tabPaths=(me:PersonId)=>['/',`/hub/${me}`,'/chat','/instagram',`/calendar/${me}`,'/profile'];
+export const tabPaths=(me:PersonId)=>['/',`/hub/${me}`,'/chat','/room','/instagram',`/calendar/${me}`,'/profile'];
 const blocked='a,button,input,textarea,select,summary,label,[role="button"],[role="slider"],[role="tab"],[contenteditable]:not([contenteditable="false"]),.dd-chat-msg,.dd-chat-actions,.dd-chat-compose,.dd-chat-profile,.dd-viewer,.dd-shared-viewer,.dd-crop-overlay,dialog,.dd-gif-picker,.dd-emoji-picker,.dd-journal,.dd-photo,.dd-photos,.dd-bottom-nav,[data-no-tab-swipe]';
 const overlay='.dd-attach-menu.is-open,dialog[open],.dd-viewer,.dd-shared-viewer,.dd-crop-overlay,.dd-gif-picker,.dd-chat-profile,.dd-chat-actions,.dd-overlay,.dd-entry-shell';
 function selected(){return !!window.getSelection()?.toString();}
