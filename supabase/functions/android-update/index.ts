@@ -7,9 +7,10 @@ Deno.serve(async req=>{
  const{data:{user}}=await db.auth.getUser((req.headers.get('Authorization')||'').replace(/^Bearer /,''));if(!user)return out({error:'unauthorized'},401);
  let b:any;try{b=await req.json();}catch{return out({error:'body'},400);}
  const{data:r,error}=await db.from('android_releases').select('version_code,version_name,notes,sha256,bytes,object_path').eq('active',true).order('version_code',{ascending:false}).limit(1).maybeSingle();
- if(error)return out({error:'channel_unavailable'},503);if(!r||r.version_code<=Number(b.current||0))return out({available:false});
+ if(error)return out({error:'channel_unavailable'},503);if(!r)return out({available:false});
  const release={code:r.version_code,version:r.version_name,notes:r.notes,sha256:r.sha256,bytes:r.bytes};
- if(b.action==='check')return out({available:true,...release});
+ if(b.action==='check')return out({available:r.version_code>Number(b.current||0),...release});
+ if(r.version_code<=Number(b.current||0))return out({available:false,...release});
  if(b.action!=='download'||Number(b.code)!==r.version_code)return out({error:'release_changed'},409);
  const{data,error:e}=await db.storage.from('private-android-releases').createSignedUrl(r.object_path,600);
  if(e||!data?.signedUrl)return out({error:'download_unavailable'},503);

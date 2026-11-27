@@ -1,5 +1,5 @@
 {
- "code": 25,
- "version": "2.14",
- "notes": "Phone landscape Room theatre and YouTube fullscreen hide Android status/navigation bars. Edge swipes may reveal them briefly. Leaving Room, exiting theatre/fullscreen, turning portrait, locking or backgrounding restores bars. Other pages and tablets unchanged. Install over Dear Diary, do not uninstall. Same app/signing key preserves local data under normal Android updates. Real phone immersive, keyboard and rotation testing still needed."
+ "code": 26,
+ "version": "2.15",
+ "notes": "A softer update screen\nSee your installed version, the next available version, release notes, and clear Update or Later choices. Already up to date? See the current version and when this device last installed the app, with Check again and Close.\n\nA tidier Home\nThe extra Instagram Feed card is removed. Reels stays in the bottom navigation. Other screens are unchanged.\n\nInstall over Dear Diary without uninstalling or clearing data. Android still confirms every install. Last installed update is Android device time, not the web content's last refresh."
 }

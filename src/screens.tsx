@@ -171,7 +171,6 @@ export function Home() {
                   <details className="dd-home-schedule"><summary><PhaseIcon size={14}/><span>{sched.phase === 'writing' ? 'Writing time' : sched.phase === 'quiet' ? 'Quiet time' : 'Reading time'}</span><small>{fmtCountdown(sched.countdownMs)} until {sched.next}</small><ChevronRight size={14}/></summary><div><p><CalendarDays size={14}/> {fmtDateLong(todayKey(now))}</p><p><Clock size={14}/> {istClock(now)} IST</p><p>{sched.label}</p><p>{fmtCountdown(sched.countdownMs)} until {sched.next}</p></div></details>
                 </aside></>}
 
-                {!profileFeed&&<Link to="/instagram" className="dd-instagram-entry"><span><strong>Instagram Feed</strong><small>Reels inside the app · Android APK</small></span><span aria-hidden="true">↗</span></Link>}
                 <Feed/>
                 <footer className="dd-foot">
                     <p className="dd-foot-heart">Dear Diary <Heart size={12} /> Joydeep &amp; Aruba</p>
