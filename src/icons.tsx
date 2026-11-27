@@ -42,3 +42,5 @@ export const Users = make(['M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2', 'M9 11a4
 export const HomeIcon = make(['M3 10l9-7 9 7', 'M5 9v12h14V9', 'M9 21v-8h6v8']);
 
 export const UserRound = make(['M20 21v-2a7 7 0 0 0-14 0v2','M13 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z']);
+
+export const ReelsIcon = make(['M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z','M3 9h18','M7 3l4 6','M14 3l4 6','M10 12l5 3-5 3Z']);

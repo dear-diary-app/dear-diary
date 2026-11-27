@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from './store';
-import { BookOpen, CalendarDays, UserRound, HomeIcon, MessageCircle } from './icons';
+import { BookOpen, CalendarDays, UserRound, HomeIcon, MessageCircle, ReelsIcon } from './icons';
 import { useChat } from './ChatStore';
 
 export function BottomNav() {
@@ -9,6 +9,7 @@ export function BottomNav() {
     const { unread } = useChat();
     const { pathname,search } = useLocation();
     const active = (pathname === '/' || pathname === '/inbox') ? 'home'
+        : pathname==='/instagram'?'reels'
         : pathname.startsWith('/calendar/') ? 'calendar'
         : pathname.startsWith('/chat') ? 'chat'
         : pathname.startsWith('/profile') ? 'profile'
@@ -19,11 +20,12 @@ export function BottomNav() {
     const tabs = [
         { id: 'home', label: 'Home', to: '/', Icon: HomeIcon },
         { id: 'entries', label: 'My diary', to: `/hub/${me}`, Icon: BookOpen },
-        { id: 'chat', label: 'Chat', to: '/chat', Icon: MessageCircle },
+        { id: 'chat', label: 'Chat', to: '/chat', Icon: MessageCircle, ReelsIcon },
+        { id: 'reels', label: 'Reels', to: '/instagram', Icon: ReelsIcon },
         { id: 'calendar', label: 'History', to: `/calendar/${me}`, Icon: CalendarDays },
         { id: 'profile', label: 'Profile', to: '/profile', Icon: UserRound },
     ];
-    return <><div className="dd-dock-frost" aria-hidden="true"/><nav className="dd-bottom-nav" aria-label="Main navigation">
+    return <><div className="dd-dock-frost" aria-hidden="true"/><nav className="dd-bottom-nav dd-bottom-nav-six" aria-label="Main navigation">
         {tabs.map(({ id, label, to, Icon }) => <Link key={id} to={to}
             className={`dd-bottom-tab${active === id ? ' is-current' : ''}`}
             aria-current={active === id ? 'page' : undefined}>
