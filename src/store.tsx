@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const { error } = await supabase.auth.signInWithPassword({ email, password });
             return error ? error.message : null;
         },
-        signOut: async () => { try { await disableDevicePush(); } catch { /* Permission can also be revoked in browser settings. */ } await supabase.auth.signOut(); },
+        signOut: async () => { window.DearDiaryAndroid?.postMessage(JSON.stringify({op:'reel-share-clear'}));try { await disableDevicePush(); } catch { /* Permission can also be revoked in browser settings. */ } await supabase.auth.signOut(); },
         resetPassword: async (email) => {
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
                 redirectTo: window.location.origin + '/#reset',

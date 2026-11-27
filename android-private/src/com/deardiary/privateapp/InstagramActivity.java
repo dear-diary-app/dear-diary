@@ -14,10 +14,10 @@ public final class InstagramActivity extends Activity{
   web.setWebChromeClient(new WebChromeClient(){@Override public void onPermissionRequest(PermissionRequest r){r.deny();}@Override public void onGeolocationPermissionsShowPrompt(String origin,GeolocationPermissions.Callback c){c.invoke(origin,false,false);}@Override public boolean onShowFileChooser(WebView w,android.webkit.ValueCallback<Uri[]> cb,FileChooserParams p){cb.onReceiveValue(null);return true;}});
   web.setDownloadListener((url,agent,disposition,mime,size)->notice("Downloads are disabled in this screen."));
   web.setWebViewClient(new WebViewClient(){@Override public WebResourceResponse shouldInterceptRequest(WebView w,WebResourceRequest r){if(!"https".equals(r.getUrl().getScheme()))return new WebResourceResponse("text/plain","UTF-8",new java.io.ByteArrayInputStream(new byte[0]));return null;}@Override public boolean shouldOverrideUrlLoading(WebView w,WebResourceRequest r){if(allowed(r.getUrl()))return false;if(r.isForMainFrame())notice("This link is outside the allowed Instagram login sites.");return true;}@Override public void onPageStarted(WebView w,String url,android.graphics.Bitmap icon){if(!allowed(Uri.parse(url))){w.stopLoading();notice("Blocked an unsupported address.");}}@Override public void onReceivedSslError(WebView w,SslErrorHandler h,android.net.http.SslError e){h.cancel();notice("Secure connection failed. Close and try later.");}@Override public void onReceivedError(WebView w,WebResourceRequest r,WebResourceError e){if(r.isForMainFrame())notice("Instagram could not load. Close and try again.");}});
-  started=true;boolean restored=saved!=null&&web.restoreState(saved)!=null&&allowed(Uri.parse(web.getUrl()));if(!restored)web.loadUrl("https://www.instagram.com/reels/");
+  started=true;boolean restored=saved!=null&&web.restoreState(saved)!=null&&allowed(Uri.parse(web.getUrl()));String reel=InstagramReelUrl.clean(getIntent().getStringExtra("reel_url"));if(reel!=null)web.loadUrl(reel);else if(!restored)web.loadUrl("https://www.instagram.com/reels/");
  }
  private void returnToDiary(String key){boolean safe=continuous&&!((KeyguardManager)getSystemService(KEYGUARD_SERVICE)).isKeyguardLocked();returningToDiary=true;continuous=false;Intent diary=new Intent(this,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT|Intent.FLAG_ACTIVITY_SINGLE_TOP).putExtra("instagram_return",true).putExtra("tab",key).putExtra("continuous",safe).putExtra("return_ticket",getIntent().getStringExtra("return_ticket"));startActivity(diary);}
- @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);long issued=intent.getLongExtra("issued",0),age=SystemClock.elapsedRealtime()-issued;if(issued<=0||age<0||age>5000){continuous=false;return;}setIntent(intent);continuous=true;returningToDiary=false;}
+ @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);long issued=intent.getLongExtra("issued",0),age=SystemClock.elapsedRealtime()-issued;if(issued<=0||age<0||age>5000){continuous=false;return;}setIntent(intent);continuous=true;returningToDiary=false;String reel=InstagramReelUrl.clean(intent.getStringExtra("reel_url"));if(reel!=null&&web!=null)web.loadUrl(reel);}
  static void addNavigation(LinearLayout content,InstagramNav nav){content.addView(nav,new LinearLayout.LayoutParams(-1,-2));}
  static int safeBottom(int system,int ime){return Math.max(system,ime);}
  private void configureInsets(FrameLayout root){
@@ -32,6 +32,10 @@ public final class InstagramActivity extends Activity{
  private void shut(){if(closing)return;closing=true;if(web!=null){web.stopLoading();web.onPause();web.loadUrl("about:blank");((android.view.ViewGroup)web.getParent()).removeView(web);web.destroy();web=null;}finish();}
  @Override public void onBackPressed(){if(web!=null&&web.canGoBack())web.goBack();else shut();}
  @Override protected void onPause(){super.onPause();if(!closing&&!returningToDiary)continuous=false;returningToDiary=false;if(web!=null)web.onPause();}
+ // Stop background layout/JS without destroying the retained Instagram page.
+ // This is process-wide, safe here only because :instagram owns this WebView.
+ @Override protected void onStart(){super.onStart();if(web!=null)web.resumeTimers();}
+ @Override protected void onStop(){if(web!=null)web.pauseTimers();super.onStop();}
  @Override protected void onResume(){super.onResume();if(web!=null)web.onResume();}
  @Override protected void onSaveInstanceState(Bundle state){if(web!=null)web.saveState(state);continuous=false;super.onSaveInstanceState(state);}
  @Override protected void onDestroy(){try{unregisterReceiver(screenOff);}catch(Exception ignored){}if(web!=null){web.destroy();web=null;}super.onDestroy();}

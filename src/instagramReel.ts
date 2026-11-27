@@ -1,0 +1,2 @@
+// Only a canonical HTTPS reel permalink. Drop tracking parameters before sharing.
+export function instagramReel(value:string):string|null{try{const u=new URL(value.trim());if(u.protocol!=='https:'||u.username||u.password||u.port||!['instagram.com','www.instagram.com','m.instagram.com'].includes(u.hostname))return null;const m=u.pathname.match(/^\/reel\/([A-Za-z0-9_-]{1,100})\/?$/);return m?'https://www.instagram.com/reel/'+m[1]+'/':null;}catch{return null;}}

@@ -1,3 +1,4 @@
+import{ReelQuickShare}from'./ReelQuickShare';
 import{friendModeOn}from'./friendPrivacy';
 import{FriendModeSettings}from'./FriendMode';
 import{AndroidUnlock,nativeUnlockAvailable,enrollAndroidUnlock}from'./AndroidUnlock';
@@ -942,6 +943,7 @@ export function Settings() {
 
                 <FriendModeSettings />
                 <DiaryInstall />
+                <ReelQuickShare />
 
                 <Link className="dd-menu-card" to="/settings/how-to-use">
                     <span className="dd-menu-icon"><BookOpen /></span>
