@@ -12,7 +12,7 @@ export function BottomNav() {
         : pathname.startsWith('/calendar/') ? 'calendar'
         : pathname.startsWith('/chat') ? 'chat'
         : pathname.startsWith('/profile') ? 'profile'
-        : pathname.startsWith('/settings') || pathname === '/notifications' ? ''
+        : pathname.startsWith('/settings') || pathname === '/notifications' || pathname === '/instagram' ? ''
         : 'entries';
     // The conversation is full screen, like Instagram: it has its own back arrow.
     if (pathname.startsWith('/chat/') || (pathname==='/chat'&&!!search)) return null;
