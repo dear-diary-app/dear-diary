@@ -1,5 +1,5 @@
 {
- "code":24,
- "version":"2.13",
- "notes":"Adds Room, a separate two-person YouTube screen with create/join without codes, key-free unofficial search and paste-link fallback, shared play/pause/seek/video changes, Sync again and temporary Room text chat. End Room deletes its messages for both; abandoned Rooms are deleted after24hours without activity, within the next10minute cleanup cycle. Leaving or locking pauses both; lost connections can take15seconds to detect. Rejoin and Sync again after reconnecting. Idle PIN is off only while a visible Room video is playing; all other locks and Room screenshot protection remain. New APK adds fullscreen video/Back handling, rotation retention and the Room tab when returning from native Reels. Volume, captions, fullscreen and orientation are per-device. Unofficial search can fail or be blocked, videos may refuse embeds, and ads may differ. No frame-perfect sync guarantee. Search has short caching and generous safeguards, not unlimited availability. Two-device real-video sync, ads, fullscreen/background handling and tablet playback still require device testing. Install over Dear Diary, do not uninstall; existing data stays."
+ "code": 25,
+ "version": "2.14",
+ "notes": "Phone landscape Room theatre and YouTube fullscreen hide Android status/navigation bars. Edge swipes may reveal them briefly. Leaving Room, exiting theatre/fullscreen, turning portrait, locking or backgrounding restores bars. Other pages and tablets unchanged. Install over Dear Diary, do not uninstall. Same app/signing key preserves local data under normal Android updates. Real phone immersive, keyboard and rotation testing still needed."
 }
