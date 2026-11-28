@@ -110,3 +110,17 @@
 .dd-room.is-theatre.provider-anime .dd-room-provider-tabs{margin-bottom:12px}
 .dd-room.is-theatre.provider-anime .dd-anime-shelf{position:relative;isolation:isolate}
 @media(orientation:landscape) and (max-height:520px){.dd-room.is-theatre.provider-anime .dd-room-player{height:200px}.dd-room.is-theatre.provider-anime .dd-room-chat{max-height:none;height:280px}}
+
+/* Theatre content has natural height in both sources. No fixed search track. */
+.dd-room.is-theatre,.dd-room.is-theatre.provider-anime{display:block;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(20px + max(var(--dd-native-safe-bottom,0px),env(safe-area-inset-bottom,0px)))}
+.dd-room.is-theatre>.dd-room-viewbar,.dd-room.is-theatre.provider-anime>.dd-room-viewbar{margin:0 0 12px;padding-right:78px;min-height:32px;display:flex;gap:8px}
+.dd-room.is-theatre .dd-room-workspace,.dd-room.is-theatre.provider-anime .dd-room-workspace{display:flex;flex-direction:column;gap:14px;min-height:0}
+.dd-room.is-theatre .dd-room-watch-pane,.dd-room.is-theatre.provider-anime .dd-room-watch-pane{order:0;width:100%;overflow:visible;flex:none}
+.dd-room.is-theatre .dd-room-stage{position:relative;top:auto}
+.dd-room.is-theatre .dd-room-chat,.dd-room.is-theatre.provider-anime .dd-room-chat{order:1;width:100%;height:280px;min-height:240px;max-height:none;overflow:hidden;flex:none}
+.dd-room.is-theatre .dd-room-chat[hidden]{display:none}
+.dd-room.is-theatre .dd-room-discover,.dd-room.is-theatre.provider-anime .dd-room-discover{order:2;width:100%;height:auto;min-height:0;position:static;z-index:auto;flex:none}
+.dd-room.is-theatre .dd-room-provider-tabs{display:none}
+.dd-room.is-theatre .dd-room-player{height:max(200px,calc((min(100vw,820px) - 36px)*.5625));max-height:360px}
+.dd-room.is-theatre .dd-room-controls{padding:6px 0}
+@media(orientation:landscape) and (max-height:520px){.dd-room.is-theatre .dd-room-player{height:200px}}
