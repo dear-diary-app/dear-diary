@@ -1,0 +1,24 @@
+// Reuses Room's existing bounded YouTube HTML adapter. No new service/library.
+import{bounded,extractInitialData}from'../room-search/providers.ts';
+import{languageTags,playlistKind,preferredAudio}from'./metadata.ts';
+type Lead={id:string;name:string;handle:string;url:string};
+const memo=new Map<string,{until:number;value:any}>();
+const notice='Best-effort key-free YouTube preview. Only the first visible page is loaded; results may be incomplete or break. Availability in India and embedding are not checked. YouTube decides when you press play.';
+function walk(x:any,fn:(key:string,value:any)=>void){if(!x||typeof x!=='object')return;for(const[k,v]of Object.entries(x)){fn(k,v);walk(v,fn);}}
+function nodes(x:any,key:string):any[]{const out:any[]=[];walk(x,(k,v)=>{if(k===key)out.push(v)});return out;}
+const text=(x:any)=>String(x?.simpleText||x?.runs?.map((r:any)=>r.text||'').join('')||'');
+function channelRefs(x:any):string[]{return nodes(x,'browseEndpoint').map(x=>x.browseId).filter(x=>/^UC[\w-]{22}$/.test(x||''));}
+function thumb(x:any):string|undefined{const sources=[...nodes(x,'sources').flat(),...nodes(x,'thumbnails').flat()];return sources.map(x=>x?.url).find(x=>typeof x==='string'&&x.startsWith('https://i.ytimg.com/'));}
+async function page(url:string){const saved=memo.get(url);if(saved&&saved.until>Date.now())return saved.value;const value=extractInitialData(await bounded(url));if(memo.size>=60)memo.delete(memo.keys().next().value!);memo.set(url,{until:Date.now()+600000,value});return value;}
+export function parseChannel(data:any,c:Lead){const m=data.metadata?.channelMetadataRenderer;if(!/^UC[\w-]{22}$/.test(m?.externalId||'')||!m.ownerUrls?.some((u:string)=>{try{return new URL(u).pathname.toLowerCase()==='/'+c.handle.toLowerCase()}catch{return false}}))throw Error('Official channel identity unavailable in key-free preview.');const cid=m.externalId;
+ const tab=data.contents?.twoColumnBrowseResultsRenderer?.tabs?.find((t:any)=>t.tabRenderer?.selected)?.tabRenderer;
+ if(tab?.title!=='Playlists')throw Error('YouTube playlist page layout changed.');
+ const playlists:any[]=[];for(const v of nodes(tab.content,'lockupViewModel')){if(v.contentType!=='LOCKUP_CONTENT_TYPE_PLAYLIST'||!/^PL[\w-]{8,98}$/.test(v.contentId||''))continue;const meta=v.metadata?.lockupMetadataViewModel;if(!channelRefs(meta?.metadata).includes(cid))continue;const title=String(meta?.title?.content||'').slice(0,300);if(!title||!preferredAudio(title))continue;const badge=nodes(v.contentImage,'thumbnailBadgeViewModel').map(x=>x.text).find(x=>/^[\d,]+ videos?$/.test(x||''));playlists.push({id:v.contentId,title,thumbnail:thumb(v.contentImage),count:badge?Number(badge.replace(/\D/g,'')):null,channel:c.name,tags:languageTags(title),kind:playlistKind(title)});}
+ return{cid,playlists:playlists.filter((p,i,a)=>a.findIndex(x=>x.id===p.id)===i)};
+}
+export function parseEpisodes(data:any,cid:string,c:Lead){const owner=nodes(data.sidebar,'videoOwnerRenderer');if(!owner.some(x=>channelRefs(x.navigationEndpoint).includes(cid)))throw Error('Playlist owner could not be verified.');const out:any[]=[];const content=data.contents;let seen=0;
+ for(const v of nodes(content,'lockupViewModel')){if(v.contentType!=='LOCKUP_CONTENT_TYPE_VIDEO')continue;const position=seen++;if(!/^[\w-]{11}$/.test(v.contentId||''))continue;const m=v.metadata?.lockupMetadataViewModel;if(!channelRefs(m?.metadata).includes(cid))continue;const title=String(m?.title?.content||'').slice(0,300);if(!title||!preferredAudio(title))continue;out.push({id:v.contentId,title,thumbnail:thumb(v.contentImage),position,channel:c.name,tags:languageTags(title),available:true,availability:'unknown',duration:nodes(v.contentImage,'thumbnailBadgeViewModel').map(x=>x.text).find(x=>/^\d+:\d/.test(x||''))});}
+ for(const v of nodes(content,'playlistVideoRenderer')){const position=seen++;if(!/^[\w-]{11}$/.test(v.videoId||'')||!channelRefs(v.shortBylineText).includes(cid)||!v.isPlayable||!preferredAudio(text(v.title)))continue;out.push({id:v.videoId,title:text(v.title).slice(0,300),thumbnail:thumb(v.thumbnail),position,channel:c.name,tags:languageTags(text(v.title)),available:true,availability:'unknown',duration:text(v.lengthText)});}
+ return{episodes:out.filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i),omitted:seen-out.length};
+}
+export async function webCatalog(c:Lead,action:string,playlist?:string){const base=await page('https://www.youtube.com/'+c.handle+'/playlists');const catalog=parseChannel(base,c);if(action==='playlists')return{playlists:catalog.playlists,next:null,source:'YouTube web preview',region:null,notice,incomplete:true};if(!catalog.playlists.some(p=>p.id===playlist))throw Error('Playlist is not in this official channel preview.');const data=await page('https://www.youtube.com/playlist?list='+encodeURIComponent(playlist!));return{...parseEpisodes(data,catalog.cid,c),next:null,source:'YouTube web preview',region:null,notice,incomplete:true};}

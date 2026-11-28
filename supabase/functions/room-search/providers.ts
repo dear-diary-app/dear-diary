@@ -26,7 +26,7 @@ export function parseResults(data:any):VideoResult[]{
  }}
  if(!recognized)throw Error('SEARCH_UNAVAILABLE');return items.filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i).slice(0,10);
 }
-async function bounded(url:string):Promise<string>{
+export async function bounded(url:string):Promise<string>{
  const response=await fetch(url,{signal:AbortSignal.timeout(10000),redirect:'error',headers:{'Accept-Language':'en-IN,en;q=0.8'}});
  if(!response.ok||!response.body)throw Error('SEARCH_UNAVAILABLE');
  const reader=response.body.getReader(),decoder=new TextDecoder();let result='',bytes=0;

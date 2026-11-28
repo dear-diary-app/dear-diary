@@ -1,0 +1,203 @@
+[
+  {
+    "id": "muse-india",
+    "name": "Muse India",
+    "handle": "@MuseIndiaChannel",
+    "url": "https://www.youtube.com/@MuseIndiaChannel",
+    "note": "India catalog; mixed languages.",
+    "sources": [
+      "https://www.youtube.com/@MuseIndiaChannel/about"
+    ]
+  },
+  {
+    "id": "muse-asia",
+    "name": "Muse Asia",
+    "handle": "@MuseAsia",
+    "url": "https://www.youtube.com/@MuseAsia",
+    "note": "Regional availability varies.",
+    "sources": [
+      "https://arank-party-ridatsu-official.com/information/global-streaming/"
+    ]
+  },
+  {
+    "id": "ani-india",
+    "name": "Ani-One India",
+    "handle": "@AniOneIN",
+    "url": "https://www.youtube.com/@AniOneIN",
+    "note": "India catalog; some content may require membership.",
+    "sources": [
+      "https://www.medialink.com.hk/en/Anione.aspx"
+    ]
+  },
+  {
+    "id": "ani-asia",
+    "name": "Ani-One Asia",
+    "handle": "@AniOneAsia",
+    "url": "https://www.youtube.com/@AniOneAsia",
+    "note": "Regional availability and membership restrictions vary.",
+    "sources": [
+      "https://www.medialink.com.hk/en/Anione.aspx"
+    ]
+  },
+  {
+    "id": "remow",
+    "name": "It’s Anime powered by REMOW",
+    "handle": "@ItsAnimeJP",
+    "url": "https://www.youtube.com/@ItsAnimeJP",
+    "note": "Full episodes, news and promotional videos.",
+    "sources": [
+      "https://www.remow.com/en/service/"
+    ]
+  },
+  {
+    "id": "tms",
+    "name": "Anime! on TMS Official Channel",
+    "handle": "@AnimeonTMSOfficialChannel",
+    "url": "https://www.youtube.com/@AnimeonTMSOfficialChannel",
+    "note": "Classic anime; regional availability varies.",
+    "sources": [
+      "https://www.tmsanime.com/"
+    ]
+  },
+  {
+    "id": "atashinchi",
+    "name": "Atashin’chi Official",
+    "handle": "@Atashinchi",
+    "url": "https://www.youtube.com/@Atashinchi",
+    "note": "Official episodes; some uploads have limited availability.",
+    "sources": [
+      "https://atashinchi-next.com/news/index00040000.html"
+    ]
+  },
+  {
+    "id": "gundam",
+    "name": "GUNDAM CHANNEL INTL",
+    "handle": "@GundamInfo",
+    "url": "https://www.youtube.com/@GundamInfo",
+    "note": "Subtitle options and availability vary by title.",
+    "sources": [
+      "https://en.gundam-official.com/feature/gwoy/"
+    ]
+  },
+  {
+    "id": "viz",
+    "name": "VIZ Media",
+    "handle": "@vizmedia",
+    "url": "https://www.youtube.com/@vizmedia",
+    "note": "Official anime and movies; many regional restrictions.",
+    "sources": [
+      "https://www.viz.com/blog/posts/your-anime-guide-on-youtube"
+    ]
+  },
+  {
+    "id": "pokemon-hi",
+    "name": "Pokémon Asia Hindi",
+    "handle": "@PokemonAsiaHindiOfficial",
+    "url": "https://www.youtube.com/@PokemonAsiaHindiOfficial",
+    "note": "Official Hindi channel.",
+    "sources": [
+      "https://in.portal-pokemon.com/topics/pokemon_horizons_is_now_available_on_youtube_also_pokemon_south_asia_official_english_channel_has_be/"
+    ]
+  },
+  {
+    "id": "pokemon-ta",
+    "name": "Pokémon Asia Tamil",
+    "handle": "@PokemonasiaTamilOfficial",
+    "url": "https://www.youtube.com/@PokemonasiaTamilOfficial",
+    "note": "Official Tamil channel.",
+    "sources": [
+      "https://in.portal-pokemon.com/topics/pokemon_horizons_is_now_available_on_youtube_also_pokemon_south_asia_official_english_channel_has_be/"
+    ]
+  },
+  {
+    "id": "pokemon-te",
+    "name": "Pokémon Telugu",
+    "handle": "@PokemonTeluguOfficial",
+    "url": "https://www.youtube.com/@PokemonTeluguOfficial",
+    "note": "Official Telugu channel.",
+    "sources": [
+      "https://in.portal-pokemon.com/topics/pokemon_horizons_is_now_available_on_youtube_also_pokemon_south_asia_official_english_channel_has_be/"
+    ]
+  },
+  {
+    "id": "pokemon-bn",
+    "name": "Pokémon Bengali",
+    "handle": "@pokemonbengali",
+    "url": "https://www.youtube.com/@pokemonbengali",
+    "note": "Official Bengali channel.",
+    "sources": [
+      "https://in.portal-pokemon.com/topics/pokemon_horizons_is_now_available_on_youtube_also_pokemon_south_asia_official_english_channel_has_be/"
+    ]
+  },
+  {
+    "id": "anime-times",
+    "name": "Anime Times India",
+    "handle": "@animetimes-india",
+    "url": "https://www.youtube.com/@animetimes-india",
+    "note": "YouTube public playlists only, not paid Prime Video catalog.",
+    "sources": [
+      "https://prtimes.jp/main/html/rd/p/000000038.000085059.html"
+    ]
+  },
+  {
+    "id": "aniplex",
+    "name": "Aniplex",
+    "handle": "@aniplex",
+    "url": "https://www.youtube.com/@aniplex",
+    "note": "Primarily trailers, events and promotional content.",
+    "sources": [
+      "https://www.aniplex.co.jp/"
+    ]
+  },
+  {
+    "id": "wit",
+    "name": "WIT STUDIO",
+    "handle": "@witstudio3461",
+    "url": "https://www.youtube.com/@witstudio3461",
+    "note": "Studio and promotional content, not a full series service.",
+    "sources": [
+      "https://www.witstudio.co.jp/"
+    ]
+  },
+  {
+    "id": "ufotable",
+    "name": "ufotable",
+    "handle": "@ufotable_inc",
+    "url": "https://www.youtube.com/@ufotable_inc",
+    "note": "Studio and promotional content, not a full series service.",
+    "sources": [
+      "https://www.ufotable.com/"
+    ]
+  },
+  {
+    "id": "toei",
+    "name": "Toei Animation",
+    "url": "https://www.youtube.com/ToeiAnimationjp",
+    "note": "Official Japanese animation channel.",
+    "sources": [
+      "https://www.toei-anim.co.jp/"
+    ],
+    "handle": "@ToeiAnimationjp"
+  },
+  {
+    "id": "mappa",
+    "name": "MAPPA CHANNEL",
+    "url": "https://www.youtube.com/c/MAPPACHANNEL",
+    "note": "Studio trailers, music and promotional content.",
+    "sources": [
+      "https://www.mappa.co.jp/"
+    ],
+    "handle": "@MAPPACHANNEL"
+  },
+  {
+    "id": "crunchyroll",
+    "name": "Crunchyroll (includes former Collection)",
+    "handle": "@crunchyroll",
+    "url": "https://www.youtube.com/@crunchyroll",
+    "note": "Mixed clips, trailers and selected full episodes; regional restrictions vary.",
+    "sources": [
+      "https://www.youtube.com/c/CrunchyrollCollection",
+      "https://www.crunchyroll.com/news/guides/2022/3/1/new-to-crunchyroll-dive-into-our-anime-community-with-this-helpful-guide"
+    ]
+  }
+]
