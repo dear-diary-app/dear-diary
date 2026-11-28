@@ -1,5 +1,5 @@
 {
- "code": 26,
- "version": "2.15",
- "notes": "A softer update screen\nSee your installed version, the next available version, release notes, and clear Update or Later choices. Already up to date? See the current version and when this device last installed the app, with Check again and Close.\n\nA tidier Home\nThe extra Instagram Feed card is removed. Reels stays in the bottom navigation. Other screens are unchanged.\n\nInstall over Dear Diary without uninstalling or clearing data. Android still confirms every install. Last installed update is Android device time, not the web content's last refresh."
+ "code": 27,
+ "version": "2.16",
+ "notes": "Closer Room sync\nPrivate realtime refresh notices reduce the wait for accepted playback commands. Paused seeks apply without pressing Play; YouTube may load a nearby keyframe. No zero-delay or frame-perfect guarantee.\n\nA shared little cinema\nSearch and Room-chat typing indicators, shared submitted search query/results, message replies, and compact Room-online names. Typing and reactions are transient with no offline replay; Room replies delete with the Room.\n\nFullscreen reactions\nAPK2.16 can show received emoji on the right side of YouTube native landscape fullscreen as well as Room theatre. Real two-device playback, ads, buffering, OEM fullscreen and rotation require device testing. Existing locks, solo playback and screenshot protection remain. Install over the app without uninstalling or clearing data."
 }

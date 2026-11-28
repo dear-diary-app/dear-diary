@@ -1,4 +1,4 @@
-export interface RoomMessage{id:string;sender:string;body:string;created_at:string}
+export interface RoomMessage{id:string;sender:string;body:string;created_at:string;reply_to?:string;reply_body?:string;reply_sender?:string}
 export interface RoomState{id?:string;host?:boolean;video?:string|null;playing?:boolean;position?:number;version?:number;changed_at?:string;server_now:string;joined?:boolean;partner_online?:boolean;messages?:RoomMessage[];ended?:boolean}
 export function youtubeId(value:string):string|null{
  const input=value.trim();if(/^[\w-]{11}$/.test(input))return input;
